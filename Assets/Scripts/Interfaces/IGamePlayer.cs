@@ -7,10 +7,13 @@ using System.Text;
 namespace AtRng.MobileTTA {
     public interface IGamePlayer {
 
-        List<IUnit> GetCurrentSummonedUnits();
+        void Reset(); // Drawing costs, etc.
 
         int GetCurrentDrawCost();
         //int GetHandSize();
         List<IUnit> GetHand();
+        List<IUnit> GetCurrentSummonedUnits();
+
+        int GetHealth();
     }
 }

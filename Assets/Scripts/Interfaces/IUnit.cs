@@ -2,24 +2,30 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public interface IUnit {
+namespace AtRng.MobileTTA {
 
-    int  GetPhysicalHealth();
-    void ModifyPhysicalHealth(int amount);
+    public interface IUnit {
 
-    int GetSpiritualHealth();
-    void ModifySpiritualHealth(int amount);
+        int GetPlayerOwner();
 
-    int GetAttackValue();
-    // int GetAttackType();
-    bool IsSpiritualAttack();
-    bool IsPhysicalAttack();
+        int GetPhysicalHealth();
+        void ModifyPhysicalHealth(int amount);
 
-    // int GetMovementType();
-    int GetMaxMovement();
-    bool HasPerformedAction();
-    bool Clear();
+        int GetSpiritualHealth();
+        void ModifySpiritualHealth(int amount);
 
-    // Progression Accessors
+        int GetAttackValue();
+        // int GetAttackType();
+        bool IsSpiritualAttack();
+        bool IsPhysicalAttack();
+        int GetAttackRange();
 
+        // int GetMovementType();
+        int GetMaxMovement();
+        bool HasPerformedAction();
+        bool Clear();
+
+        // Progression Accessors
+
+    }
 }
