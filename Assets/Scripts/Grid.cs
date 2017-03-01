@@ -13,6 +13,7 @@ namespace AtRng.MobileTTA {
         List<Tile> m_grid;
 
         bool m_hasBeenInitialized = false;
+        Dictionary<Tile, TileStateEnum> m_accessibleTiles = new Dictionary<Tile, TileStateEnum>();
 
         void Awake() {
             //      InitializeGrid();
@@ -63,7 +64,6 @@ namespace AtRng.MobileTTA {
             return m_grid[(col * m_height) + row];
         }
 
-        Dictionary<Tile, TileStateEnum> m_accessibleTiles = new Dictionary<Tile, TileStateEnum>();
         private void FillTileAdjacency(int TileX, int TileY, int MovesLeft, int attackRange, bool initCall = false) {
             Tile tileAt = GetTileAt(TileX, TileY);
             if (tileAt == null) return;
@@ -123,6 +123,26 @@ namespace AtRng.MobileTTA {
             return;
         }
 
+        // (-1, 0), (0, 1), (0, -1), (1,0)
+        private List<Tile> GetCircumference(Tile tile, int radius) {
+            List<Tile> toRet = new List<Tile>();
+            for (int i = -radius; i <= radius; i++) {
+                int j = radius - Mathf.Abs(i);
+
+                Tile tileAt = GetTileAt(tile.xPos + i, tile.yPos + j);
+                if (tileAt != null) {
+                    toRet.Add(tileAt);
+                }
+                if (j != 0) {
+                    tileAt = GetTileAt(tile.xPos + i, tile.yPos - j);
+                    if (tileAt != null) {
+                        toRet.Add(tileAt);
+                    }
+                }
+            }
+            return toRet;
+        }
+
         public void DeterminePathableTiles(Tile tile, IUnit unit) {
             m_accessibleTiles.Clear();
 
@@ -130,21 +150,39 @@ namespace AtRng.MobileTTA {
             int attack = unit.GetAttackRange();
             //Vector2 origin = new Vector2(tile.xPos, tile.yPos);
 
+            List<Tile> TilesToFlip = new List<Tile>();
             FillTileAdjacency(tile.xPos, tile.yPos, max_range, attack, true);
             foreach (KeyValuePair<Tile, TileStateEnum> kvp in m_accessibleTiles) {
-                Debug.Log(string.Format("[DeterminePathableTiles] Tile({0}): {1}", kvp.Key, kvp.Value));
+                //Debug.Log(string.Format("[DeterminePathableTiles] Tile({0}): {1}", kvp.Key, kvp.Value));
                 switch (kvp.Value) {
                     case TileStateEnum.CanMove:
                         kvp.Key.sr.color = Color.blue;
                         break;
                     case TileStateEnum.CanAttack:
+                        // actually an empty tile so it can't really "attack"
                         kvp.Key.sr.color = Color.red;
                         break;
                     case TileStateEnum.CanNotAccess:
                         kvp.Key.sr.color = Color.white;
+                        if (tile != kvp.Key) {
+                            List<Tile> listOfCandidateAttackTilePositions = GetCircumference(kvp.Key, attack);
+                            Debug.Log(string.Format("[DeterminePathableTiles] Test {1} locations if can attack Tile({0})", kvp.Key, listOfCandidateAttackTilePositions.Count));
+                            foreach (Tile t in listOfCandidateAttackTilePositions) {
+                                Debug.Log(string.Format("[DeterminePathableTiles] t: ({0},{1})", t.xPos, t.yPos));
+                                if (m_accessibleTiles.ContainsKey(t) && (t == tile || m_accessibleTiles[t] == TileStateEnum.CanMove)) {
+                                    TilesToFlip.Add(kvp.Key);
+                                    break;
+                                }
+                            }
+                        }
                         break;
                 }
+            }
 
+            //Debug.Log(string.Format("[DeterminePathableTiles] TilesToFlip: {0}", TilesToFlip.Count));
+            for (int i = 0; i < TilesToFlip.Count; i++) {
+                TilesToFlip[i].sr.color = Color.red;
+                m_accessibleTiles[TilesToFlip[i]] = TileStateEnum.CanAttack;
             }
         }
 
