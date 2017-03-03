@@ -77,8 +77,21 @@ public class Tile : MonoBehaviour {
                 case TileStateEnum.CanAttack:
                     //TODO
                     // Find Tile that can be placed at this location.
-                    //m_itemOnTile = null; // maybe allow for pending state.
-                    //break;
+                    if (s_currentTileOver.m_itemOnTile != null) {
+                        Tile canAttackFrom = m_parentGrid.GetAccessibleAttackPosition(this, s_currentTileOver);
+                        if(canAttackFrom != this) {
+                            canAttackFrom.SetPlaceable(m_itemOnTile);
+                            m_itemOnTile = null;
+                        }
+                        else {
+                            SetPlaceable(m_itemOnTile);
+                        }
+                        break;
+                    }
+                    else {
+                        SetPlaceable(m_itemOnTile);
+                    }
+                    break;
                 case TileStateEnum.CanNotAccess:
                 default:
                     SetPlaceable(m_itemOnTile);

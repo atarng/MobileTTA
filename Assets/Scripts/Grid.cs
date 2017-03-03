@@ -143,6 +143,17 @@ namespace AtRng.MobileTTA {
             return toRet;
         }
 
+        public Tile GetAccessibleAttackPosition(Tile source, Tile target) {
+            IUnit u = source.GetPlaceable().GetGameObject().GetComponent<Unit>();
+            List<Tile> listOfCandidateAttackTilePositions = GetCircumference(target, u.GetAttackRange());
+            foreach (Tile t in listOfCandidateAttackTilePositions) {
+                if (m_accessibleTiles.ContainsKey(t) && (t == source || m_accessibleTiles[t] == TileStateEnum.CanMove)) {
+                    return t;
+                }
+            }
+            return null;
+        }
+
         public void DeterminePathableTiles(Tile tile, IUnit unit) {
             m_accessibleTiles.Clear();
 
@@ -166,9 +177,9 @@ namespace AtRng.MobileTTA {
                         kvp.Key.sr.color = Color.white;
                         if (tile != kvp.Key) {
                             List<Tile> listOfCandidateAttackTilePositions = GetCircumference(kvp.Key, attack);
-                            Debug.Log(string.Format("[DeterminePathableTiles] Test {1} locations if can attack Tile({0})", kvp.Key, listOfCandidateAttackTilePositions.Count));
+                            //Debug.Log(string.Format("[DeterminePathableTiles] Test {1} locations if can attack Tile({0})", kvp.Key, listOfCandidateAttackTilePositions.Count));
                             foreach (Tile t in listOfCandidateAttackTilePositions) {
-                                Debug.Log(string.Format("[DeterminePathableTiles] t: ({0},{1})", t.xPos, t.yPos));
+                                //Debug.Log(string.Format("[DeterminePathableTiles] t: ({0},{1})", t.xPos, t.yPos));
                                 if (m_accessibleTiles.ContainsKey(t) && (t == tile || m_accessibleTiles[t] == TileStateEnum.CanMove)) {
                                     TilesToFlip.Add(kvp.Key);
                                     break;
