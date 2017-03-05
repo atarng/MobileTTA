@@ -7,8 +7,10 @@ public class RepositionToUICamera : MonoBehaviour {
     public GameObject m_Source;
     public GameObject m_Target;
     private void Awake() {
-        m_Target.transform.SetParent(CameraManager.Instance.GetUICameraTransform());
-        OnAwake();
+        if (gameObject && m_Target && CameraManager.Instance) {
+            m_Target.transform.SetParent(CameraManager.Instance.GetUICameraTransform());
+            OnAwake();
+        }
     }
     // Update is called once per frame
     void Update() {

@@ -6,7 +6,8 @@ namespace AtRng.MobileTTA {
 
     public interface IUnit {
 
-        int GetPlayerOwner();
+        IGamePlayer GetPlayerOwner();
+        void AssignPlayerOwner(int playerID);
 
         int GetPhysicalHealth();
         void ModifyPhysicalHealth(int amount);

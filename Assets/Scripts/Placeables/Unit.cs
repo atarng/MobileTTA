@@ -6,7 +6,9 @@ using UnityEngine.UI;
 using AtRng.MobileTTA;
 using System;
 
-public class Unit : RepositionToUICamera, IPlaceable, IUnit {
+// probably should not make this extend RepositionToUICamera as a class, but just require this as a monobehavior.
+public class Unit : RepositionToUICamera,
+    IPlaceable, IUnit {
 
     bool m_isDragging = false;
     int m_maxMovement = 2;
@@ -18,6 +20,8 @@ public class Unit : RepositionToUICamera, IPlaceable, IUnit {
     public Text AttackText;
     public Text PHealthText;
     public Text SHealthText;
+
+    int m_playerId;
 
     // Use this for initialization
     protected override void OnAwake() {
@@ -112,8 +116,12 @@ public class Unit : RepositionToUICamera, IPlaceable, IUnit {
     int IUnit.GetAttackRange() {
         return m_attackRange;
     }
-    int IUnit.GetPlayerOwner() {
-        throw new NotImplementedException();
+
+    IGamePlayer IUnit.GetPlayerOwner() {
+        return GameManager.GetInstance<GameManager>().GetPlayer(m_playerId);
+    }
+    void IUnit.AssignPlayerOwner(int playerID) {
+        m_playerId = playerID;
     }
 
     int IUnit.GetMaxMovement() {

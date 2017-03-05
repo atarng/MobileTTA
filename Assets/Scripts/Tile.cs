@@ -8,6 +8,7 @@ public class Tile : MonoBehaviour {
     IPlaceable   m_itemOnTile;
     static Tile s_currentTileOver;
     Grid m_parentGrid;
+    bool successfullyGrabbed = false;
 
     public SpriteRenderer sr;
 
@@ -17,42 +18,34 @@ public class Tile : MonoBehaviour {
     private void OnMouseDown() {
 //      Debug.Log("[Tile] OnMouseDown: " + name);
         if (m_itemOnTile != null) {
-
-            m_itemOnTile.SetDragging();
-
             Unit u = m_itemOnTile.GetGameObject().GetComponent<Unit>();
-            if (u != null) {
-                m_parentGrid.DeterminePathableTiles(this, u);
+            IUnit iu = u;
+            if ( iu.GetPlayerOwner().Equals(GameManager.GetInstance<GameManager>().CurrentPlayer()) ) {
+                m_itemOnTile.SetDragging();
+
+                if (u != null) {
+                    m_parentGrid.DeterminePathableTiles(this, u);
+                }
+                successfullyGrabbed = true;
             }
         }
     }
-/*
-    private void OnMouseOver(){
-        Debug.Log("[Tile] OnMouseOver: " + name);
-    }
-//*/
 
     private void OnMouseEnter(){
-        //Debug.Log("[Tile] OnMouseEnter: " + name);
         s_currentTileOver = this;
     }
     private void OnMouseExit() {
-        //Debug.Log("[Tile] OnMouseExit: " + name);
         if(s_currentTileOver == this) {
             s_currentTileOver = null;
         }
     }
-// */
 
     private void OnMouseUp(){
+        if (!successfullyGrabbed) return;
 
-        Debug.Log("[Tile] OnMouseUp: " + name);
-
+        //Debug.Log("[Tile] OnMouseUp: " + name);
         // ray cast doesn't work with Collider 2d.
-
-
         if (m_itemOnTile != null) {
-
             /*
             //m_itemOnTile.SetDragging();
             if (m_itemOnTile.AttemptRelease( this, s_currentTileOver)) {
@@ -99,7 +92,7 @@ public class Tile : MonoBehaviour {
             }
         }
         m_parentGrid.ClearPathableTiles();
-
+        GameManager.GetInstance<GameManager>().UpdateTurn();
     }
 
     public void SetParentGrid(Grid parentGrid) {

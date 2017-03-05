@@ -13,6 +13,7 @@ public class MapInit : MonoBehaviour {
     struct IntVector2 {
         public int x;
         public int y;
+        public int Player;
     }
 
     [SerializeField]
@@ -30,6 +31,9 @@ public class MapInit : MonoBehaviour {
         for (int i = 0; i < m_tilesToInitUnits.Count; i++) {
 
             Unit unit_to_place_on_tile = GameObject.Instantiate<Unit>(m_testUnit);
+            IUnit iUnit = unit_to_place_on_tile;
+            iUnit.AssignPlayerOwner(m_tilesToInitUnits[i].Player);
+
             Tile tileAtXY = m_gridToInit.GetTileAt( (m_tilesToInitUnits[i].y), (m_tilesToInitUnits[i].x));
 
             tileAtXY.SetPlaceable(unit_to_place_on_tile);
