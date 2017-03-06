@@ -17,6 +17,9 @@ public class RepositionToUICamera : MonoBehaviour {
         if (m_Source) {
             Vector3 ToPosition = CameraManager.Instance.FromGameToUIVector(m_Source.transform.position);
             m_Target.transform.position = ToPosition;
+
+            m_Target.transform.localRotation = m_Source.transform.localRotation;
+
             OnUpdate();
         }
         else {

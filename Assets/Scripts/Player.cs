@@ -40,9 +40,15 @@ namespace AtRng.MobileTTA {
 
                 // Attempted to rotate but forgot ui is based on a differnt object.
 
-                //Vector3 lookAt = go.transform.position;
-                //lookAt.x = 0;
-                //go.transform.LookAt(lookAt);
+                Vector3 lookAt = go.transform.position;
+                lookAt.x = 0;
+                Vector3 vectorToTarget = (lookAt - go.transform.transform.position).normalized;
+                float angle = Mathf.Atan2(vectorToTarget.x, vectorToTarget.y) * Mathf.Rad2Deg;
+                Debug.Log(angle);
+                Quaternion q = Quaternion.AngleAxis(angle, Vector3.back);
+                //go.transform.LookAt(lookAt, new Vector3(0, 0, 1));
+                //Quaternion _lookRotation = Quaternion.LookRotation(_direction);
+                go.transform.rotation = q;
 
                 m_hand.Add( go.GetComponent<Unit>() );
 
@@ -62,7 +68,6 @@ namespace AtRng.MobileTTA {
                 Vector3 v3 = m_hand[i].GetGameObject().transform.localPosition;
                 v3.y = i - (m_hand.Count / 2);
                 m_hand[i].GetGameObject().transform.localPosition = v3;
-                Debug.Log("RepositionCardsInHand: y: " + v3.y);
             }
         }
 
