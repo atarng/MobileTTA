@@ -31,6 +31,11 @@ public class CameraManager : MonoBehaviour {
         return toReturn;
     }
 
+    public Vector3 FromVPToGameCamera(Vector3 source) {
+        Vector3 toReturn = m_gameCamera.ViewportToWorldPoint(source);
+        return toReturn;
+    }
+
     public Transform GetUICameraTransform() {
         return m_uiCamera.transform;
     }

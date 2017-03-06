@@ -30,8 +30,12 @@ public class GameManager : SingletonMB {
         for (int i = 0; i < m_number_of_players; i++) {
             Player p = GameObject.Instantiate<Player>(m_playerPrefab);
 
+            p.transform.position = CameraManager.Instance.FromVPToGameCamera(new Vector3(i, 0.5f, 10) );
+
             p.PopulateDeck(to_insert);
-            p.Draw();
+            for (int j = 0; j < 3; j++) {
+                p.Draw();
+            }
 
             m_idPlayerMap.Add(i, p);
             m_turnQueue.Enqueue(p);

@@ -112,6 +112,7 @@ public class Tile : MonoBehaviour {
     public void SetPlaceable(IPlaceable toSet){
         m_itemOnTile = toSet;
         toSet.GetGameObject().transform.position = transform.position;
+        toSet.GetGameObject().transform.SetParent(transform);
     }
     public IPlaceable GetPlaceable() {
         return m_itemOnTile;

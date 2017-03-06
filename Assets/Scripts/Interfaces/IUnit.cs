@@ -27,6 +27,6 @@ namespace AtRng.MobileTTA {
         bool Clear();
 
         // Progression Accessors
-
+        GameObject GetGameObject();
     }
 }

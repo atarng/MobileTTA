@@ -106,7 +106,9 @@ public class Unit : RepositionToUICamera,
     GameObject IPlaceable.GetGameObject() {
         return gameObject;
     }
-
+    GameObject IUnit.GetGameObject() {
+        return gameObject;
+    }
 
     /// IUnit Implementations.
     bool IUnit.Clear() {
