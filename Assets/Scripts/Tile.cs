@@ -16,17 +16,19 @@ public class Tile : MonoBehaviour {
     public int yPos { get; set; }
 
     private void OnMouseDown() {
+        if (!successfullyGrabbed) {
 //      Debug.Log("[Tile] OnMouseDown: " + name);
-        if (m_itemOnTile != null) {
-            Unit u = m_itemOnTile.GetGameObject().GetComponent<Unit>();
-            IUnit iu = u;
-            if ( iu.GetPlayerOwner().Equals(GameManager.GetInstance<GameManager>().CurrentPlayer()) ) {
-                m_itemOnTile.SetDragging();
+            if (m_itemOnTile != null) {
+                Unit u = m_itemOnTile.GetGameObject().GetComponent<Unit>();
+                IUnit iu = u;
+                if (m_itemOnTile.AttemptSelection() ) {
+                    //iu.GetPlayerOwner().Equals(GameManager.GetInstance<GameManager>().CurrentPlayer()) ) {
 
-                if (u != null) {
-                    m_parentGrid.DeterminePathableTiles(this, u);
+                    if (u != null) {
+                        m_parentGrid.DeterminePathableTiles(this, u);
+                    }
+                    successfullyGrabbed = true;
                 }
-                successfullyGrabbed = true;
             }
         }
     }
@@ -45,6 +47,7 @@ public class Tile : MonoBehaviour {
 
         //Debug.Log("[Tile] OnMouseUp: " + name);
         // ray cast doesn't work with Collider 2d.
+        bool turn_finished = true;
         if (m_itemOnTile != null) {
             /*
             //m_itemOnTile.SetDragging();
@@ -78,21 +81,28 @@ public class Tile : MonoBehaviour {
                         }
                         else {
                             SetPlaceable(m_itemOnTile);
+                            turn_finished = false;
                         }
                         break;
                     }
                     else {
                         SetPlaceable(m_itemOnTile);
+                        turn_finished = false;
                     }
                     break;
                 case TileStateEnum.CanNotAccess:
                 default:
                     SetPlaceable(m_itemOnTile);
+                    turn_finished = false;
                     break;
             }
+
         }
         m_parentGrid.ClearPathableTiles();
-        GameManager.GetInstance<GameManager>().UpdateTurn();
+        if (turn_finished) {
+            GameManager.GetInstance<GameManager>().UpdateTurn();
+        }
+        successfullyGrabbed = false;
     }
 
     public void SetParentGrid(Grid parentGrid) {

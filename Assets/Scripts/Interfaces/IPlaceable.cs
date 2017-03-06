@@ -9,7 +9,7 @@ namespace AtRng.MobileTTA {
     public interface IPlaceable {
 
         bool IsDragging();
-        void SetDragging();
+        bool AttemptSelection();
         bool AttemptRelease(Tile sourceTile, Tile destinationTile);
 
         GameObject GetGameObject();

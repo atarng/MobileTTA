@@ -10,6 +10,8 @@ namespace AtRng.MobileTTA {
         void Reset(); // Drawing costs, etc.
 
         int GetCurrentDrawCost();
+        int GetActionPointsLeft();
+
         //int GetHandSize();
         List<IUnit> GetHand();
         List<IUnit> GetCurrentSummonedUnits();

@@ -21,6 +21,14 @@ public class Unit : RepositionToUICamera,
     public Text PHealthText;
     public Text SHealthText;
 
+    int m_pHealth = 4;
+    int m_pHealthMax = 4;
+
+    int m_sHealth = 4;
+    int m_sHealthMax = 4;
+
+    int m_Attack = 2;
+
     int m_playerId;
 
     // Use this for initialization
@@ -37,9 +45,9 @@ public class Unit : RepositionToUICamera,
             transform.position = mouse_to_world;
         }
 
-        AttackText.text = ((IUnit)this).GetAttackValue().ToString();
-        SHealthText.text = ((IUnit)this).GetSpiritualHealth().ToString();
-        PHealthText.text = ((IUnit)this).GetPhysicalHealth().ToString();
+        AttackText.text  = GetAttackValue().ToString();
+        SHealthText.text = GetSpiritualHealth().ToString();
+        PHealthText.text = GetPhysicalHealth().ToString();
     }
 /*
     private void OnMouseUp() {
@@ -56,11 +64,14 @@ public class Unit : RepositionToUICamera,
         return m_isDragging;
     }
 
-    void IPlaceable.SetDragging() {
+    bool IPlaceable.AttemptSelection() {
 
         //cc2d.enabled = true;// 
-
-        m_isDragging = true;
+        if( GetPlayerOwner().Equals(GameManager.GetInstance<GameManager>().CurrentPlayer())  ) {
+            m_isDragging = true;
+            return m_isDragging;
+        }
+        return false;
     }
 
     bool IPlaceable.AttemptRelease( Tile sourceTile, Tile destinationTile ) {
@@ -109,15 +120,15 @@ public class Unit : RepositionToUICamera,
     bool IUnit.IsSpiritualAttack() {
         throw new NotImplementedException();
     }
-    int IUnit.GetAttackValue() {
+    public int GetAttackValue() {
         //throw new NotImplementedException();
-        return 4;
+        return m_Attack;
     }
     int IUnit.GetAttackRange() {
         return m_attackRange;
     }
 
-    IGamePlayer IUnit.GetPlayerOwner() {
+    public IGamePlayer GetPlayerOwner() {
         return GameManager.GetInstance<GameManager>().GetPlayer(m_playerId);
     }
     void IUnit.AssignPlayerOwner(int playerID) {
@@ -128,14 +139,13 @@ public class Unit : RepositionToUICamera,
         return m_maxMovement;
     }
 
-    int IUnit.GetPhysicalHealth() {
-        //throw new NotImplementedException();
-        return 4;
+    public int GetPhysicalHealth() {
+        return m_pHealth;
     }
 
-    int IUnit.GetSpiritualHealth() {
+    public int GetSpiritualHealth() {
         //throw new NotImplementedException();
-        return 4;
+        return m_sHealth;
     }
 
     bool IUnit.HasPerformedAction() {
