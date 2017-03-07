@@ -12,6 +12,12 @@ public class RepositionToUICamera : MonoBehaviour {
             OnAwake();
         }
     }
+
+    private void OnDestroy() {
+        Destroy(m_Target);
+        Destroy(m_Source);
+    }
+
     // Update is called once per frame
     void Update() {
         if (m_Source) {

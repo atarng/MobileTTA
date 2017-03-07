@@ -84,9 +84,14 @@ public class Tile : MonoBehaviour {
                         Tile canAttackFrom = m_parentGrid.GetAccessibleAttackPosition(this, s_currentTileOver);
                         if(canAttackFrom != this) {
                             canAttackFrom.SetPlaceable(m_itemOnTile);
+
+                            GameManager.GetInstance<GameManager>().HandleCombat(m_itemOnTile, s_currentTileOver.m_itemOnTile);
+
                             m_itemOnTile = null;
+
                         }
                         else {
+                            // place unit back on this tile.
                             SetPlaceable(m_itemOnTile);
                             turn_finished = false;
                         }
@@ -118,8 +123,11 @@ public class Tile : MonoBehaviour {
 
     public void SetPlaceable(IPlaceable toSet){
         m_itemOnTile = toSet;
-        toSet.GetGameObject().transform.position = transform.position;
-        toSet.GetGameObject().transform.SetParent(transform);
+        if(toSet != null) {
+            toSet.GetGameObject().transform.position = transform.position;
+            toSet.GetGameObject().transform.SetParent(transform);
+            toSet.AssignedToTile = this;
+        }
     }
     public IPlaceable GetPlaceable() {
         return m_itemOnTile;

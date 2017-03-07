@@ -56,21 +56,29 @@ public class GameManager : SingletonMB {
         Player p = m_turnQueue.Dequeue();
         m_turnQueue.Enqueue(p);
     }
-    ///*
-    private void Update() {
-        if (Input.GetMouseButtonDown(0)) {
-            //Debug.Log("[GameManager] MouseDown");
 
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
-            if (Physics.Raycast(ray, out hit)) {
-                Debug.Log("Name = " + hit.collider.name);
-                Debug.Log("Tag = " + hit.collider.tag);
-                Debug.Log("Hit Point = " + hit.point);
-                Debug.Log("Object position = " + hit.collider.gameObject.transform.position);
-                Debug.Log("--------------");
-            }
+    public void HandleCombat(IPlaceable combatant1, IPlaceable combatant2) {
+        IUnit iu1 = combatant1 as IUnit;
+        IUnit iu2 = combatant2 as IUnit;
+        int iu1p_damageToDo = 0;
+        int iu1s_damageToDo = 0;
+        int iu2p_damageToDo = 0;
+        int iu2s_damageToDo = 0;
+        if (iu1 != null) {
+            iu1p_damageToDo = iu1.IsPhysicalAttack()  ? iu1.GetAttackValue() : 0;
+            iu1s_damageToDo = iu1.IsSpiritualAttack() ? iu1.GetAttackValue() : 0;
         }
+        if (iu2 != null) {
+            iu2p_damageToDo = iu2.IsPhysicalAttack()  ? iu2.GetAttackValue() : 0;
+            iu2s_damageToDo = iu2.IsSpiritualAttack() ? iu2.GetAttackValue() : 0;
+        }
+        combatant1.TakeDamage(iu2p_damageToDo, 0);
+        combatant1.TakeDamage(iu2s_damageToDo, 1);
+
+        combatant2.TakeDamage(iu1p_damageToDo, 0);
+        combatant2.TakeDamage(iu1s_damageToDo, 1);
+
     }
+    ///*
     //*/
 }

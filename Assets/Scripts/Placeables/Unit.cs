@@ -31,6 +31,8 @@ public class Unit : RepositionToUICamera,
 
     IGamePlayer m_playerOwner = null;
 
+    public Tile AssignedToTile { get; set; }
+
     // Use this for initialization
     protected override void OnAwake() {
 //        cc2d.enabled = false;
@@ -70,13 +72,10 @@ public class Unit : RepositionToUICamera,
         return true;
     }
 
-    GameObject IPlaceable.GetGameObject() {
+    public GameObject GetGameObject() {
         return gameObject;
     }
-    GameObject IUnit.GetGameObject() {
-        return gameObject;
-    }
-
+    
     /// IUnit Implementations.
     bool IUnit.Clear() {
         throw new NotImplementedException();
@@ -84,10 +83,11 @@ public class Unit : RepositionToUICamera,
 
 
     bool IUnit.IsPhysicalAttack() {
-        throw new NotImplementedException();
+        //throw new NotImplementedException();
+        return true;
     }
     bool IUnit.IsSpiritualAttack() {
-        throw new NotImplementedException();
+        return false;
     }
     public int GetAttackValue() {
         //throw new NotImplementedException();
@@ -121,6 +121,24 @@ public class Unit : RepositionToUICamera,
     bool IUnit.HasPerformedAction() {
         throw new NotImplementedException();
     }
+
+    public void TakeDamage(int damage, int type) {
+        if (type == 0) {
+            // physical
+            m_pHealth -= damage;
+        }
+        else {
+            m_sHealth -= damage;
+        }
+        if (m_sHealth == 0 || m_pHealth == 0) {
+            if (AssignedToTile != null) {
+                AssignedToTile.SetPlaceable(null);
+            }
+            Destroy(gameObject);
+        }
+    }
+
+
     void IUnit.ModifyPhysicalHealth(int amount){
         throw new NotImplementedException();
     }

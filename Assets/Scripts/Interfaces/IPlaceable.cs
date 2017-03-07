@@ -12,8 +12,10 @@ namespace AtRng.MobileTTA {
         bool AttemptSelection();
         bool AttemptRelease(Tile sourceTile, Tile destinationTile);
 
-
         GameObject GetGameObject();
+        
+        void TakeDamage(int damage, int type);
 
+        Tile AssignedToTile { get; set; }
     }
 }
