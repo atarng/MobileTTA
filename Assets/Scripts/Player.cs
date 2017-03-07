@@ -9,6 +9,19 @@ namespace AtRng.MobileTTA {
         int m_health = 0;
         int m_actionPoints = 0;
 
+        private void OnMouseUp() {
+            Debug.Log("[Player] OnMouseUp");
+        }
+        private void OnMouseEnter() {
+            Debug.Log("[Player] OnMouseEnter");
+        }
+        private void OnMouseExit() {
+            Debug.Log("[Player] OnMouseExit");
+        }
+        private void OnMouseDown() {
+            Debug.Log("[Player] ClickedAsCard");
+        }
+
         public List<IUnit> m_deck = new List<IUnit>();
         List<IUnit> m_hand = new List<IUnit>();
 
@@ -30,6 +43,12 @@ namespace AtRng.MobileTTA {
             }
         }
 
+        public void AttemptToDraw() {
+            if (GetHand().Count < 5) {
+                Draw();
+            }
+        }
+
         public void Draw() {
             if(m_deck.Count > 0) {
 
@@ -37,25 +56,29 @@ namespace AtRng.MobileTTA {
                 GameObject go = GameObject.Instantiate(m_deck[0].GetGameObject());
                 go.transform.SetParent(transform);
                 go.transform.localPosition = Vector3.zero;
+                Unit u = go.GetComponent<Unit>();
+                IUnit iu = u;
+                iu.GenerateCardBehavior();
+                iu.AssignPlayerOwner(this);
 
-                // Attempted to rotate but forgot ui is based on a differnt object.
-
+                /*
+                // Rotate towards the center
                 Vector3 lookAt = go.transform.position;
                 lookAt.x = 0;
                 Vector3 vectorToTarget = (lookAt - go.transform.transform.position).normalized;
                 float angle = Mathf.Atan2(vectorToTarget.x, vectorToTarget.y) * Mathf.Rad2Deg;
-                Debug.Log(angle);
                 Quaternion q = Quaternion.AngleAxis(angle, Vector3.back);
-                //go.transform.LookAt(lookAt, new Vector3(0, 0, 1));
-                //Quaternion _lookRotation = Quaternion.LookRotation(_direction);
                 go.transform.rotation = q;
-
-                m_hand.Add( go.GetComponent<Unit>() );
+                */
+                m_hand.Add(u);
 
                 // TODO: Reposition "Cards"
                 RepositionCardsInHand();
 
                 m_deck.RemoveAt(0);
+            }
+            else{
+                Debug.LogWarning("No more cards in deck.");
             }
         }
 
@@ -63,10 +86,10 @@ namespace AtRng.MobileTTA {
             return m_hand;
         }
 
-        private void RepositionCardsInHand() {
+        public void RepositionCardsInHand() {
             for (int i = 0; i < m_hand.Count; i++) {
                 Vector3 v3 = m_hand[i].GetGameObject().transform.localPosition;
-                v3.y = i - (m_hand.Count / 2);
+                v3.x = i - (m_hand.Count / 2);
                 m_hand[i].GetGameObject().transform.localPosition = v3;
             }
         }

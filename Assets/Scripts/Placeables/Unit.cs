@@ -8,13 +8,13 @@ using System;
 
 // probably should not make this extend RepositionToUICamera as a class, but just require this as a monobehavior.
 public class Unit : RepositionToUICamera,
-    IPlaceable, IUnit {
+    /* Interfaces */ IPlaceable, IUnit {
 
     bool m_isDragging = false;
     int m_maxMovement = 2;
     int m_attackRange = 1;
 
-    public CircleCollider2D cc2d;
+//public CircleCollider2D cc2d;
 
     // UI Components
     public Text AttackText;
@@ -29,11 +29,11 @@ public class Unit : RepositionToUICamera,
 
     int m_Attack = 2;
 
-    int m_playerId;
+    IGamePlayer m_playerOwner = null;
 
     // Use this for initialization
     protected override void OnAwake() {
-        cc2d.enabled = false;
+//        cc2d.enabled = false;
     }
 
     // Update is called once per frame
@@ -49,15 +49,7 @@ public class Unit : RepositionToUICamera,
         SHealthText.text = GetSpiritualHealth().ToString();
         PHealthText.text = GetPhysicalHealth().ToString();
     }
-/*
-    private void OnMouseUp() {
-        // only should release if we have a valid tile to release to.
-        Debug.Log("[Unit] OnMouseUp: " + name);
-        if ( ((IPlaceable)this).IsDragging() ) {
-            ((IPlaceable)this).AttemptRelease();
-        }
-    }
-//*/
+
     /// IPlaceable Interface Implementations
     bool IPlaceable.IsDragging() {
         //throw new NotImplementedException();
@@ -65,7 +57,6 @@ public class Unit : RepositionToUICamera,
     }
 
     bool IPlaceable.AttemptSelection() {
-
         //cc2d.enabled = true;// 
         if( GetPlayerOwner().Equals(GameManager.GetInstance<GameManager>().CurrentPlayer())  ) {
             m_isDragging = true;
@@ -76,31 +67,7 @@ public class Unit : RepositionToUICamera,
 
     bool IPlaceable.AttemptRelease( Tile sourceTile, Tile destinationTile ) {
         m_isDragging = false;
-
-        bool ret = true;
-        /*
-        int colDiff = Math.Abs(destinationTile.xPos - sourceTile.xPos);
-        int rowDiff = Math.Abs(destinationTile.yPos - sourceTile.yPos);
-
-        IPlaceable ItemOnDestTile = destinationTile.GetPlaceable();
-        if (ItemOnDestTile != null) {
-            // check to see if viable neighbor tiles can hold current unit.
-
-            // attempting to attack or interact. TODO: set attack behavior
-            // find a viable destination tile in attack range.
-
-            return false;
-        }
-        else {
-            // TODO: implement actual path finding.
-
-            if (colDiff + rowDiff > ((IUnit)this).GetMaxMovement()) {
-                ret = false;
-                Debug.LogWarning("[Unit] Attempting to place unit beyond its maximum range.");
-            }
-        }
-        */
-        return ret;
+        return true;
     }
 
     GameObject IPlaceable.GetGameObject() {
@@ -131,10 +98,11 @@ public class Unit : RepositionToUICamera,
     }
 
     public IGamePlayer GetPlayerOwner() {
-        return GameManager.GetInstance<GameManager>().GetPlayer(m_playerId);
+        //return GameManager.GetInstance<GameManager>().GetPlayer(m_playerId);
+        return m_playerOwner;
     }
-    void IUnit.AssignPlayerOwner(int playerID) {
-        m_playerId = playerID;
+    void IUnit.AssignPlayerOwner(IGamePlayer player) {
+        m_playerOwner = player;
     }
 
     int IUnit.GetMaxMovement() {
@@ -159,6 +127,44 @@ public class Unit : RepositionToUICamera,
 
     void IUnit.ModifySpiritualHealth(int amount){
         throw new NotImplementedException();
+    }
+
+    private void OnMouseDown() {
+        //Debug.Log("[Unit] ClickedAsCard");
+        m_isDragging = true;
+    }
+
+    private void OnMouseUp() {
+
+        RaycastHit2D rh2d = Physics2D.Raycast(new Vector2(CameraManager.Instance.GameCamera().ScreenToWorldPoint(Input.mousePosition).x,
+                                                          CameraManager.Instance.GameCamera().ScreenToWorldPoint(Input.mousePosition).y),
+                                                          Vector2.zero, 0f, 1 << LayerMask.NameToLayer("Grid"));
+        if (rh2d) {
+
+            //Debug.Log("[Unit] OnMouseUp: rh2d: " + rh2d.transform.name);
+
+            Tile t = rh2d.transform.GetComponent<Tile>();
+            if (!t.IsOccupied()) {
+                BoxCollider2D bc2d = gameObject.GetComponent<BoxCollider2D>();
+                bc2d.enabled = false;
+
+                if(m_playerOwner != null) {
+                    List<IUnit> liu = m_playerOwner.GetHand();
+                    liu.Remove((IUnit)this);
+                }
+
+                t.SetPlaceable(this);
+            }
+        }
+
+        m_isDragging = false;
+    }
+
+
+    void IUnit.GenerateCardBehavior() {
+        BoxCollider2D bc2d = gameObject.GetComponent<BoxCollider2D>();
+        bc2d.size = Vector2.one;
+        bc2d.enabled = true;
     }
 
 }

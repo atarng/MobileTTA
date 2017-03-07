@@ -7,7 +7,7 @@ namespace AtRng.MobileTTA {
     public interface IUnit {
 
         IGamePlayer GetPlayerOwner();
-        void AssignPlayerOwner(int playerID);
+        void AssignPlayerOwner(IGamePlayer playerID);
 
         int GetPhysicalHealth();
         void ModifyPhysicalHealth(int amount);
@@ -28,5 +28,9 @@ namespace AtRng.MobileTTA {
 
         // Progression Accessors
         GameObject GetGameObject();
+
+        //
+        void GenerateCardBehavior();
+
     }
 }

@@ -8,6 +8,10 @@ public class CameraManager : MonoBehaviour {
     [SerializeField]
     private Camera m_gameCamera = null;
 
+    public Camera GameCamera() {
+        return m_gameCamera;
+    } 
+
     public static CameraManager Instance;
 
     private void Awake() {

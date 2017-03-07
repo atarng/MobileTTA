@@ -32,7 +32,8 @@ public class MapInit : MonoBehaviour {
 
             Unit unit_to_place_on_tile = GameObject.Instantiate<Unit>(m_testUnit);
             IUnit iUnit = unit_to_place_on_tile;
-            iUnit.AssignPlayerOwner(m_tilesToInitUnits[i].Player);
+            IGamePlayer p = GameManager.GetInstance<GameManager>().GetPlayer(m_tilesToInitUnits[i].Player);
+            iUnit.AssignPlayerOwner(p);
 
             Tile tileAtXY = m_gridToInit.GetTileAt( (m_tilesToInitUnits[i].y), (m_tilesToInitUnits[i].x));
 

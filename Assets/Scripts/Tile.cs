@@ -6,7 +6,6 @@ using AtRng.MobileTTA;
 public class Tile : MonoBehaviour {
 
     IPlaceable   m_itemOnTile;
-    static Tile s_currentTileOver;
     Grid m_parentGrid;
     bool successfullyGrabbed = false;
 
@@ -14,6 +13,14 @@ public class Tile : MonoBehaviour {
 
     public int xPos { get; set; }
     public int yPos { get; set; }
+
+    static Tile s_currentTileOver;
+    public static Tile CurrentlyOverTile() {
+        return s_currentTileOver;
+    }
+    public bool IsOccupied() {
+        return m_itemOnTile != null;
+    }
 
     private void OnMouseDown() {
         if (!successfullyGrabbed) {
