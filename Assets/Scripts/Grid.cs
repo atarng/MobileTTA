@@ -81,22 +81,48 @@ namespace AtRng.MobileTTA {
                     da = attackRange;
                 }
                 else {
-                    // add if empty
+                    // add if not already in list?
                     if (!m_accessibleTiles.ContainsKey(tileAt)) {
                         if (tileAt.GetPlaceable() == null) {
+                            // Just for visual effect. Empty Tile so can't actually attack.
                             m_accessibleTiles.Add(tileAt, TileStateEnum.CanAttack);
                         }
                         else {
                             // Possibly need to change this to can attack if there is a pathable location to attack this object.
-                            m_accessibleTiles.Add(tileAt, TileStateEnum.CanNotAccess);
+                            //m_accessibleTiles.Add(tileAt, TileStateEnum.CanNotAccess);
+                            TileStateEnum stateToSet = TileStateEnum.CanMove;
+                            if (tileAt.GetPlaceable() != null) {
+                                Unit u = tileAt.GetPlaceable() as Unit;
+                                if (u != null) {
+                                    if (!u.GetPlayerOwner().Equals(GameManager.GetInstance<GameManager>().CurrentPlayer())) {
+                                        stateToSet = TileStateEnum.CanNotAccess;
+                                    }
+                                    else {
+                                        stateToSet = TileStateEnum.CanPassThrough;
+                                    }
+                                }
+                            }
+                            m_accessibleTiles.Add(tileAt, stateToSet);
                         }
                     }
                     return;
                 }
             }
             if (!initCall && (MovesLeft > 0 || attackRange > 0)) {
-
-                TileStateEnum stateToSet = (tileAt.GetPlaceable() == null) ? TileStateEnum.CanMove : TileStateEnum.CanNotAccess;
+                // If not the initial call, and there are still moves left or attack range left.
+                // Check current Tile to see if it is occupied.
+                TileStateEnum stateToSet = TileStateEnum.CanMove;
+                if (tileAt.GetPlaceable() != null) {
+                    Unit u = tileAt.GetPlaceable() as Unit;
+                    if (u != null) {
+                        if (!u.GetPlayerOwner().Equals(GameManager.GetInstance<GameManager>().CurrentPlayer())) {
+                            stateToSet = TileStateEnum.CanNotAccess;
+                        }
+                        else {
+                            stateToSet = TileStateEnum.CanPassThrough;
+                        }
+                    }
+                }
 
                 if (!m_accessibleTiles.ContainsKey(tileAt)) {
                     m_accessibleTiles.Add(tileAt, stateToSet);
@@ -106,7 +132,9 @@ namespace AtRng.MobileTTA {
                 }
             }
 
-            if (initCall || m_accessibleTiles.ContainsKey(tileAt) && m_accessibleTiles[tileAt] == TileStateEnum.CanMove) {
+            if (initCall || m_accessibleTiles.ContainsKey(tileAt)
+                && (m_accessibleTiles[tileAt] == TileStateEnum.CanMove || m_accessibleTiles[tileAt] == TileStateEnum.CanPassThrough) 
+            ) {
                 // LEFT
                 FillTileAdjacency(TileX - dm - da, TileY, MovesLeft - dm, attackRange - da);
 
@@ -173,6 +201,9 @@ namespace AtRng.MobileTTA {
                         // actually an empty tile so it can't really "attack"
                         kvp.Key.sr.color = Color.red;
                         break;
+                    case TileStateEnum.CanPassThrough:
+                        kvp.Key.sr.color = Color.gray;
+                        break;
                     case TileStateEnum.CanNotAccess:
                         kvp.Key.sr.color = Color.white;
                         if (tile != kvp.Key) {
@@ -180,9 +211,14 @@ namespace AtRng.MobileTTA {
                             //Debug.Log(string.Format("[DeterminePathableTiles] Test {1} locations if can attack Tile({0})", kvp.Key, listOfCandidateAttackTilePositions.Count));
                             foreach (Tile t in listOfCandidateAttackTilePositions) {
                                 //Debug.Log(string.Format("[DeterminePathableTiles] t: ({0},{1})", t.xPos, t.yPos));
-                                if (m_accessibleTiles.ContainsKey(t) && (t == tile || m_accessibleTiles[t] == TileStateEnum.CanMove)) {
-                                    TilesToFlip.Add(kvp.Key);
-                                    break;
+                                if (m_accessibleTiles.ContainsKey(t) &&
+                                   (t == tile || m_accessibleTiles[t] == TileStateEnum.CanMove))
+                                {
+                                    Unit u = kvp.Key.GetPlaceable() as Unit;
+                                    if (u != null && !u.GetPlayerOwner().Equals(GameManager.GetInstance<GameManager>().CurrentPlayer())) {
+                                        TilesToFlip.Add(kvp.Key);
+                                        break;
+                                    }
                                 }
                             }
                         }

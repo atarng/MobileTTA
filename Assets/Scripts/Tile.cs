@@ -72,8 +72,14 @@ public class Tile : MonoBehaviour {
             // TODO: Cleanup this code. Always release drag.
             switch (m_parentGrid.TileStateAt(s_currentTileOver)) {
                 case TileStateEnum.CanMove:
-                    s_currentTileOver.SetPlaceable(m_itemOnTile);
-                    m_itemOnTile = null;
+                    if (s_currentTileOver.GetPlaceable() != null) {
+                        SetPlaceable(m_itemOnTile);
+                        action_resolved = false;
+                    }
+                    else {
+                        s_currentTileOver.SetPlaceable(m_itemOnTile);
+                        m_itemOnTile = null;
+                    }
                     break;
                 case TileStateEnum.CanAttack:
                     //TODO

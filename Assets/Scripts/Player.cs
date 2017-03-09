@@ -15,6 +15,12 @@ namespace AtRng.MobileTTA {
             }
             set {
                 m_actionPoints = value;
+
+                for (int i = 0; i < m_actionPointsUI.Count; i++) {
+                    // Color
+                    m_actionPointsUI[i].color = (i < m_actionPoints) ? Color.blue : Color.grey;
+                }
+
                 if (m_actionPoints == 0) {
                     EndTurn();
                 }
@@ -25,8 +31,8 @@ namespace AtRng.MobileTTA {
         int m_drawCost = 1;
 
         // UI Elements
-        public Image m_actionPointPrefab;
-        List<Image>  m_actionPointsUI;
+        public SpriteRenderer m_actionPointPrefab;
+        List<SpriteRenderer>  m_actionPointsUI = new List<SpriteRenderer>();
 
         public List<UnitManager.UnitDefinition> m_deck = new List<UnitManager.UnitDefinition>();
         List<IUnit> m_hand = new List<IUnit>();
@@ -125,6 +131,22 @@ namespace AtRng.MobileTTA {
 
             for (int i = 0; i < m_fieldUnits.Count; i++) {
                 m_fieldUnits[i].Clear();
+            }
+
+            for (int i = m_actionPointsUI.Count; i < m_actionPointsMax; i++) {
+                SpriteRenderer sr = GameObject.Instantiate<SpriteRenderer>(m_actionPointPrefab);
+                sr.transform.SetParent(transform);
+                m_actionPointsUI.Add(sr);
+            }
+            for (int i = 0; i < m_actionPointsUI.Count; i++) {
+                // Position
+                Vector3 v3 = m_actionPointsUI[i].transform.localPosition;
+                v3.x = -3 + (i * .5f);
+                v3.y = 1;
+                m_actionPointsUI[i].transform.localPosition = v3;
+
+                // Color
+                m_actionPointsUI[i].color = Color.blue;
             }
         }
         int IGamePlayer.GetHealth() {
