@@ -4,27 +4,30 @@ using UnityEngine;
 
 public class RepositionToUICamera : MonoBehaviour {
 
-    public GameObject m_Source;
-    public GameObject m_Target;
+    public Transform m_Source;
+    public Transform m_Target;
+
+    public Vector3 m_offset;
+
     private void Awake() {
         if (gameObject && m_Target && CameraManager.Instance) {
-            m_Target.transform.SetParent(CameraManager.Instance.GetUICameraTransform());
+            m_Target.SetParent(CameraManager.Instance.GetUICameraTransform());
             OnAwake();
         }
     }
 
     private void OnDestroy() {
-        Destroy(m_Target);
-        Destroy(m_Source);
+        if (m_Target) Destroy(m_Target.gameObject);
+        if (m_Source) Destroy(m_Source.gameObject);
     }
 
     // Update is called once per frame
     void Update() {
         if (m_Source) {
-            Vector3 ToPosition = CameraManager.Instance.FromGameToUIVector(m_Source.transform.position);
-            m_Target.transform.position = ToPosition;
+            Vector3 ToPosition = CameraManager.Instance.FromGameToUIVector(m_Source.position);
+            m_Target.position = ToPosition + m_offset;
 
-            m_Target.transform.localRotation = m_Source.transform.localRotation;
+            m_Target.localRotation = m_Source.localRotation;
 
             OnUpdate();
         }
@@ -32,8 +35,6 @@ public class RepositionToUICamera : MonoBehaviour {
             Destroy(gameObject);
         }
     }
-    protected virtual void OnAwake() {
-    }
-    protected virtual void OnUpdate() {
-    }
+    protected virtual void OnAwake() { }
+    protected virtual void OnUpdate() { }
 }

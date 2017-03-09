@@ -14,15 +14,25 @@ public class GameManager : SingletonMB {
 
     [SerializeField]
     private Grid m_gridInstance;
+    public Grid GetGrid() {
+        return m_gridInstance;
+    }
 
     Queue<Player> m_turnQueue = new Queue<Player>();
     Dictionary<int, Player> m_idPlayerMap = new Dictionary<int, Player>();
 
-    public Unit[] m_testList;
-    private List<IUnit> to_insert = new List<IUnit>();
+    // TEMPPPP
+    public Unit m_unitPrefab;
+    public int[] m_testDeckList;
+
+    private List<UnitManager.UnitDefinition> to_insert = new List<UnitManager.UnitDefinition>();
     private void Start() {
-        for (int i = 0; i < m_testList.Length; i++) {
-            to_insert.Add(m_testList[i]);
+        for (int i = 0; i < m_testDeckList.Length; i++) {
+            UnitManager um = SingletonMB.GetInstance<UnitManager>();
+            UnitManager.UnitDefinition ud = um.GetDefinition(m_testDeckList[i]);
+            if (ud != null) {
+                to_insert.Add(ud);
+            }
         }
         InitializePlayers();
     }
@@ -43,6 +53,8 @@ public class GameManager : SingletonMB {
             m_idPlayerMap.Add(i, p);
             m_turnQueue.Enqueue(p);
         }
+
+        m_turnQueue.Peek().Reset();
     }
     public IGamePlayer GetPlayer(int id) {
         return m_idPlayerMap[id];
@@ -55,6 +67,8 @@ public class GameManager : SingletonMB {
     public void UpdateTurn() {
         Player p = m_turnQueue.Dequeue();
         m_turnQueue.Enqueue(p);
+
+        m_turnQueue.Peek().Reset();
     }
 
     public void HandleCombat(IPlaceable combatant1, IPlaceable combatant2) {

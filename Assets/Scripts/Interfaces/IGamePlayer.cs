@@ -10,11 +10,14 @@ namespace AtRng.MobileTTA {
         void Reset(); // Drawing costs, etc.
 
         int GetCurrentDrawCost();
-        int GetActionPointsLeft();
+        bool GetEnoughActionPoints(int cost);
 
         //int GetHandSize();
         List<IUnit> GetHand();
         List<IUnit> GetCurrentSummonedUnits();
+        void PlaceUnitOnField(IUnit unitToPlace);
+        void RepositionCardsInHand();
+        void ExpendUnitActionPoint();
 
         int GetHealth();
     }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace AtRng.MobileTTA {
 
@@ -8,33 +9,45 @@ namespace AtRng.MobileTTA {
 
         int m_health = 0;
         int m_actionPoints = 0;
-
-        private void OnMouseUp() {
-            Debug.Log("[Player] OnMouseUp");
-        }
-        private void OnMouseEnter() {
-            Debug.Log("[Player] OnMouseEnter");
-        }
-        private void OnMouseExit() {
-            Debug.Log("[Player] OnMouseExit");
-        }
-        private void OnMouseDown() {
-            Debug.Log("[Player] ClickedAsCard");
+        int ActionPoints {
+            get {
+                return m_actionPoints;
+            }
+            set {
+                m_actionPoints = value;
+                if (m_actionPoints == 0) {
+                    EndTurn();
+                }
+            }
         }
 
-        public List<IUnit> m_deck = new List<IUnit>();
+        int m_actionPointsMax = 0;
+        int m_drawCost = 1;
+
+        // UI Elements
+        public Image m_actionPointPrefab;
+        List<Image>  m_actionPointsUI;
+
+        public List<UnitManager.UnitDefinition> m_deck = new List<UnitManager.UnitDefinition>();
         List<IUnit> m_hand = new List<IUnit>();
+        List<IUnit> m_fieldUnits = new List<IUnit>();
 
         int IGamePlayer.GetCurrentDrawCost() {
-            throw new NotImplementedException();
+            return m_drawCost;
         }
-
         public List<IUnit> GetCurrentSummonedUnits() {
-            throw new NotImplementedException();
+            return m_fieldUnits;
         }
 
-        public void PopulateDeck(List<IUnit> deck_to_populate_with) {
-            List<IUnit> to_copy = new List<IUnit>();
+        public void PlaceUnitOnField(IUnit unitToPlace) {
+            ActionPoints -= m_fieldUnits.Count;
+
+            m_hand.Remove(unitToPlace);
+            m_fieldUnits.Add(unitToPlace);
+        }
+
+        public void PopulateDeck(List<UnitManager.UnitDefinition> deck_to_populate_with) {
+            List<UnitManager.UnitDefinition> to_copy = new List<UnitManager.UnitDefinition>();
             to_copy.AddRange( deck_to_populate_with );
             while (to_copy.Count > 0) {
                 int random = (int)(UnityEngine.Random.Range(0, to_copy.Count));
@@ -44,8 +57,16 @@ namespace AtRng.MobileTTA {
         }
 
         public void AttemptToDraw() {
-            if (GetHand().Count < 5) {
+            if (!SingletonMB.GetInstance<GameManager>().CurrentPlayer().Equals(this)) {
+                Debug.LogWarning("[Player/AttemptToDraw] Incorrect player turn");
+            }
+            else if (!GetEnoughActionPoints(m_drawCost) || GetHand().Count >= 5) {
+                Debug.LogWarning("[Player/AttemptToDraw] At Max Hand Size or not enough action points.");
+            }
+            else {
                 Draw();
+                ActionPoints -= m_drawCost;
+                m_drawCost++;
             }
         }
 
@@ -53,10 +74,11 @@ namespace AtRng.MobileTTA {
             if(m_deck.Count > 0) {
 
                 // instantiate as a card
-                GameObject go = GameObject.Instantiate(m_deck[0].GetGameObject());
-                go.transform.SetParent(transform);
-                go.transform.localPosition = Vector3.zero;
-                Unit u = go.GetComponent<Unit>();
+                UnitManager.UnitDefinition ud = m_deck[0];
+                Unit u = GameObject.Instantiate( SingletonMB.GetInstance<GameManager>().m_unitPrefab );
+                u.ReadDefinition(ud);
+                u.transform.SetParent(transform);
+                u.transform.localPosition = Vector3.zero;
                 IUnit iu = u;
                 iu.GenerateCardBehavior();
                 iu.AssignPlayerOwner(this);
@@ -90,13 +112,20 @@ namespace AtRng.MobileTTA {
             for (int i = 0; i < m_hand.Count; i++) {
                 Vector3 v3 = m_hand[i].GetGameObject().transform.localPosition;
                 v3.x = i - (m_hand.Count / 2);
+                v3.y = 0;
                 m_hand[i].GetGameObject().transform.localPosition = v3;
             }
         }
 
         // Drawing costs, etc.
-        void IGamePlayer.Reset() {
-            throw new NotImplementedException();
+        public void Reset() {
+            m_actionPointsMax++;
+            m_actionPoints = m_actionPointsMax;
+            m_drawCost = 1;
+
+            for (int i = 0; i < m_fieldUnits.Count; i++) {
+                m_fieldUnits[i].Clear();
+            }
         }
         int IGamePlayer.GetHealth() {
             return m_health;
@@ -105,8 +134,22 @@ namespace AtRng.MobileTTA {
             throw new NotImplementedException();
         }
 
-        public int GetActionPointsLeft() {
-            throw new NotImplementedException();
+        public bool GetEnoughActionPoints(int cost) {
+            if (m_actionPoints < cost) {
+                Debug.LogWarning(string.Format("[Player/GetEnoughActionPoints] (Cost, Current, Total): ({0}, {1}, {2})",
+                    cost, m_actionPoints, m_actionPointsMax));
+                return false;
+            }
+            return true;
+        }
+        void IGamePlayer.ExpendUnitActionPoint() {
+            ActionPoints--;
+        }
+
+        public void EndTurn() {
+            if(GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(this)) {
+                GameManager.GetInstance<GameManager>().UpdateTurn();
+            }
         }
 /*
         // These aren't really for player.

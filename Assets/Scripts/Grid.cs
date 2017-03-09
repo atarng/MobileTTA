@@ -124,7 +124,7 @@ namespace AtRng.MobileTTA {
         }
 
         // (-1, 0), (0, 1), (0, -1), (1,0)
-        private List<Tile> GetCircumference(Tile tile, int radius) {
+        public List<Tile> GetCircumference(Tile tile, int radius) {
             List<Tile> toRet = new List<Tile>();
             for (int i = -radius; i <= radius; i++) {
                 int j = radius - Mathf.Abs(i);

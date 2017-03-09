@@ -14,6 +14,7 @@ public class MapInit : MonoBehaviour {
         public int x;
         public int y;
         public int Player;
+        public int unitType;
     }
 
     [SerializeField]
@@ -31,11 +32,16 @@ public class MapInit : MonoBehaviour {
         for (int i = 0; i < m_tilesToInitUnits.Count; i++) {
 
             Unit unit_to_place_on_tile = GameObject.Instantiate<Unit>(m_testUnit);
+
+            UnitManager.UnitDefinition ud = UnitManager.GetInstance<UnitManager>().GetDefinition(m_tilesToInitUnits[i].unitType);
+            unit_to_place_on_tile.ReadDefinition(ud);
+
             IUnit iUnit = unit_to_place_on_tile;
             IGamePlayer p = GameManager.GetInstance<GameManager>().GetPlayer(m_tilesToInitUnits[i].Player);
             iUnit.AssignPlayerOwner(p);
+            p.GetCurrentSummonedUnits().Add(iUnit);
 
-            Tile tileAtXY = m_gridToInit.GetTileAt( (m_tilesToInitUnits[i].y), (m_tilesToInitUnits[i].x));
+            Tile tileAtXY = m_gridToInit.GetTileAt( (m_tilesToInitUnits[i].x), (m_tilesToInitUnits[i].y));
 
             tileAtXY.SetPlaceable(unit_to_place_on_tile);
         }

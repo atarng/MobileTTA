@@ -54,7 +54,7 @@ public class Tile : MonoBehaviour {
 
         //Debug.Log("[Tile] OnMouseUp: " + name);
         // ray cast doesn't work with Collider 2d.
-        bool turn_finished = true;
+        bool action_resolved = true;
         if (m_itemOnTile != null) {
             /*
             //m_itemOnTile.SetDragging();
@@ -68,10 +68,8 @@ public class Tile : MonoBehaviour {
                 
             }
             */
-
+            IPlaceable unit_to_release = m_itemOnTile;
             // TODO: Cleanup this code. Always release drag.
-            m_itemOnTile.AttemptRelease(this, s_currentTileOver);
-
             switch (m_parentGrid.TileStateAt(s_currentTileOver)) {
                 case TileStateEnum.CanMove:
                     s_currentTileOver.SetPlaceable(m_itemOnTile);
@@ -82,37 +80,39 @@ public class Tile : MonoBehaviour {
                     // Find Tile that can be placed at this location.
                     if (s_currentTileOver.m_itemOnTile != null) {
                         Tile canAttackFrom = m_parentGrid.GetAccessibleAttackPosition(this, s_currentTileOver);
-                        if(canAttackFrom != this) {
-                            canAttackFrom.SetPlaceable(m_itemOnTile);
-
-                            GameManager.GetInstance<GameManager>().HandleCombat(m_itemOnTile, s_currentTileOver.m_itemOnTile);
-
+                        canAttackFrom.SetPlaceable(m_itemOnTile);
+                        GameManager.GetInstance<GameManager>().HandleCombat(m_itemOnTile, s_currentTileOver.m_itemOnTile);
+                        if (canAttackFrom != this) {
+                            // we don't want to do this if tile is still on this location.
                             m_itemOnTile = null;
-
                         }
+                        /*
+                        // Not sure why this is here to be honest.
+                        // ah... nvm
                         else {
                             // place unit back on this tile.
                             SetPlaceable(m_itemOnTile);
-                            turn_finished = false;
+                            action_resolved = false;
                         }
+                        */
                         break;
                     }
                     else {
                         SetPlaceable(m_itemOnTile);
-                        turn_finished = false;
+                        action_resolved = false;
                     }
                     break;
                 case TileStateEnum.CanNotAccess:
                 default:
                     SetPlaceable(m_itemOnTile);
-                    turn_finished = false;
+                    action_resolved = false;
                     break;
             }
-
+            unit_to_release.AttemptRelease(this, s_currentTileOver, action_resolved);
         }
         m_parentGrid.ClearPathableTiles();
-        if (turn_finished) {
-            GameManager.GetInstance<GameManager>().UpdateTurn();
+        if (action_resolved) {
+//            GameManager.GetInstance<GameManager>().UpdateTurn();
         }
         successfullyGrabbed = false;
     }

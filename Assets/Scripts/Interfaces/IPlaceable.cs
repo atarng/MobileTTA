@@ -10,7 +10,7 @@ namespace AtRng.MobileTTA {
 
         bool IsDragging();
         bool AttemptSelection();
-        bool AttemptRelease(Tile sourceTile, Tile destinationTile);
+        bool AttemptRelease(Tile sourceTile, Tile destinationTile, bool resolved);
 
         GameObject GetGameObject();
         
