@@ -15,10 +15,7 @@ namespace AtRng.MobileTTA {
         bool m_hasBeenInitialized = false;
         Dictionary<Tile, TileStateEnum> m_accessibleTiles = new Dictionary<Tile, TileStateEnum>();
 
-        void Awake() {
-            //      InitializeGrid();
-        }
-
+        void Awake() {}
         // Use this for initialization
         void Start() {
             InitializeGrid();
@@ -137,15 +134,27 @@ namespace AtRng.MobileTTA {
             ) {
                 // LEFT
                 FillTileAdjacency(TileX - dm - da, TileY, MovesLeft - dm, attackRange - da);
+                if(MovesLeft < attackRange) {
+                    FillTileAdjacency(TileX - attackRange, TileY, 0, 0);
+                }
 
                 // UP
                 FillTileAdjacency(TileX, TileY + dm + da, MovesLeft - dm, attackRange - da);
+                if (MovesLeft < attackRange) {
+                    FillTileAdjacency(TileX, TileY + attackRange, 0, 0);
+                }
 
                 // RIGHT
                 FillTileAdjacency(TileX + dm + da, TileY, MovesLeft - dm, attackRange - da);
+                if (MovesLeft < attackRange) {
+                    FillTileAdjacency(TileX + attackRange, TileY, 0, 0);
+                }
 
                 // BOT
                 FillTileAdjacency(TileX, TileY - dm - da, MovesLeft - dm, attackRange - da);
+                if (MovesLeft < attackRange) {
+                    FillTileAdjacency(TileX, TileY - attackRange, 0, 0);
+                }
             }
 
             return;
@@ -192,13 +201,11 @@ namespace AtRng.MobileTTA {
             List<Tile> TilesToFlip = new List<Tile>();
             FillTileAdjacency(tile.xPos, tile.yPos, max_range, attack, true);
             foreach (KeyValuePair<Tile, TileStateEnum> kvp in m_accessibleTiles) {
-                //Debug.Log(string.Format("[DeterminePathableTiles] Tile({0}): {1}", kvp.Key, kvp.Value));
                 switch (kvp.Value) {
                     case TileStateEnum.CanMove:
                         kvp.Key.sr.color = Color.blue;
                         break;
                     case TileStateEnum.CanAttack:
-                        // actually an empty tile so it can't really "attack"
                         kvp.Key.sr.color = Color.red;
                         break;
                     case TileStateEnum.CanPassThrough:
@@ -208,9 +215,7 @@ namespace AtRng.MobileTTA {
                         kvp.Key.sr.color = Color.white;
                         if (tile != kvp.Key) {
                             List<Tile> listOfCandidateAttackTilePositions = GetCircumference(kvp.Key, attack);
-                            //Debug.Log(string.Format("[DeterminePathableTiles] Test {1} locations if can attack Tile({0})", kvp.Key, listOfCandidateAttackTilePositions.Count));
                             foreach (Tile t in listOfCandidateAttackTilePositions) {
-                                //Debug.Log(string.Format("[DeterminePathableTiles] t: ({0},{1})", t.xPos, t.yPos));
                                 if (m_accessibleTiles.ContainsKey(t) &&
                                    (t == tile || m_accessibleTiles[t] == TileStateEnum.CanMove))
                                 {
@@ -225,11 +230,26 @@ namespace AtRng.MobileTTA {
                         break;
                 }
             }
-
-            //Debug.Log(string.Format("[DeterminePathableTiles] TilesToFlip: {0}", TilesToFlip.Count));
             for (int i = 0; i < TilesToFlip.Count; i++) {
                 TilesToFlip[i].sr.color = Color.red;
                 m_accessibleTiles[TilesToFlip[i]] = TileStateEnum.CanAttack;
+            }
+        }
+
+        public void DisplaySummonableTiles(IGamePlayer p) {
+            List<IUnit> units_summoned = p.GetCurrentSummonedUnits();
+            HashSet<Tile> hs_tile = new HashSet<Tile>();
+            for (int i = 0; i < units_summoned.Count; i++) {
+                List<Tile> t = GetCircumference(units_summoned[i].AssignedToTile, 1);
+                for (int j = 0; j < t.Count; j++) {
+                    if (t[j].GetPlaceable() == null && !hs_tile.Contains(t[j]) ) {
+                        hs_tile.Add(t[j]);
+                    }
+                }
+            }
+
+            foreach (Tile t in hs_tile) {
+                t.sr.color = Color.cyan;
             }
         }
 
@@ -241,8 +261,13 @@ namespace AtRng.MobileTTA {
         }
 
         public void ClearPathableTiles() {
+            /*
             foreach (KeyValuePair<Tile, TileStateEnum> kvp in m_accessibleTiles) {
                 kvp.Key.sr.color = Color.white;
+            }
+            */
+            for (int i = 0; i < m_grid.Count; i++) {
+                m_grid[i].sr.color = Color.white;
             }
         }
     }

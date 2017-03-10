@@ -50,6 +50,8 @@ public class GameManager : SingletonMB {
                 p.Draw();
             }
 
+            p.transform.localRotation = Quaternion.Euler(0, 0, (i * 180));
+
             m_idPlayerMap.Add(i, p);
             m_turnQueue.Enqueue(p);
         }
@@ -78,11 +80,15 @@ public class GameManager : SingletonMB {
         int iu1s_damageToDo = 0;
         int iu2p_damageToDo = 0;
         int iu2s_damageToDo = 0;
-        if (iu1 != null) {
+
+        int dist = Mathf.Abs(iu1.AssignedToTile.xPos - iu2.AssignedToTile.xPos) +
+                   Mathf.Abs(iu1.AssignedToTile.yPos - iu2.AssignedToTile.yPos);
+
+        if (iu1 != null && iu1.GetAttackRange() == dist) {
             iu1p_damageToDo = iu1.IsPhysicalAttack()  ? iu1.GetAttackValue() : 0;
             iu1s_damageToDo = iu1.IsSpiritualAttack() ? iu1.GetAttackValue() : 0;
         }
-        if (iu2 != null) {
+        if (iu2 != null && iu2.GetAttackRange() == dist) {
             iu2p_damageToDo = iu2.IsPhysicalAttack()  ? iu2.GetAttackValue() : 0;
             iu2s_damageToDo = iu2.IsSpiritualAttack() ? iu2.GetAttackValue() : 0;
         }

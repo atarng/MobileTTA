@@ -7,8 +7,8 @@ using AtRng.MobileTTA;
 using System;
 
 // probably should not make this extend RepositionToUICamera as a class, but just require this as a monobehavior.
-public class Unit : RepositionToUICamera,
-    /* Interfaces */ IPlaceable, IUnit {
+/* Interfaces IPlaceable, */
+public class Unit : RepositionToUICamera, IUnit {
 
     bool m_hasPerformedAction = false;
     bool m_isDragging = false;
@@ -30,6 +30,7 @@ public class Unit : RepositionToUICamera,
 
     int m_Attack = 2;
     bool m_attackType = false;
+    float m_isDying = 0;
     IGamePlayer m_playerOwner = null;
 
     public Tile AssignedToTile { get; set; }
@@ -37,8 +38,9 @@ public class Unit : RepositionToUICamera,
     public void ReadDefinition( UnitManager.UnitDefinition ud ) {
         m_pHealthMax = m_pHealth = ud.PhysicalHealth;
         m_sHealthMax = m_sHealth = ud.SpiritualHealth;
-        m_Attack = ud.AttackValue;
-        m_attackType = ud.AttackType;
+        m_Attack      = ud.AttackValue;
+        m_attackType  = ud.AttackType;
+        m_attackRange = ud.AttackRange;
         m_maxMovement = ud.Movement;
     }
 
@@ -56,9 +58,36 @@ public class Unit : RepositionToUICamera,
             transform.position = mouse_to_world;
         }
 
-        AttackText.text  = GetAttackValue().ToString();
-        SHealthText.text = GetSpiritualHealth().ToString();
-        PHealthText.text = GetPhysicalHealth().ToString();
+        if (AssignedToTile || GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(m_playerOwner)) {
+            if (GetAttackValue() > 0) {
+                AttackText.text = GetAttackValue().ToString();
+                AttackText.color = IsSpiritualAttack() ? (IsPhysicalAttack() ? Color.magenta : Color.blue) : Color.red;
+                AttackText.enabled = true;
+            }
+            else {
+                AttackText.enabled = false;
+            }
+
+            SHealthText.text = GetSpiritualHealth().ToString();
+            PHealthText.text = GetPhysicalHealth().ToString();
+
+            SHealthText.enabled = true;
+            PHealthText.enabled = true;
+        }
+        else {
+            AttackText.enabled = false;
+            SHealthText.enabled = false;
+            PHealthText.enabled = false;
+        }
+
+        if (m_isDying > 0) {
+            m_hasPerformedAction = true;
+            transform.localScale = Vector3.Lerp(transform.localScale, Vector3.zero, m_isDying - 1);
+            m_isDying += 0.05f;
+            if (transform.localScale.magnitude <= 0.1f) {
+                Destroy(gameObject);
+            }
+        }
     }
 
     /// IPlaceable Interface Implementations
@@ -102,11 +131,11 @@ public class Unit : RepositionToUICamera,
     }
 
 
-    bool IUnit.IsPhysicalAttack() {
+    public bool IsPhysicalAttack() {
         //throw new NotImplementedException();
         return !m_attackType;
     }
-    bool IUnit.IsSpiritualAttack() {
+    public bool IsSpiritualAttack() {
         return m_attackType;
     }
     public int GetAttackValue() {
@@ -161,7 +190,8 @@ public class Unit : RepositionToUICamera,
                 AssignedToTile.SetPlaceable(null);
             }
             m_playerOwner.GetCurrentSummonedUnits().Remove(this);
-            Destroy(gameObject);
+            //Destroy(gameObject);
+            m_isDying = 1;
         }
     }
 
@@ -172,15 +202,6 @@ public class Unit : RepositionToUICamera,
 
     void IUnit.ModifySpiritualHealth(int amount){
         throw new NotImplementedException();
-    }
-
-    // Only for dragging from Hand
-    private void OnMouseDown() {
-        //Debug.Log("[Unit] ClickedAsCard");
-        if(GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(m_playerOwner) &&
-           m_playerOwner.GetEnoughActionPoints(m_playerOwner.GetCurrentSummonedUnits().Count)){
-            m_isDragging = true;
-        }
     }
 
     private bool IsAdjacentToAlliedUnit(Tile t) {
@@ -204,6 +225,16 @@ public class Unit : RepositionToUICamera,
         }
         */
         return false;
+    }
+
+    // Only for dragging from Hand
+    private void OnMouseDown() {
+        //Debug.Log("[Unit] ClickedAsCard");
+        if(GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(m_playerOwner) &&
+            m_playerOwner.GetEnoughActionPoints(m_playerOwner.GetCurrentSummonedUnits().Count)){
+            m_isDragging = true;
+            GameManager.GetInstance<GameManager>().GetGrid().DisplaySummonableTiles(m_playerOwner);
+        }
     }
 
     // Only for dragging from Hand
@@ -232,6 +263,8 @@ public class Unit : RepositionToUICamera,
         if (!unit_placed && m_playerOwner != null) {
             m_playerOwner.RepositionCardsInHand();
         }
+
+        GameManager.GetInstance<GameManager>().GetGrid().ClearPathableTiles();
 
         m_hasPerformedAction = true;
         m_isDragging = false;

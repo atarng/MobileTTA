@@ -9,7 +9,8 @@ namespace AtRng.MobileTTA {
 
         void Reset(); // Drawing costs, etc.
 
-        int GetCurrentDrawCost();
+        //int GetCurrentDrawCost();
+        int DrawCost { get; }
         bool GetEnoughActionPoints(int cost);
 
         //int GetHandSize();

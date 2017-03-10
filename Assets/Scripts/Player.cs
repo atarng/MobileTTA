@@ -29,18 +29,26 @@ namespace AtRng.MobileTTA {
 
         int m_actionPointsMax = 0;
         int m_drawCost = 1;
+        public int DrawCost {
+            get { return m_drawCost; }
+            private set {
+                m_drawCost = value;
+                m_drawCost_ui.text = m_drawCost.ToString();
+            }
+        }
 
         // UI Elements
         public SpriteRenderer m_actionPointPrefab;
         List<SpriteRenderer>  m_actionPointsUI = new List<SpriteRenderer>();
+        [SerializeField] private Text m_drawCost_ui;
 
         public List<UnitManager.UnitDefinition> m_deck = new List<UnitManager.UnitDefinition>();
         List<IUnit> m_hand = new List<IUnit>();
         List<IUnit> m_fieldUnits = new List<IUnit>();
 
-        int IGamePlayer.GetCurrentDrawCost() {
-            return m_drawCost;
-        }
+        //int IGamePlayer.GetCurrentDrawCost() {
+        //    return m_drawCost;
+        //}
         public List<IUnit> GetCurrentSummonedUnits() {
             return m_fieldUnits;
         }
@@ -48,7 +56,10 @@ namespace AtRng.MobileTTA {
         public void PlaceUnitOnField(IUnit unitToPlace) {
             ActionPoints -= m_fieldUnits.Count;
 
+            unitToPlace.GetGameObject().transform.rotation = Quaternion.identity;
+
             m_hand.Remove(unitToPlace);
+            RepositionCardsInHand();
             m_fieldUnits.Add(unitToPlace);
         }
 
@@ -66,13 +77,13 @@ namespace AtRng.MobileTTA {
             if (!SingletonMB.GetInstance<GameManager>().CurrentPlayer().Equals(this)) {
                 Debug.LogWarning("[Player/AttemptToDraw] Incorrect player turn");
             }
-            else if (!GetEnoughActionPoints(m_drawCost) || GetHand().Count >= 5) {
+            else if (!GetEnoughActionPoints(DrawCost) || GetHand().Count >= 5) {
                 Debug.LogWarning("[Player/AttemptToDraw] At Max Hand Size or not enough action points.");
             }
             else {
                 Draw();
-                ActionPoints -= m_drawCost;
-                m_drawCost++;
+                ActionPoints -= DrawCost;
+                DrawCost++;
             }
         }
 
@@ -85,6 +96,9 @@ namespace AtRng.MobileTTA {
                 u.ReadDefinition(ud);
                 u.transform.SetParent(transform);
                 u.transform.localPosition = Vector3.zero;
+
+                u.transform.localRotation = Quaternion.identity;
+
                 IUnit iu = u;
                 iu.GenerateCardBehavior();
                 iu.AssignPlayerOwner(this);
@@ -125,9 +139,11 @@ namespace AtRng.MobileTTA {
 
         // Drawing costs, etc.
         public void Reset() {
-            m_actionPointsMax++;
+            // Limit to ten.
+            m_actionPointsMax = Mathf.Min(10, m_actionPointsMax + 1);
             m_actionPoints = m_actionPointsMax;
-            m_drawCost = 1;
+            DrawCost = 1;
+            
 
             for (int i = 0; i < m_fieldUnits.Count; i++) {
                 m_fieldUnits[i].Clear();
@@ -173,20 +189,7 @@ namespace AtRng.MobileTTA {
                 GameManager.GetInstance<GameManager>().UpdateTurn();
             }
         }
-/*
-        // These aren't really for player.
-        bool IPlaceable.IsDragging() {
-            throw new NotImplementedException();
-        }
 
-        bool IPlaceable.AttemptSelection() {
-            return false;
-        }
-
-        bool IPlaceable.AttemptRelease(Tile sourceTile, Tile destinationTile) {
-            throw new NotImplementedException();
-        }
-*/
 
     }
 }

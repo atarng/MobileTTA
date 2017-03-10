@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace AtRng.MobileTTA {
 
-    public interface IUnit {
+    public interface IUnit : IPlaceable {
 
         IGamePlayer GetPlayerOwner();
         void AssignPlayerOwner(IGamePlayer playerID);
@@ -27,7 +27,7 @@ namespace AtRng.MobileTTA {
         bool Clear();
 
         // Progression Accessors
-        GameObject GetGameObject();
+        //GameObject GetGameObject();
 
         //
         void GenerateCardBehavior();
