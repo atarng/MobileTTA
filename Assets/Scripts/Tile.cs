@@ -5,41 +5,26 @@ using AtRng.MobileTTA;
 
 public class Tile : MonoBehaviour {
 
-    IPlaceable   m_itemOnTile;
-    Grid m_parentGrid;
-    bool successfullyGrabbed = false;
+    IPlaceable m_itemOnTile;
+    Grid       m_parentGrid;
 
     public SpriteRenderer sr;
 
     public int xPos { get; set; }
     public int yPos { get; set; }
 
-    static Tile s_currentTileOver;
-    public static Tile CurrentlyOverTile() {
-        return s_currentTileOver;
-    }
+    //private Tile m_pendingAttackTile = null;
+    //static Tile s_currentTileOver;
+    //public static Tile CurrentlyOverTile() {
+    //    return s_currentTileOver;
+    //}
+
     public bool IsOccupied() {
         return m_itemOnTile != null;
     }
 
-    private void OnMouseDown() {
-        if (!successfullyGrabbed) {
-//      Debug.Log("[Tile] OnMouseDown: " + name);
-            if (m_itemOnTile != null) {
-                Unit u = m_itemOnTile.GetGameObject().GetComponent<Unit>();
-                IUnit iu = u;
-                if (m_itemOnTile.AttemptSelection() ) {
-                    //iu.GetPlayerOwner().Equals(GameManager.GetInstance<GameManager>().CurrentPlayer()) ) {
-
-                    if (u != null) {
-                        m_parentGrid.DeterminePathableTiles(this, u);
-                    }
-                    successfullyGrabbed = true;
-                }
-            }
-        }
-    }
-
+    bool successfullyGrabbed = false;
+    /*
     private void OnMouseEnter(){
         s_currentTileOver = this;
     }
@@ -48,26 +33,24 @@ public class Tile : MonoBehaviour {
             s_currentTileOver = null;
         }
     }
-
+    private void OnMouseDown() {
+        if (!successfullyGrabbed) {
+            if (m_itemOnTile != null) {
+                Unit u = m_itemOnTile.GetGameObject().GetComponent<Unit>();
+                IUnit iu = u;
+                if (m_itemOnTile.AttemptSelection()) {
+                    if (u != null) {
+                        m_parentGrid.DeterminePathableTiles(this, u);
+                    }
+                    successfullyGrabbed = true;
+                }
+            }
+        }
+    }
     private void OnMouseUp(){
         if (!successfullyGrabbed) return;
-
-        //Debug.Log("[Tile] OnMouseUp: " + name);
-        // ray cast doesn't work with Collider 2d.
         bool action_resolved = true;
         if (m_itemOnTile != null) {
-            /*
-            //m_itemOnTile.SetDragging();
-            if (m_itemOnTile.AttemptRelease( this, s_currentTileOver)) {
-                //Debug.Log(string.Format("[{0}/OnMouseUp] Set on tile: {1}", name, s_currentTileOver.name));
-                //m_itemOnTile.GetGameObject().name ));
-                s_currentTileOver.SetPlaceable(m_itemOnTile);
-                m_itemOnTile = null;
-            }
-            else {
-                
-            }
-            */
             IPlaceable unit_to_release = m_itemOnTile;
             // TODO: Cleanup this code. Always release drag.
             switch (m_parentGrid.TileStateAt(s_currentTileOver)) {
@@ -85,25 +68,34 @@ public class Tile : MonoBehaviour {
                     //TODO
                     // Find Tile that can be placed at this location.
                     if (s_currentTileOver.m_itemOnTile != null) {
-                        Tile canAttackFrom = m_parentGrid.GetAccessibleAttackPosition(this, s_currentTileOver);
-                        canAttackFrom.SetPlaceable(m_itemOnTile);
-                        GameManager.GetInstance<GameManager>().HandleCombat(m_itemOnTile, s_currentTileOver.m_itemOnTile);
-                        if (canAttackFrom != this) {
-                            // we don't want to do this if tile is still on this location.
-                            m_itemOnTile = null;
+                        List<Tile> canAttackFrom = m_parentGrid.GetAccessibleAttackPositions(this, s_currentTileOver);
+                        if (canAttackFrom.Count == 1) {
+                            canAttackFrom[0].SetPlaceable(m_itemOnTile);
+                            GameManager.GetInstance<GameManager>().HandleCombat(m_itemOnTile, s_currentTileOver.m_itemOnTile);
+                            if (canAttackFrom[0] != this) {
+                                // we don't want to do this if tile is still on this location.
+                                m_itemOnTile = null;
+                            }
                         }
-                        /*
-                        // Not sure why this is here to be honest.
-                        // ah... nvm
                         else {
-                            // place unit back on this tile.
-                            SetPlaceable(m_itemOnTile);
-                            action_resolved = false;
+                            if (m_pendingAttackTile != null) {
+                                // confirm attack position at pending tile
+                                m_pendingAttackTile.SetPlaceable( m_itemOnTile );
+                                GameManager.GetInstance<GameManager>().HandleCombat(m_itemOnTile, s_currentTileOver.m_itemOnTile);
+                                if (m_pendingAttackTile != this) {
+                                    m_itemOnTile = null;
+                                }
+                            }
+                            else {
+                                m_pendingAttackTile = canAttackFrom[0];
+                                //m_pendingAttackTile.collider2D.
+                                action_resolved = false;
+                            }
                         }
-                        */
                         break;
                     }
                     else {
+                        // if target tile is empty then place this tile back on original position.
                         SetPlaceable(m_itemOnTile);
                         action_resolved = false;
                     }
@@ -117,12 +109,9 @@ public class Tile : MonoBehaviour {
             unit_to_release.AttemptRelease(this, s_currentTileOver, action_resolved);
         }
         m_parentGrid.ClearPathableTiles();
-        if (action_resolved) {
-//            GameManager.GetInstance<GameManager>().UpdateTurn();
-        }
         successfullyGrabbed = false;
     }
-
+*/
     public void SetParentGrid(Grid parentGrid) {
         m_parentGrid = parentGrid;
     }
@@ -132,7 +121,9 @@ public class Tile : MonoBehaviour {
         if(toSet != null) {
             toSet.GetGameObject().transform.position = transform.position;
             toSet.GetGameObject().transform.SetParent(transform);
-            toSet.AssignedToTile = this;
+
+            //toSet.AssignedToTile = this; // atarng: change to be based on unit instead of tile.
+
         }
     }
     public IPlaceable GetPlaceable() {

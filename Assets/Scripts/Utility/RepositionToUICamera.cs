@@ -9,6 +9,8 @@ public class RepositionToUICamera : MonoBehaviour {
 
     public Vector3 m_offset;
 
+    public bool SyncRotation;// { get; set; }
+
     private void Awake() {
         if (gameObject && m_Target && CameraManager.Instance) {
             m_Target.SetParent(CameraManager.Instance.GetUICameraTransform());
@@ -27,7 +29,9 @@ public class RepositionToUICamera : MonoBehaviour {
             Vector3 ToPosition = CameraManager.Instance.FromGameToUIVector(m_Source.position);
             m_Target.position = ToPosition + m_offset;
 
-            m_Target.localRotation = m_Source.localRotation;
+            if (SyncRotation) {
+                m_Target.localRotation = m_Source.localRotation;
+            }
 
             OnUpdate();
         }

@@ -6,7 +6,7 @@ using UnityEngine.UI;
 namespace AtRng.MobileTTA {
 
     public class Player : MonoBehaviour, IGamePlayer { //, IPlaceable {
-
+        public int ID { get; set; }
         int m_health = 0;
         int m_actionPoints = 0;
         int ActionPoints {
@@ -46,9 +46,6 @@ namespace AtRng.MobileTTA {
         List<IUnit> m_hand = new List<IUnit>();
         List<IUnit> m_fieldUnits = new List<IUnit>();
 
-        //int IGamePlayer.GetCurrentDrawCost() {
-        //    return m_drawCost;
-        //}
         public List<IUnit> GetCurrentSummonedUnits() {
             return m_fieldUnits;
         }
@@ -56,7 +53,7 @@ namespace AtRng.MobileTTA {
         public void PlaceUnitOnField(IUnit unitToPlace) {
             ActionPoints -= m_fieldUnits.Count;
 
-            unitToPlace.GetGameObject().transform.rotation = Quaternion.identity;
+            //unitToPlace.GetGameObject().transform.rotation = Quaternion.identity;            
 
             m_hand.Remove(unitToPlace);
             RepositionCardsInHand();
@@ -101,7 +98,7 @@ namespace AtRng.MobileTTA {
 
                 IUnit iu = u;
                 iu.GenerateCardBehavior();
-                iu.AssignPlayerOwner(this);
+                iu.AssignPlayerOwner(ID);// this);
 
                 /*
                 // Rotate towards the center
@@ -112,6 +109,7 @@ namespace AtRng.MobileTTA {
                 Quaternion q = Quaternion.AngleAxis(angle, Vector3.back);
                 go.transform.rotation = q;
                 */
+
                 m_hand.Add(u);
 
                 // TODO: Reposition "Cards"
@@ -168,9 +166,6 @@ namespace AtRng.MobileTTA {
         int IGamePlayer.GetHealth() {
             return m_health;
         }
-        public GameObject GetGameObject() {
-            throw new NotImplementedException();
-        }
 
         public bool GetEnoughActionPoints(int cost) {
             if (m_actionPoints < cost) {
@@ -184,6 +179,7 @@ namespace AtRng.MobileTTA {
             ActionPoints--;
         }
 
+        // Might not be needed anymore.
         public void EndTurn() {
             if(GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(this)) {
                 GameManager.GetInstance<GameManager>().UpdateTurn();

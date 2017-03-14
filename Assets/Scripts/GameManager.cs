@@ -1,12 +1,30 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using AtRng.MobileTTA;
 
 public class GameManager : SingletonMB {
+    /*
+    [Serializable]
+    struct PlayerInit {
+        public Transform UILocation;
+        public Vector2 nexusLocation;
+    }
+    */
+    /*** MAP INIT ***/
+    [Serializable]
+    struct IntVector2 {
+        public int x;
+        public int y;
+        public int Player;
+        public int unitType;
+    }
 
     [SerializeField]
-    //private int m_number_of_players;
+    List<IntVector2> m_tilesToInitUnits;
+    /*** MAP INIT ***/
+    [SerializeField]
     private List<Transform> playerLocations;
 
     [SerializeField]
@@ -23,10 +41,25 @@ public class GameManager : SingletonMB {
 
     // TEMPPPP
     public Unit m_unitPrefab;
-    public int[] m_testDeckList;
 
-    private List<UnitManager.UnitDefinition> to_insert = new List<UnitManager.UnitDefinition>();
+    bool b_initialized = false;
+    bool load_deck_from_file = false;
+
+    public int[] m_testDeckList;
+    //private List<UnitManager.UnitDefinition> to_insert = new List<UnitManager.UnitDefinition>();
+
     private void Start() {
+        if (!b_initialized) {
+            InitializePlayers( InitializeDeck() );
+        }
+        b_initialized = true;
+
+        MapInit();
+    }
+
+    private List<UnitManager.UnitDefinition> InitializeDeck() {
+        List<UnitManager.UnitDefinition> to_insert = new List<UnitManager.UnitDefinition>();
+
         for (int i = 0; i < m_testDeckList.Length; i++) {
             UnitManager um = SingletonMB.GetInstance<UnitManager>();
             UnitManager.UnitDefinition ud = um.GetDefinition(m_testDeckList[i]);
@@ -34,23 +67,27 @@ public class GameManager : SingletonMB {
                 to_insert.Add(ud);
             }
         }
-        InitializePlayers();
+
+        return to_insert;
     }
 
-    public void InitializePlayers() {
+    public void InitializePlayers(List<UnitManager.UnitDefinition> deckList) {
         for (int i = 0; i < playerLocations.Count; i++) { //m_number_of_players;
             Player p = GameObject.Instantiate<Player>(m_playerPrefab);
-
+            p.transform.SetParent(transform);
             p.transform.position = CameraManager.Instance.FromUIToGameVector( playerLocations[i].position );//new Vector3(i, 0.5f, 10) );
+
             Vector3 pPos = p.transform.position;
             pPos.z = 0;
             p.transform.position = pPos;
-            p.PopulateDeck(to_insert);
+            p.transform.localRotation = Quaternion.Euler(0, 0, (i * 180));
+
+            // AssignPlayerID
+            p.ID = i;
+            p.PopulateDeck(deckList);
             for (int j = 0; j < 3; j++) {
                 p.Draw();
             }
-
-            p.transform.localRotation = Quaternion.Euler(0, 0, (i * 180));
 
             m_idPlayerMap.Add(i, p);
             m_turnQueue.Enqueue(p);
@@ -58,7 +95,35 @@ public class GameManager : SingletonMB {
 
         m_turnQueue.Peek().Reset();
     }
+
+
+    private void MapInit() {
+        m_gridInstance.InitializeGrid();
+        for (int i = 0; i < m_tilesToInitUnits.Count; i++) {
+
+            // NEXUS
+            Unit unit_to_place_on_tile = GameObject.Instantiate<Unit>(m_unitPrefab);
+            UnitManager.UnitDefinition ud = UnitManager.GetInstance<UnitManager>().GetDefinition(m_tilesToInitUnits[i].unitType);
+            unit_to_place_on_tile.ReadDefinition(ud);
+
+
+            // this creates a dependency on GameManager.
+            IGamePlayer p = GameManager.GetInstance<GameManager>().GetPlayer(m_tilesToInitUnits[i].Player);
+            p.GetCurrentSummonedUnits().Add(unit_to_place_on_tile);
+
+            Tile tileAtXY = m_gridInstance.GetTileAt((m_tilesToInitUnits[i].x), (m_tilesToInitUnits[i].y));
+            tileAtXY.SetPlaceable(unit_to_place_on_tile);
+
+            IUnit iUnit = unit_to_place_on_tile;
+            iUnit.AssignPlayerOwner(m_tilesToInitUnits[i].Player);
+            iUnit.AssignedToTile = tileAtXY;
+        }
+    }
+
     public IGamePlayer GetPlayer(int id) {
+        if (!b_initialized) {
+            Start();
+        }
         return m_idPlayerMap[id];
     }
 
@@ -73,7 +138,7 @@ public class GameManager : SingletonMB {
         m_turnQueue.Peek().Reset();
     }
 
-    public void HandleCombat(IPlaceable combatant1, IPlaceable combatant2) {
+    public void HandleCombat(ICombatPlaceable combatant1, ICombatPlaceable combatant2) {
         IUnit iu1 = combatant1 as IUnit;
         IUnit iu2 = combatant2 as IUnit;
         int iu1p_damageToDo = 0;

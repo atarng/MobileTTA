@@ -13,7 +13,16 @@ namespace AtRng.MobileTTA {
         List<Tile> m_grid;
 
         bool m_hasBeenInitialized = false;
-        Dictionary<Tile, TileStateEnum> m_accessibleTiles = new Dictionary<Tile, TileStateEnum>();
+
+        struct TileState {
+            public TileStateEnum TSE { get; private set; }
+            public int Depth { get; private set; }
+            public TileState(TileStateEnum tse, int depth) {
+                TSE = tse;
+                Depth = depth;
+            }
+        }
+        private Dictionary<Tile, TileState> m_accessibleTiles = new Dictionary<Tile, TileState>();
 
         void Awake() {}
         // Use this for initialization
@@ -61,12 +70,12 @@ namespace AtRng.MobileTTA {
             return m_grid[(col * m_height) + row];
         }
 
-        private void FillTileAdjacency(int TileX, int TileY, int MovesLeft, int attackRange, bool initCall = false) {
+        private void FillTileAdjacency(int TileX, int TileY, int MovesLeft, int attackRange, int depth) {
             Tile tileAt = GetTileAt(TileX, TileY);
             if (tileAt == null) return;
-            if (initCall) {
+            if (depth == 0) {
                 //Debug.Log(string.Format("FillTileAdjacency: ({0}, {1})", TileX, TileY));
-                m_accessibleTiles.Add(tileAt, TileStateEnum.CanNotAccess);
+                m_accessibleTiles.Add(tileAt, new TileState( TileStateEnum.CanNotAccess, depth ) );
             }
 
             int dm = 1;
@@ -82,7 +91,9 @@ namespace AtRng.MobileTTA {
                     if (!m_accessibleTiles.ContainsKey(tileAt)) {
                         if (tileAt.GetPlaceable() == null) {
                             // Just for visual effect. Empty Tile so can't actually attack.
-                            m_accessibleTiles.Add(tileAt, TileStateEnum.CanAttack);
+                            //m_accessibleTiles.Add(tileAt, TileStateEnum.CanAttack);
+                            m_accessibleTiles.Add(tileAt, new TileState(TileStateEnum.CanAttack, depth));
+                            
                         }
                         else {
                             // Possibly need to change this to can attack if there is a pathable location to attack this object.
@@ -99,15 +110,19 @@ namespace AtRng.MobileTTA {
                                     }
                                 }
                             }
-                            m_accessibleTiles.Add(tileAt, stateToSet);
+                            m_accessibleTiles.Add(tileAt, new TileState(stateToSet, depth));
                         }
                     }
                     return;
                 }
             }
-            if (!initCall && (MovesLeft > 0 || attackRange > 0)) {
+
+            if (depth > 0 && (MovesLeft > 0 || attackRange > 0)) {
                 // If not the initial call, and there are still moves left or attack range left.
                 // Check current Tile to see if it is occupied.
+                // If it is occupied, it is either something that can be passed through (owned by current player)
+                // or it is something that might be able to be attacked.
+
                 TileStateEnum stateToSet = TileStateEnum.CanMove;
                 if (tileAt.GetPlaceable() != null) {
                     Unit u = tileAt.GetPlaceable() as Unit;
@@ -122,42 +137,53 @@ namespace AtRng.MobileTTA {
                 }
 
                 if (!m_accessibleTiles.ContainsKey(tileAt)) {
-                    m_accessibleTiles.Add(tileAt, stateToSet);
+                    m_accessibleTiles.Add(tileAt, new TileState(stateToSet, depth) );
                 }
-                else if (m_accessibleTiles[tileAt] == TileStateEnum.CanAttack) { // || m_accessibleTiles[tileAt] == TileStateEnum.CanNotAccess) {
-                    m_accessibleTiles[tileAt] = stateToSet;
+                // TODO: REVISIT THIS LOGIC AND CORRECT IT.
+                else if (m_accessibleTiles[tileAt].TSE == TileStateEnum.CanAttack) {
+                    // || m_accessibleTiles[tileAt] == TileStateEnum.CanNotAccess) {
+                    m_accessibleTiles[tileAt] = new TileState(stateToSet, depth); //stateToSet;
                 }
             }
 
-            if (initCall || m_accessibleTiles.ContainsKey(tileAt)
-                && (m_accessibleTiles[tileAt] == TileStateEnum.CanMove || m_accessibleTiles[tileAt] == TileStateEnum.CanPassThrough) 
+            if (depth == 0 || m_accessibleTiles.ContainsKey(tileAt)
+                && (m_accessibleTiles[tileAt].TSE == TileStateEnum.CanMove || m_accessibleTiles[tileAt].TSE == TileStateEnum.CanPassThrough)
             ) {
                 // LEFT
-                FillTileAdjacency(TileX - dm - da, TileY, MovesLeft - dm, attackRange - da);
-                if(MovesLeft < attackRange) {
-                    FillTileAdjacency(TileX - attackRange, TileY, 0, 0);
-                }
-
+                FillTileAdjacency(TileX - dm - da, TileY, MovesLeft - dm, attackRange - da, depth + 1);
                 // UP
-                FillTileAdjacency(TileX, TileY + dm + da, MovesLeft - dm, attackRange - da);
-                if (MovesLeft < attackRange) {
-                    FillTileAdjacency(TileX, TileY + attackRange, 0, 0);
-                }
-
+                FillTileAdjacency(TileX, TileY + dm + da, MovesLeft - dm, attackRange - da, depth + 1);
                 // RIGHT
-                FillTileAdjacency(TileX + dm + da, TileY, MovesLeft - dm, attackRange - da);
-                if (MovesLeft < attackRange) {
-                    FillTileAdjacency(TileX + attackRange, TileY, 0, 0);
-                }
-
+                FillTileAdjacency(TileX + dm + da, TileY, MovesLeft - dm, attackRange - da, depth + 1);
                 // BOT
-                FillTileAdjacency(TileX, TileY - dm - da, MovesLeft - dm, attackRange - da);
-                if (MovesLeft < attackRange) {
-                    FillTileAdjacency(TileX, TileY - attackRange, 0, 0);
-                }
-            }
+                FillTileAdjacency(TileX, TileY - dm - da, MovesLeft - dm, attackRange - da, depth + 1);
 
-            return;
+                // RANGED attacks
+                if (MovesLeft < attackRange) {
+                    for (int i = -attackRange; i <= attackRange; i++) {
+                        int j = Mathf.Abs(i) - attackRange;
+                        FillTileAdjacency(TileX + i, TileY + j, 0, 0, depth + 1);
+                        FillTileAdjacency(TileX + i, TileY - j, 0, 0, depth + 1);
+                    }
+                }
+
+                // L
+                //if(MovesLeft < attackRange) {
+                //    FillTileAdjacency(TileX - attackRange, TileY, 0, 0);
+                //}
+                // U
+                //if (MovesLeft < attackRange) {
+                //    FillTileAdjacency(TileX, TileY + attackRange, 0, 0);
+                //}
+                // R
+                //if (MovesLeft < attackRange) {
+                //    FillTileAdjacency(TileX + attackRange, TileY, 0, 0);
+                //}
+                // B
+                //if (MovesLeft < attackRange) {
+                //    FillTileAdjacency(TileX, TileY - attackRange, 0, 0);
+                //}
+            }
         }
 
         // (-1, 0), (0, 1), (0, -1), (1,0)
@@ -180,15 +206,16 @@ namespace AtRng.MobileTTA {
             return toRet;
         }
 
-        public Tile GetAccessibleAttackPosition(Tile source, Tile target) {
+        public List<Tile> GetAccessibleAttackPositions(Tile source, Tile target) {
             IUnit u = source.GetPlaceable().GetGameObject().GetComponent<Unit>();
             List<Tile> listOfCandidateAttackTilePositions = GetCircumference(target, u.GetAttackRange());
+            List<Tile> retList = new List<Tile>();
             foreach (Tile t in listOfCandidateAttackTilePositions) {
-                if (m_accessibleTiles.ContainsKey(t) && (t == source || m_accessibleTiles[t] == TileStateEnum.CanMove)) {
-                    return t;
+                if (m_accessibleTiles.ContainsKey(t) && (t == source || m_accessibleTiles[t].TSE == TileStateEnum.CanMove)) {
+                    retList.Add(t);
                 }
             }
-            return null;
+            return retList;
         }
 
         public void DeterminePathableTiles(Tile tile, IUnit unit) {
@@ -199,9 +226,9 @@ namespace AtRng.MobileTTA {
             //Vector2 origin = new Vector2(tile.xPos, tile.yPos);
 
             List<Tile> TilesToFlip = new List<Tile>();
-            FillTileAdjacency(tile.xPos, tile.yPos, max_range, attack, true);
-            foreach (KeyValuePair<Tile, TileStateEnum> kvp in m_accessibleTiles) {
-                switch (kvp.Value) {
+            FillTileAdjacency(tile.xPos, tile.yPos, max_range, attack, 0);
+            foreach (KeyValuePair<Tile, TileState> kvp in m_accessibleTiles) {
+                switch (kvp.Value.TSE) {
                     case TileStateEnum.CanMove:
                         kvp.Key.sr.color = Color.blue;
                         break;
@@ -217,7 +244,7 @@ namespace AtRng.MobileTTA {
                             List<Tile> listOfCandidateAttackTilePositions = GetCircumference(kvp.Key, attack);
                             foreach (Tile t in listOfCandidateAttackTilePositions) {
                                 if (m_accessibleTiles.ContainsKey(t) &&
-                                   (t == tile || m_accessibleTiles[t] == TileStateEnum.CanMove))
+                                   (t == tile || m_accessibleTiles[t].TSE == TileStateEnum.CanMove))
                                 {
                                     Unit u = kvp.Key.GetPlaceable() as Unit;
                                     if (u != null && !u.GetPlayerOwner().Equals(GameManager.GetInstance<GameManager>().CurrentPlayer())) {
@@ -232,7 +259,9 @@ namespace AtRng.MobileTTA {
             }
             for (int i = 0; i < TilesToFlip.Count; i++) {
                 TilesToFlip[i].sr.color = Color.red;
-                m_accessibleTiles[TilesToFlip[i]] = TileStateEnum.CanAttack;
+                TileState ts = m_accessibleTiles[TilesToFlip[i]];
+                //ts.TSE = TileStateEnum.CanAttack;
+                m_accessibleTiles[TilesToFlip[i]] = new TileState(TileStateEnum.CanAttack, ts.Depth);
             }
         }
 
@@ -254,8 +283,13 @@ namespace AtRng.MobileTTA {
         }
 
         public TileStateEnum TileStateAt(Tile t) {
-            if (m_accessibleTiles.ContainsKey(t)) {
-                return m_accessibleTiles[t];
+            if (t != null) {
+                if (m_accessibleTiles.ContainsKey(t)) {
+                    return m_accessibleTiles[t].TSE;
+                }
+            }
+            else {
+                Debug.LogWarning("[Grid/TileStateAt] Tile t key is Null.");
             }
             return TileStateEnum.CanNotAccess;
         }

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -13,6 +14,7 @@ public class UnitManager : SingletonMB {
         public bool AttackType { get; private set; }
         public int AttackRange { get; private set; }
         public int Movement { get; private set; }
+        public string ArtKey { get; private set; }
 
         public void ParseData(List<string> data) {
             PhysicalHealth  = int.Parse(data[0]);
@@ -21,12 +23,24 @@ public class UnitManager : SingletonMB {
             AttackType      = data[3].Equals("Spiritual") || data[3].Equals("S");
             Movement        = int.Parse(data[4]);
             AttackRange     = int.Parse(data[5]);
+            ArtKey          = data[6];
         }
     }
     Dictionary<long, UnitDefinition> m_definitions = new Dictionary<long, UnitDefinition>();
+    [Serializable]
+    struct KeyPrefabPair{
+        public string ID;
+        public GameObject Prefab;
+    }
+    [SerializeField]
+    KeyPrefabPair[] m_keyToPrefabArray;
+    Dictionary<string, GameObject> m_keyToPrefabMap = new Dictionary<string, GameObject>();
 
     ///*
     protected override void OnAwake() {
+        for (int i = 0; i < m_keyToPrefabArray.Length; i++) {
+            m_keyToPrefabMap.Add(m_keyToPrefabArray[i].ID, m_keyToPrefabArray[i].Prefab);
+        }
         LoadDefinitions();
     }
 //*/
@@ -48,5 +62,9 @@ public class UnitManager : SingletonMB {
     }
     public UnitDefinition GetDefinition(long id) {
         return m_definitions.ContainsKey(id) ? m_definitions[id] : null;
+    }
+
+    public GameObject GetArtFromKey( string key ) {
+        return m_keyToPrefabMap[key];
     }
 }
