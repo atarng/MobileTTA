@@ -7,6 +7,8 @@ using AtRng.MobileTTA;
 using WF.AT;
 
 public class UnitManager : SingletonMB {
+
+    [Serializable]
     public class UnitDefinition {
         public int PhysicalHealth { get; private set; }
         public int SpiritualHealth { get; private set; }

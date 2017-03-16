@@ -41,7 +41,7 @@ namespace AtRng.MobileTTA {
         public SpriteRenderer m_actionPointPrefab;
         List<SpriteRenderer>  m_actionPointsUI = new List<SpriteRenderer>();
         [SerializeField] private Text m_drawCost_ui;
-
+        private bool m_deckPopulated = false;
         public List<UnitManager.UnitDefinition> m_deck = new List<UnitManager.UnitDefinition>();
         List<IUnit> m_hand = new List<IUnit>();
         List<IUnit> m_fieldUnits = new List<IUnit>();
@@ -62,12 +62,17 @@ namespace AtRng.MobileTTA {
 
         public void PopulateDeck(List<UnitManager.UnitDefinition> deck_to_populate_with) {
             List<UnitManager.UnitDefinition> to_copy = new List<UnitManager.UnitDefinition>();
-            to_copy.AddRange( deck_to_populate_with );
+            to_copy.AddRange(deck_to_populate_with);
             while (to_copy.Count > 0) {
                 int random = (int)(UnityEngine.Random.Range(0, to_copy.Count));
                 m_deck.Add(to_copy[random]);
                 to_copy.RemoveAt(random);
             }
+
+            for (int i = 0; i < 3; i++) {
+                Draw();
+            }
+            m_deckPopulated = true;
         }
 
         public void AttemptToDraw() {
@@ -78,9 +83,29 @@ namespace AtRng.MobileTTA {
                 Debug.LogWarning("[Player/AttemptToDraw] At Max Hand Size or not enough action points.");
             }
             else {
-                Draw();
-                ActionPoints -= DrawCost;
-                DrawCost++;
+                if (m_deckPopulated) {
+                    Draw();
+                    ActionPoints -= DrawCost;
+                    DrawCost++;
+                }
+                /*
+                else {
+                    //int[] dummyDeckList = new int[10];
+                    UnitManager um = SingletonMB.GetInstance<UnitManager>();
+                    List<UnitManager.UnitDefinition> to_insert = new List<UnitManager.UnitDefinition>();
+                    for (int i = 0; i < 10; i++) {//dummyDeckList.Length; i++) {
+                        UnitManager.UnitDefinition ud = um.GetDefinition( (int)UnityEngine.Random.Range(1, 6) );//dummyDeckList[i]);
+                        if (ud != null) {
+                            to_insert.Add(ud);
+                        }
+                    }
+                    PopulateDeck(to_insert);
+
+                    for (int j = 0; j < 3; j++) {
+                        Draw();
+                    }
+                }
+                */
             }
         }
 

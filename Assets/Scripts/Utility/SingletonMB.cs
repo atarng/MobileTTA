@@ -33,7 +33,13 @@ namespace AtRng.MobileTTA {
 */
         }
         protected virtual void OnAwake() {}
-        
+
+        private void OnDestroy() {
+            if (SingletonMap.ContainsKey(this.GetType().Name)) {
+                SingletonMap.Remove(this.GetType().Name);
+            }
+        }
+
         public static T GetInstance<T>() where T : SingletonMB {
             return (T) Convert.ChangeType(SingletonMap[typeof(T).Name], typeof(T));
         }

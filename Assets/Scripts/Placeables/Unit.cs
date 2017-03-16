@@ -143,9 +143,12 @@ public class Unit : RepositionToUICamera, IUnit {
         if (GetPlayerOwner().Equals(GameManager.GetInstance<GameManager>().CurrentPlayer()) &&
             GetPlayerOwner().GetEnoughActionPoints(1) &&
             !HasPerformedAction() &&
-            m_maxMovement > 0 ) {
+            m_maxMovement > 0) {
             m_isDragging = true;
             return m_isDragging;
+        }
+        else {
+            Debug.LogWarning("Trying to select invalid unit.");
         }
         return false;
     }
@@ -219,10 +222,10 @@ public class Unit : RepositionToUICamera, IUnit {
     public void TakeDamage(int damage, int type) {
         if (type == 0) {
             // physical
-            m_pHealth -= damage;
+            m_pHealth = Mathf.Max(0, m_pHealth - damage);
         }
         else {
-            m_sHealth -= damage;
+            m_sHealth = Mathf.Max(0, m_sHealth - damage);
         }
 
         if (isNexus()) {

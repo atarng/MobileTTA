@@ -50,7 +50,8 @@ public class GameManager : SingletonMB {
 
     private void Start() {
         if (!b_initialized) {
-            InitializePlayers( InitializeDeck() );
+            InitializePlayers();
+            
         }
         b_initialized = true;
 
@@ -71,7 +72,7 @@ public class GameManager : SingletonMB {
         return to_insert;
     }
 
-    public void InitializePlayers(List<UnitManager.UnitDefinition> deckList) {
+    public void InitializePlayers() {// List<UnitManager.UnitDefinition> deckList) {
         for (int i = 0; i < playerLocations.Count; i++) { //m_number_of_players;
             Player p = GameObject.Instantiate<Player>(m_playerPrefab);
             p.transform.SetParent(transform);
@@ -81,12 +82,16 @@ public class GameManager : SingletonMB {
             pPos.z = 0;
             p.transform.position = pPos;
             p.transform.localRotation = Quaternion.Euler(0, 0, (i * 180));
-
-            // AssignPlayerID
             p.ID = i;
-            p.PopulateDeck(deckList);
-            for (int j = 0; j < 3; j++) {
-                p.Draw();
+
+            if (i == 0) {
+                List<UnitManager.UnitDefinition> playerDeck = SaveGameManager.GetSaveGameData().LoadFrom("TestDeck") as List<UnitManager.UnitDefinition>;
+                if(playerDeck != null) {
+                    p.PopulateDeck(playerDeck);
+                }
+            }
+            else {
+                p.PopulateDeck(InitializeDeck());
             }
 
             m_idPlayerMap.Add(i, p);
