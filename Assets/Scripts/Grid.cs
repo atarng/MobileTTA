@@ -74,8 +74,10 @@ namespace AtRng.MobileTTA {
             Tile tileAt = GetTileAt(TileX, TileY);
             if (tileAt == null) return;
             if (depth == 0) {
+                // self tile.
                 //Debug.Log(string.Format("FillTileAdjacency: ({0}, {1})", TileX, TileY));
-                m_accessibleTiles.Add(tileAt, new TileState( TileStateEnum.CanNotAccess, depth ) );
+                //m_accessibleTiles.Add(tileAt, new TileState( TileStateEnum.CanNotAccess, depth ) );
+                m_accessibleTiles.Add(tileAt, new TileState(TileStateEnum.CanStay, depth));
             }
 
             int dm = 1;
@@ -211,7 +213,9 @@ namespace AtRng.MobileTTA {
             List<Tile> listOfCandidateAttackTilePositions = GetCircumference(target, u.GetAttackRange());
             List<Tile> retList = new List<Tile>();
             foreach (Tile t in listOfCandidateAttackTilePositions) {
-                if (m_accessibleTiles.ContainsKey(t) && (t == source || m_accessibleTiles[t].TSE == TileStateEnum.CanMove)) {
+                if (m_accessibleTiles.ContainsKey(t) && 
+                    (t == source || m_accessibleTiles[t].TSE == TileStateEnum.CanMove ||
+                    m_accessibleTiles[t].TSE == TileStateEnum.CanStay ) ) {
                     retList.Add(t);
                 }
             }
@@ -239,6 +243,7 @@ namespace AtRng.MobileTTA {
                         kvp.Key.sr.color = Color.gray;
                         break;
                     case TileStateEnum.CanNotAccess:
+                    default:
                         kvp.Key.sr.color = Color.white;
                         if (tile != kvp.Key) {
                             List<Tile> listOfCandidateAttackTilePositions = GetCircumference(kvp.Key, attack);

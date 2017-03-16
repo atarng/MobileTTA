@@ -56,6 +56,7 @@ public class Unit : RepositionToUICamera, IUnit {
         }
     } //private set; }
     private Tile m_pendingAttackTile = null;
+    private List<Tile> m_pendingAttackList = null;
 
     public void ReadDefinition( UnitManager.UnitDefinition ud ) {
         m_pHealthMax = m_pHealth = ud.PhysicalHealth;
@@ -83,11 +84,52 @@ public class Unit : RepositionToUICamera, IUnit {
 
     // Update is called once per frame
     protected override void OnUpdate() {
-        if ( IsDragging() ) {
+        if (IsDragging()) {
             Vector3 mouse_to_world = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             mouse_to_world.z = 0;
             // attach to mouse
             transform.position = mouse_to_world;
+
+            //
+            RaycastHit2D rh2d = Physics2D.Raycast(new Vector2(CameraManager.Instance.GameCamera().ScreenToWorldPoint(Input.mousePosition).x,
+                                          CameraManager.Instance.GameCamera().ScreenToWorldPoint(Input.mousePosition).y),
+                                          Vector2.zero, 0f, 1 << LayerMask.NameToLayer("Grid"));
+            Tile CurrentlyOverTile = null;
+            if (rh2d) {
+                CurrentlyOverTile = rh2d.transform.GetComponent<Tile>();
+            }
+
+            TileStateEnum c_tse = SingletonMB.GetInstance<GameManager>().GetGrid().TileStateAt(CurrentlyOverTile);
+            switch (c_tse) {
+                case TileStateEnum.CanAttack:
+                    if (CurrentlyOverTile.GetPlaceable() is ICombatPlaceable) {
+                        ICombatPlaceable icp = CurrentlyOverTile.GetPlaceable() as ICombatPlaceable;
+                        m_pendingAttackList = GameManager.GetInstance<GameManager>().GetGrid().GetAccessibleAttackPositions(AssignedToTile, CurrentlyOverTile);
+                        if (m_pendingAttackTile == null) {
+                            m_pendingAttackTile = m_pendingAttackList[0];
+                            m_pendingAttackTile.sr.color = Color.cyan;
+                        }
+                    }
+                    break;
+                case TileStateEnum.CanMove:
+                case TileStateEnum.CanStay:
+                    if (m_pendingAttackList != null) {
+                        int indexOfTile = m_pendingAttackList.FindIndex(CurrentlyOverTile.MatchesTile);
+                        if (indexOfTile >= 0 ){
+                            //switch (SingletonMB.GetInstance<GameManager>().GetGrid().TileStateAt(m_pendingAttackTile)) {
+                            //    case TileStateEnum.CanMove:
+
+                            //}
+                            TileStateEnum pa_tse = SingletonMB.GetInstance<GameManager>().GetGrid().TileStateAt(m_pendingAttackTile);
+                            m_pendingAttackTile.sr.color = (pa_tse == TileStateEnum.CanMove) ? Color.blue : Color.white;
+                            m_pendingAttackTile = m_pendingAttackList[indexOfTile];
+                            m_pendingAttackTile.sr.color = Color.cyan;
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
 
         if (isNexus()) {
@@ -161,6 +203,10 @@ public class Unit : RepositionToUICamera, IUnit {
             }
         }
         m_isDragging = false;
+
+        m_pendingAttackList = null;
+        m_pendingAttackTile = null;
+
         return true;
     }
 
@@ -322,55 +368,10 @@ public class Unit : RepositionToUICamera, IUnit {
                 case TileStateEnum.CanAttack:
                     //TODO
                     // Find Tile that can be placed at this location.
-                    if (CurrentlyOverTile.GetPlaceable() is ICombatPlaceable) { //m_itemOnTile != null) {
-                        ICombatPlaceable  icp = CurrentlyOverTile.GetPlaceable() as ICombatPlaceable; 
-                        List<Tile> canAttackFrom = GameManager.GetInstance<GameManager>().GetGrid().GetAccessibleAttackPositions(AssignedToTile, CurrentlyOverTile);
-
-                        if (canAttackFrom.Count > 0) {
-                            AssignedToTile = canAttackFrom[0];
-                        }
-                        else {
-                            AssignedToTile.SetPlaceable(this);
-                            action_resolved = false;
-                        }
+                    if (m_pendingAttackTile != null) {
+                        AssignedToTile = m_pendingAttackTile;
+                        ICombatPlaceable icp = CurrentlyOverTile.GetPlaceable() as ICombatPlaceable;
                         GameManager.GetInstance<GameManager>().HandleCombat(this, icp);
-
-/*
-                        if (canAttackFrom.Count == 1) {
-
-                            GameManager.GetInstance<GameManager>().HandleCombat(this, CurrentlyOverTile.GetPlaceable());
-                            AssignedToTile = canAttackFrom[0];
-                            //canAttackFrom[0].SetPlaceable(this);
-                            //if (canAttackFrom[0] != this) {
-                            //    // we don't want to do this if tile is still on this location.
-                            //    AssignedToTile.SetPlaceable(null);//m_itemOnTile = null;
-                            //}
-                            //AssignedToTile = canAttackFrom[0];
-                        }
-                        else {
-                            if (m_pendingAttackTile != null) {
-                                // confirm attack position at pending tile
-                                //m_pendingAttackTile.SetPlaceable(this);
-                                //if (m_pendingAttackTile != this) {
-                                //    AssignedToTile.SetPlaceable(null);//m_itemOnTile = null;
-                                //}
-
-
-                                //if(CurrentlyOverTile == m_pendingAttackTile)
-                                GameManager.GetInstance<GameManager>().HandleCombat(this, CurrentlyOverTile.GetPlaceable());
-
-                                AssignedToTile = m_pendingAttackTile;
-                                m_pendingAttackTile = null;
-                            }
-                            else {
-                                m_pendingAttackTile = canAttackFrom[0];
-                                m_pendingAttackTile.SetPlaceable(this);
-                                action_resolved = false;
-                            }
-                        }
-
-*/
-                        break;
                     }
                     else {
                         // if target tile is empty then place this tile back on original position.

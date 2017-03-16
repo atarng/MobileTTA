@@ -9,6 +9,8 @@ using UnityEngine;
 namespace AtRng.MobileTTA {
     public class SingletonMB : MonoBehaviour {
         //public static SingletonMB Instance;
+        [SerializeField]
+        private bool m_persistBetweenScenes = false;
 
         //public static List<SingletonMB> ListOfSingletons = new List<SingletonMB>();
         public static Dictionary<string, SingletonMB> SingletonMap = new Dictionary<string, SingletonMB>();
@@ -19,6 +21,10 @@ namespace AtRng.MobileTTA {
             }
             else {
                 SingletonMap.Add(this.GetType().Name, this);
+                if (m_persistBetweenScenes) {
+                    DontDestroyOnLoad(gameObject);
+                }
+                
                 OnAwake();
             }
 /*
@@ -35,7 +41,8 @@ namespace AtRng.MobileTTA {
         protected virtual void OnAwake() {}
 
         private void OnDestroy() {
-            if (SingletonMap.ContainsKey(this.GetType().Name)) {
+            if (!m_persistBetweenScenes &&
+                SingletonMap.ContainsKey(this.GetType().Name)) {
                 SingletonMap.Remove(this.GetType().Name);
             }
         }

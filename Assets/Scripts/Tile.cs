@@ -24,6 +24,11 @@ public class Tile : MonoBehaviour {
     }
 
     bool successfullyGrabbed = false;
+
+
+    public bool MatchesTile(Tile t) {
+        return t == this;
+    }
     /*
     private void OnMouseEnter(){
         s_currentTileOver = this;

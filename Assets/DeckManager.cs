@@ -53,6 +53,7 @@ public class DeckManager : MonoBehaviour {
     }
 
     public void ClearDeck() {
+        Debug.Log("[DeckManager/ClearDeck]");
         if (m_deckList != null) {
             m_deckList.Clear();
         }

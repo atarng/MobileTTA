@@ -9,6 +9,7 @@ namespace AtRng.MobileTTA {
     , CanAttack
     , CanMove
     , CanPassThrough
+    , CanStay
         //
         //
     }
