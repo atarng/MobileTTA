@@ -11,11 +11,12 @@ public class DeckManager : MonoBehaviour {
     [SerializeField]
     bool m_debug = false;
     [SerializeField]
-    int[] DebugList;
+    int[] DebugList; // Collection Equivalent.
 
     const int MAX_DECK_SIZE = 10;
 
     List<UnitManager.UnitDefinition> m_deckList = null;
+    List<UnitManager.UnitDefinition> m_Collection = null;
     // Use this for initialization
     void Start () {
         SaveGameManager.Load();
@@ -40,8 +41,28 @@ public class DeckManager : MonoBehaviour {
             }
         }
         else {
+            if (SaveGameManager.GetSaveGameData().Exists("Collection")) {
+                m_Collection = SaveGameManager.GetSaveGameData().LoadFrom("Collection") as List<UnitManager.UnitDefinition>;
+            }
+            else {
+                // Initialize a Basic Collection
+                InitializeCollection();
+            }
+
+            for (int i = 0; i < m_Collection.Count; i++) {
+                CardSelector cs = GameObject.Instantiate<CardSelector>(m_cardSelector);
+                cs.SetInfo(this, m_Collection[i].ID, 0);
+                cs.transform.SetParent(transform);
+
+                Vector3 newPosition = Vector3.zero;
+                newPosition.x = i * 100;
+                cs.transform.localPosition = newPosition;
+            }
         }
-	}
+
+    }
+
+
     public void AddUnit( int defId ) {
         Debug.Log("[DeckManager/AddUnit] AddUnit DefId: " + defId);
         if (m_deckList.Count < MAX_DECK_SIZE) {
@@ -54,6 +75,9 @@ public class DeckManager : MonoBehaviour {
 
     public void ClearDeck() {
         Debug.Log("[DeckManager/ClearDeck]");
+
+        InitializeCollection();
+
         if (m_deckList != null) {
             m_deckList.Clear();
         }
@@ -63,4 +87,16 @@ public class DeckManager : MonoBehaviour {
         SaveGameManager.GetSaveGameData().SaveTo("TestDeck", m_deckList);
         SaveGameManager.Save();
     }
+
+
+    private void InitializeCollection() {
+        m_Collection = new List<UnitManager.UnitDefinition>();
+        m_Collection.Add(UnitManager.GetInstance<UnitManager>().GetDefinition(1));
+        m_Collection.Add(UnitManager.GetInstance<UnitManager>().GetDefinition(2));
+        m_Collection.Add(UnitManager.GetInstance<UnitManager>().GetDefinition(3));
+
+        SaveGameManager.GetSaveGameData().SaveTo("Collection", m_Collection);
+        SaveGameManager.Save();
+    }
+
 }
