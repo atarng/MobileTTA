@@ -10,9 +10,41 @@ using WF.AT;
 
 public class UnitManager : SingletonMB {
 
+    public interface UnitDesciption {
+        int DefinitionID { get; }
+    }
+
     [Serializable]
-    public class UnitDefinition {
-        public int ID { get; private set; }
+    public class UnitPersistence : UnitDesciption {
+        public int DefinitionID { get; private set; }
+
+        public int PHealthModifier { get; private set; }
+        public int SHealthModifier { get; private set; }
+        public int AttackModifier { get; private set; }
+        public int Experience { get; private set; }
+        public int TargetExperience { get; private set; }
+
+        public Guid UnitID { get; private set; }
+
+        public UnitPersistence(int defID, bool randomNature = true) {
+            DefinitionID = defID;
+            UnitID = System.Guid.NewGuid();
+        }
+
+        public void AddExperience(int expToAdd) {
+            Experience += expToAdd;
+            if (TargetExperience > 0 && Experience > TargetExperience) {
+                LevelUp();
+            }
+        }
+        private void LevelUp() {
+            Experience -= TargetExperience;
+        }
+    }
+
+    [Serializable]
+    public class UnitDefinition : UnitDesciption {
+        public int DefinitionID { get; private set; }
         public int PhysicalHealth { get; private set; }
         public int SpiritualHealth { get; private set; }
         public int AttackValue { get; private set; }
@@ -22,7 +54,7 @@ public class UnitManager : SingletonMB {
         public string ArtKey { get; private set; }
 
         public void ParseData(int id, List<string> data) {
-            ID = id;
+            DefinitionID    = id;
             PhysicalHealth  = int.Parse(data[0]);
             SpiritualHealth = int.Parse(data[1]);
             AttackValue     = int.Parse(data[2]);

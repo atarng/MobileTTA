@@ -11,7 +11,7 @@ public class BoosterOrb : MonoBehaviour {
     public void GetRandomUnitAndDisplayIt() {
         UnitManager.UnitDefinition ud = m_ref.GetRandomUnit();
 
-        Debug.Log("Open An Orb: " + ud.ID);
+        Debug.Log("Open An Orb: " + ud.DefinitionID);
 
         m_ref.SaveUnitToCollection(ud);
         Destroy(gameObject);

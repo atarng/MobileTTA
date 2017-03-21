@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using AtRng.MobileTTA;
 
-public class GameManager : SingletonMB {
+public class GameManager : SceneControl {
     /*
     [Serializable]
     struct PlayerInit {
@@ -58,8 +58,8 @@ public class GameManager : SingletonMB {
         MapInit();
     }
 
-    private List<UnitManager.UnitDefinition> InitializeDeck() {
-        List<UnitManager.UnitDefinition> to_insert = new List<UnitManager.UnitDefinition>();
+    private List<UnitManager.UnitDesciption> InitializeDummyDeck_Temp() {
+        List<UnitManager.UnitDesciption> to_insert = new List<UnitManager.UnitDesciption>();
 
         for (int i = 0; i < m_testDeckList.Length; i++) {
             UnitManager um = SingletonMB.GetInstance<UnitManager>();
@@ -85,13 +85,14 @@ public class GameManager : SingletonMB {
             p.ID = i;
 
             if (i == 0) {
-                List<UnitManager.UnitDefinition> playerDeck = SaveGameManager.GetSaveGameData().LoadFrom("TestDeck") as List<UnitManager.UnitDefinition>;
-                if(playerDeck != null) {
-                    p.PopulateDeck(playerDeck);
+                List<UnitManager.UnitPersistence> playerDeck = 
+                    SaveGameManager.GetSaveGameData().LoadFrom("TestDeck") as List<UnitManager.UnitPersistence>;
+                if (playerDeck != null) {
+                    p.PopulateAndShuffleDeck<UnitManager.UnitPersistence>(playerDeck);
                 }
             }
             else {
-                p.PopulateDeck(InitializeDeck());
+                p.PopulateAndShuffleDeck<UnitManager.UnitDesciption>(InitializeDummyDeck_Temp());
             }
 
             m_idPlayerMap.Add(i, p);
@@ -134,6 +135,11 @@ public class GameManager : SingletonMB {
 
     public Player CurrentPlayer() {
         return m_turnQueue.Peek();
+    }
+
+    public void UI_EndTurn() {
+        Player p = m_turnQueue.Peek();
+        p.EndTurn();
     }
 
     public void UpdateTurn() {

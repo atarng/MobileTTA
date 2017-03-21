@@ -21,7 +21,7 @@ namespace AtRng.MobileTTA {
                     m_actionPointsUI[i].color = (i < m_actionPoints) ? Color.blue : Color.grey;
                 }
 
-                if (m_actionPoints == 0) {
+                if (m_actionPoints <= 0) {
                     EndTurn();
                 }
             }
@@ -41,8 +41,10 @@ namespace AtRng.MobileTTA {
         public SpriteRenderer m_actionPointPrefab;
         List<SpriteRenderer>  m_actionPointsUI = new List<SpriteRenderer>();
         [SerializeField] private Text m_drawCost_ui;
+
         private bool m_deckPopulated = false;
-        public List<UnitManager.UnitDefinition> m_deck = new List<UnitManager.UnitDefinition>();
+        public List<UnitManager.UnitDesciption> m_deck = new List<UnitManager.UnitDesciption>();
+
         List<IUnit> m_hand = new List<IUnit>();
         List<IUnit> m_fieldUnits = new List<IUnit>();
 
@@ -51,18 +53,24 @@ namespace AtRng.MobileTTA {
         }
 
         public void PlaceUnitOnField(IUnit unitToPlace) {
-            ActionPoints -= m_fieldUnits.Count;
-
-            //unitToPlace.GetGameObject().transform.rotation = Quaternion.identity;            
+            //unitToPlace.GetGameObject().transform.rotation = Quaternion.identity;
 
             m_hand.Remove(unitToPlace);
             RepositionCardsInHand();
             m_fieldUnits.Add(unitToPlace);
-        }
 
-        public void PopulateDeck(List<UnitManager.UnitDefinition> deck_to_populate_with) {
-            List<UnitManager.UnitDefinition> to_copy = new List<UnitManager.UnitDefinition>();
+            // order matters.
+            ActionPoints -= (m_fieldUnits.Count - 1);
+        }
+        //UnitManager.UnitDesciption
+        public void PopulateAndShuffleDeck<T>(List<T> deck_to_populate_with) where T : UnitManager.UnitDesciption {
+            List<T> to_copy = new List<T>();
             to_copy.AddRange(deck_to_populate_with);
+            /*
+            for (int i = 0; i < deck_to_populate_with.Count; i++) {
+                to_copy.Add( deck_to_populate_with[i] );
+            }
+            */
             while (to_copy.Count > 0) {
                 int random = (int)(UnityEngine.Random.Range(0, to_copy.Count));
                 m_deck.Add(to_copy[random]);
@@ -77,10 +85,12 @@ namespace AtRng.MobileTTA {
 
         public void AttemptToDraw() {
             if (!SingletonMB.GetInstance<GameManager>().CurrentPlayer().Equals(this)) {
-                Debug.LogWarning("[Player/AttemptToDraw] Incorrect player turn");
+                //Debug.LogWarning("[Player/AttemptToDraw] Incorrect player turn");
+                SceneControl.GetCurrentSceneControl().DisplayWarning("It is not that player's turn!");
             }
             else if (!GetEnoughActionPoints(DrawCost) || GetHand().Count >= 5) {
-                Debug.LogWarning("[Player/AttemptToDraw] At Max Hand Size or not enough action points.");
+                //Debug.LogWarning("[Player/AttemptToDraw] At Max Hand Size or not enough action points.");
+                SceneControl.GetCurrentSceneControl().DisplayWarning("At Max Hand Size or not enough action points.");
             }
             else {
                 if (m_deckPopulated) {
@@ -113,7 +123,7 @@ namespace AtRng.MobileTTA {
             if(m_deck.Count > 0) {
 
                 // instantiate as a card
-                UnitManager.UnitDefinition ud = m_deck[0];
+                UnitManager.UnitDefinition ud = UnitManager.GetInstance<UnitManager>().GetDefinition( m_deck[0].DefinitionID );
                 Unit u = GameObject.Instantiate( SingletonMB.GetInstance<GameManager>().m_unitPrefab );
                 u.ReadDefinition(ud);
                 u.transform.SetParent(transform);
@@ -160,17 +170,31 @@ namespace AtRng.MobileTTA {
             }
         }
 
+        int IGamePlayer.GetHealth() {
+            return m_health;
+        }
+
+        public bool GetEnoughActionPoints(int cost) {
+            if (m_actionPoints < cost) {
+
+                //Debug.LogWarning(string.Format("[Player/GetEnoughActionPoints] (Cost, Current, Total): ({0}, {1}, {2})",
+                //    cost, m_actionPoints, m_actionPointsMax));
+                SceneControl.GetCurrentSceneControl().DisplayWarning("Not Enough Action Points.");
+
+                return false;
+            }
+            return true;
+        }
+        void IGamePlayer.ExpendUnitActionPoint() {
+            ActionPoints--;
+        }
+
         // Drawing costs, etc.
         public void Reset() {
             // Limit to ten.
             m_actionPointsMax = Mathf.Min(10, m_actionPointsMax + 1);
             m_actionPoints = m_actionPointsMax;
             DrawCost = 1;
-            
-
-            for (int i = 0; i < m_fieldUnits.Count; i++) {
-                m_fieldUnits[i].Clear();
-            }
 
             for (int i = m_actionPointsUI.Count; i < m_actionPointsMax; i++) {
                 SpriteRenderer sr = GameObject.Instantiate<SpriteRenderer>(m_actionPointPrefab);
@@ -188,25 +212,15 @@ namespace AtRng.MobileTTA {
                 m_actionPointsUI[i].color = Color.blue;
             }
         }
-        int IGamePlayer.GetHealth() {
-            return m_health;
-        }
-
-        public bool GetEnoughActionPoints(int cost) {
-            if (m_actionPoints < cost) {
-                Debug.LogWarning(string.Format("[Player/GetEnoughActionPoints] (Cost, Current, Total): ({0}, {1}, {2})",
-                    cost, m_actionPoints, m_actionPointsMax));
-                return false;
-            }
-            return true;
-        }
-        void IGamePlayer.ExpendUnitActionPoint() {
-            ActionPoints--;
-        }
-
+        // End of Turn
         // Might not be needed anymore.
         public void EndTurn() {
-            if(GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(this)) {
+
+            for (int i = 0; i < m_fieldUnits.Count; i++) {
+                m_fieldUnits[i].Clear();
+            }
+
+            if (GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(this)) {
                 GameManager.GetInstance<GameManager>().UpdateTurn();
             }
         }

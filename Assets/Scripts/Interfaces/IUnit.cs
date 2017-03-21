@@ -5,6 +5,8 @@ using UnityEngine;
 namespace AtRng.MobileTTA {
     public interface IUnit : ICombatPlaceable {
 
+        bool HasPerformedAction { get; }
+
         IGamePlayer GetPlayerOwner();
         void AssignPlayerOwner(int playerID);
 
@@ -20,7 +22,6 @@ namespace AtRng.MobileTTA {
         int GetAttackRange();
 
         int GetMaxMovement();
-        bool HasPerformedAction();
         bool Clear();
 
         //

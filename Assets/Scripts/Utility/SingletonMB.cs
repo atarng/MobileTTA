@@ -40,7 +40,7 @@ namespace AtRng.MobileTTA {
         }
         protected virtual void OnAwake() {}
 
-        private void OnDestroy() {
+        protected virtual void OnDestroy() {
             if (!m_persistBetweenScenes &&
                 SingletonMap.ContainsKey(this.GetType().Name)) {
                 SingletonMap.Remove(this.GetType().Name);

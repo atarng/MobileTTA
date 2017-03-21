@@ -67,6 +67,7 @@ namespace AtRng.MobileTTA {
                     catch (SerializationException) {
                         //SaveGameManager.ClearAllSaves();
                         Debug.LogError("Yeah... that didn't work.");
+                        s_saveGame = new SaveGame();
                     }
                     finally {
                         stream.Close();

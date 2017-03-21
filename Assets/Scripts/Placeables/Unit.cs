@@ -11,12 +11,28 @@ using System;
 public class Unit : RepositionToUICamera, IUnit {
 
     bool m_hasPerformedAction = false;
+    public bool HasPerformedAction {
+        get {
+            return m_hasPerformedAction;
+        }
+        private set {
+            m_hasPerformedAction = value;
+            if (m_actionPerformedImage != null && !isNexus() && (AssignedToTile != null)
+            ) {
+                m_actionPerformedImage.SetActive(m_hasPerformedAction);
+            }
+        }
+    }
+
     bool m_isDragging = false;
     int m_maxMovement = 2;
     int m_attackRange = 1;
 
     [SerializeField]
     Transform m_artPlacement;
+    [SerializeField]
+    GameObject m_actionPerformedImage;
+
     //[SerializeField]
     //Image m_tempArtRef;
     //[SerializeField]
@@ -98,37 +114,40 @@ public class Unit : RepositionToUICamera, IUnit {
             if (rh2d) {
                 CurrentlyOverTile = rh2d.transform.GetComponent<Tile>();
             }
+            if (CurrentlyOverTile == null) return;
 
-            TileStateEnum c_tse = SingletonMB.GetInstance<GameManager>().GetGrid().TileStateAt(CurrentlyOverTile);
-            switch (c_tse) {
-                case TileStateEnum.CanAttack:
-                    if (CurrentlyOverTile.GetPlaceable() is ICombatPlaceable) {
-                        ICombatPlaceable icp = CurrentlyOverTile.GetPlaceable() as ICombatPlaceable;
-                        m_pendingAttackList = GameManager.GetInstance<GameManager>().GetGrid().GetAccessibleAttackPositions(AssignedToTile, CurrentlyOverTile);
-                        if (m_pendingAttackTile == null) {
-                            m_pendingAttackTile = m_pendingAttackList[0];
-                            m_pendingAttackTile.sr.color = Color.cyan;
+            if (AssignedToTile) {
+                TileStateEnum c_tse = SingletonMB.GetInstance<GameManager>().GetGrid().TileStateAt(CurrentlyOverTile);
+                switch (c_tse) {
+                    case TileStateEnum.CanAttack:
+                        if (CurrentlyOverTile.GetPlaceable() is ICombatPlaceable) {
+                            ICombatPlaceable icp = CurrentlyOverTile.GetPlaceable() as ICombatPlaceable;
+                            m_pendingAttackList = GameManager.GetInstance<GameManager>().GetGrid().GetAccessibleAttackPositions(AssignedToTile, CurrentlyOverTile);
+                            if (m_pendingAttackTile == null) {
+                                m_pendingAttackTile = m_pendingAttackList[0];
+                                m_pendingAttackTile.sr.color = Color.cyan;
+                            }
                         }
-                    }
-                    break;
-                case TileStateEnum.CanMove:
-                case TileStateEnum.CanStay:
-                    if (m_pendingAttackList != null) {
-                        int indexOfTile = m_pendingAttackList.FindIndex(CurrentlyOverTile.MatchesTile);
-                        if (indexOfTile >= 0 ){
-                            //switch (SingletonMB.GetInstance<GameManager>().GetGrid().TileStateAt(m_pendingAttackTile)) {
-                            //    case TileStateEnum.CanMove:
+                        break;
+                    case TileStateEnum.CanMove:
+                    case TileStateEnum.CanStay:
+                        if (m_pendingAttackList != null) {
+                            int indexOfTile = m_pendingAttackList.FindIndex(CurrentlyOverTile.MatchesTile);
+                            if (indexOfTile >= 0 ){
+                                //switch (SingletonMB.GetInstance<GameManager>().GetGrid().TileStateAt(m_pendingAttackTile)) {
+                                //    case TileStateEnum.CanMove:
 
-                            //}
-                            TileStateEnum pa_tse = SingletonMB.GetInstance<GameManager>().GetGrid().TileStateAt(m_pendingAttackTile);
-                            m_pendingAttackTile.sr.color = (pa_tse == TileStateEnum.CanMove) ? Color.blue : Color.white;
-                            m_pendingAttackTile = m_pendingAttackList[indexOfTile];
-                            m_pendingAttackTile.sr.color = Color.cyan;
+                                //}
+                                TileStateEnum pa_tse = SingletonMB.GetInstance<GameManager>().GetGrid().TileStateAt(m_pendingAttackTile);
+                                m_pendingAttackTile.sr.color = (pa_tse == TileStateEnum.CanMove) ? Color.blue : Color.white;
+                                m_pendingAttackTile = m_pendingAttackList[indexOfTile];
+                                m_pendingAttackTile.sr.color = Color.cyan;
+                            }
                         }
-                    }
-                    break;
-                default:
-                    break;
+                        break;
+                    default:
+                        break;
+                }
             }
         }
 
@@ -141,11 +160,14 @@ public class Unit : RepositionToUICamera, IUnit {
 
             AttackText.enabled = false;
             SHealthText.enabled = false;
+
+            m_actionPerformedImage.SetActive(!GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(GetPlayerOwner()));
         }
+        // Else if Tile is on Board, or it is current players turn.
         else if (AssignedToTile || GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(GetPlayerOwner())) {
             if (GetAttackValue() > 0) {
                 AttackText.text = GetAttackValue().ToString();
-                AttackText.color = IsSpiritualAttack() ? (IsPhysicalAttack() ? Color.magenta : Color.blue) : Color.red;
+                AttackText.color = IsSpiritualAttack() ? (IsPhysicalAttack() ? Color.magenta : new Color(0,196, 255)) : Color.red;
                 AttackText.enabled = true;
             }
             else {
@@ -165,7 +187,7 @@ public class Unit : RepositionToUICamera, IUnit {
         }
 
         if (m_isDying > 0) {
-            m_hasPerformedAction = true;
+            HasPerformedAction = true;
             transform.localScale = Vector3.Lerp(transform.localScale, Vector3.zero, m_isDying - 1);
             m_isDying += 0.05f;
             if (transform.localScale.magnitude <= 0.1f) {
@@ -182,22 +204,27 @@ public class Unit : RepositionToUICamera, IUnit {
 
     public bool AttemptSelection() {
         //cc2d.enabled = true;// 
-        if (GetPlayerOwner().Equals(GameManager.GetInstance<GameManager>().CurrentPlayer()) &&
-            GetPlayerOwner().GetEnoughActionPoints(1) &&
-            !HasPerformedAction() &&
-            m_maxMovement > 0) {
-            m_isDragging = true;
-            return m_isDragging;
-        }
-        else {
-            Debug.LogWarning("Trying to select invalid unit.");
+        if (GetPlayerOwner().Equals(GameManager.GetInstance<GameManager>().CurrentPlayer())) {
+            if ( GetPlayerOwner().GetEnoughActionPoints(1) && !HasPerformedAction && m_maxMovement > 0){
+                m_isDragging = true;
+                return m_isDragging;
+            }
+            else if (!(GetPlayerOwner().GetEnoughActionPoints(1))) {
+                SceneControl.GetCurrentSceneControl().DisplayWarning("Not enough action points.");
+            }
+            else if (HasPerformedAction) {
+                SceneControl.GetCurrentSceneControl().DisplayWarning("That unit cannot take an action this turn.");
+            }
+            else {
+                Debug.LogWarning("Trying to select invalid unit.");
+            }
         }
         return false;
     }
 
     public bool AttemptRelease( Tile sourceTile, Tile destinationTile, bool resolved) {
         if (m_isDragging) {
-            m_hasPerformedAction = resolved;
+            HasPerformedAction = resolved;
             if (resolved) {
                 GetPlayerOwner().ExpendUnitActionPoint();
             }
@@ -218,7 +245,7 @@ public class Unit : RepositionToUICamera, IUnit {
     bool IUnit.Clear() {
         //throw new NotImplementedException();
         m_isDragging = false;
-        m_hasPerformedAction = false;
+        HasPerformedAction = false;
         return true;
     }
 
@@ -258,11 +285,6 @@ public class Unit : RepositionToUICamera, IUnit {
     public int GetSpiritualHealth() {
         //throw new NotImplementedException();
         return m_sHealth;
-    }
-
-    public bool HasPerformedAction() {
-        //throw new NotImplementedException();
-        return m_hasPerformedAction;
     }
 
     public void TakeDamage(int damage, int type) {
@@ -393,7 +415,11 @@ public class Unit : RepositionToUICamera, IUnit {
             bool unit_placed = false;
 
             if(CurrentlyOverTile != null) {
+                // Tile is not null
                 if (IsAdjacentToAlliedUnit( CurrentlyOverTile ) && !CurrentlyOverTile.IsOccupied()) {
+
+                    AssignedToTile = CurrentlyOverTile; //CurrentlyOverTile.SetPlaceable(this);
+                    HasPerformedAction = true;
 
                     // keeping the collider to make it so that it's unit based tile placement instead of tile.
                     // BoxCollider2D bc2d = gameObject.GetComponent<BoxCollider2D>();
@@ -404,10 +430,8 @@ public class Unit : RepositionToUICamera, IUnit {
                     }
                     unit_placed = true;
 
-                    //CurrentlyOverTile.SetPlaceable(this);
-                    AssignedToTile = CurrentlyOverTile;
                 }
-                m_hasPerformedAction = true;
+                
             }
 
             if (!unit_placed && GetPlayerOwner() != null) {
