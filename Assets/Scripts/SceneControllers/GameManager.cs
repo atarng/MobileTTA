@@ -5,14 +5,8 @@ using UnityEngine;
 using AtRng.MobileTTA;
 
 public class GameManager : SceneControl {
-    /*
-    [Serializable]
-    struct PlayerInit {
-        public Transform UILocation;
-        public Vector2 nexusLocation;
-    }
-    */
     /*** MAP INIT ***/
+    /*
     [Serializable]
     struct IntVector2 {
         public int x;
@@ -23,6 +17,10 @@ public class GameManager : SceneControl {
 
     [SerializeField]
     List<IntVector2> m_tilesToInitUnits;
+    //*/
+
+    public LevelScriptableObject LevelInitData;
+
     /*** MAP INIT ***/
     [SerializeField]
     private List<Transform> playerLocations;
@@ -36,6 +34,8 @@ public class GameManager : SceneControl {
         return m_gridInstance;
     }
 
+
+
     Queue<Player> m_turnQueue = new Queue<Player>();
     Dictionary<int, Player> m_idPlayerMap = new Dictionary<int, Player>();
 
@@ -47,6 +47,8 @@ public class GameManager : SceneControl {
     public int[] m_testDeckList;
     //private List<UnitManager.UnitDefinition> to_insert = new List<UnitManager.UnitDefinition>();
 
+    /*** DEBUG/CONTROLS ***/
+    bool m_debug_mouse;
     bool m_drawMode = false;
     public void ToggleDrawMode() {
         m_drawMode = !m_drawMode;
@@ -54,20 +56,21 @@ public class GameManager : SceneControl {
     public bool DrawMode() {
         return m_drawMode;
     }
-
-    bool m_debug_mouse;
     public void ToggleDebugMouse() {
         m_debug_mouse = !m_debug_mouse;
     }
-
+    /*** DEBUG/CONTROLS ***/
 
     private void Start() {
+        if (GamePlayNavigation.loadedLevel != null) {
+            LevelInitData = GamePlayNavigation.loadedLevel;
+        }
+
         if (!b_initialized) {
             InitializePlayers();
             
         }
         b_initialized = true;
-
         MapInit();
     }
 
@@ -115,9 +118,10 @@ public class GameManager : SceneControl {
         m_turnQueue.Peek().Reset();
     }
 
-
+    /*
     private void MapInit() {
         m_gridInstance.InitializeGrid();
+        //LevelInitData.PlaceablesArray.Length
         for (int i = 0; i < m_tilesToInitUnits.Count; i++) {
 
             // NEXUS
@@ -135,6 +139,34 @@ public class GameManager : SceneControl {
 
             IUnit iUnit = unit_to_place_on_tile;
             iUnit.AssignPlayerOwner(m_tilesToInitUnits[i].Player);
+            iUnit.AssignedToTile = tileAtXY;
+        }
+    }
+    */
+    private void MapInit() {
+        Debug.Log("[GameManager/MapInit] LevelInitData: " + LevelInitData.name);
+
+        m_gridInstance.InitializeGrid(LevelInitData.Width, LevelInitData.Height);
+
+        //
+
+        for (int i = 0; i < LevelInitData.PlaceablesArray.Length; i++) {
+
+            // NEXUS
+            Unit unit_to_place_on_tile = GameObject.Instantiate<Unit>(m_unitPrefab);
+            UnitManager.UnitDefinition ud = UnitManager.GetInstance<UnitManager>().GetDefinition(LevelInitData.PlaceablesArray[i].ID);
+            unit_to_place_on_tile.ReadDefinition(ud);
+
+
+            // this creates a dependency on GameManager.
+            IGamePlayer p = GameManager.GetInstance<GameManager>().GetPlayer(LevelInitData.PlaceablesArray[i].PlayerID);
+            p.GetCurrentSummonedUnits().Add(unit_to_place_on_tile);
+
+            Tile tileAtXY = m_gridInstance.GetTileAt((LevelInitData.PlaceablesArray[i].X), (LevelInitData.PlaceablesArray[i].Y));
+            tileAtXY.SetPlaceable(unit_to_place_on_tile);
+
+            IUnit iUnit = unit_to_place_on_tile;
+            iUnit.AssignPlayerOwner(LevelInitData.PlaceablesArray[i].PlayerID);
             iUnit.AssignedToTile = tileAtXY;
         }
     }

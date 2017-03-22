@@ -14,6 +14,23 @@ namespace AtRng.MobileTTA {
 
         bool m_hasBeenInitialized = false;
 
+        public int Width {
+            get {
+                return m_width;
+            }
+            protected set {
+                m_width = value;
+            }
+        }
+        public int Height {
+            get {
+                return m_height;
+            }
+            protected set {
+                m_height = value;
+            }
+        }
+
         struct TileState {
             public TileStateEnum TSE { get; private set; }
             public int Depth { get; private set; }
@@ -30,8 +47,11 @@ namespace AtRng.MobileTTA {
             InitializeGrid();
         }
 
-        public void InitializeGrid() {
+        public void InitializeGrid(int width = -1, int height = -1) {
             if (m_hasBeenInitialized) return;
+
+            Width  = (width  > 0) ? width  : m_width;
+            Height = (height > 0) ? height : m_height;
 
             float x_offset = (m_width / 2f) - .5f;
             float y_offset = (m_height / 2f) - .5f;
@@ -168,23 +188,6 @@ namespace AtRng.MobileTTA {
                         FillTileAdjacency(TileX + i, TileY - j, 0, 0, depth + 1);
                     }
                 }
-
-                // L
-                //if(MovesLeft < attackRange) {
-                //    FillTileAdjacency(TileX - attackRange, TileY, 0, 0);
-                //}
-                // U
-                //if (MovesLeft < attackRange) {
-                //    FillTileAdjacency(TileX, TileY + attackRange, 0, 0);
-                //}
-                // R
-                //if (MovesLeft < attackRange) {
-                //    FillTileAdjacency(TileX + attackRange, TileY, 0, 0);
-                //}
-                // B
-                //if (MovesLeft < attackRange) {
-                //    FillTileAdjacency(TileX, TileY - attackRange, 0, 0);
-                //}
             }
         }
 
@@ -306,5 +309,8 @@ namespace AtRng.MobileTTA {
                 m_grid[i].sr.color = Color.white;
             }
         }
+
+
+
     }
 }

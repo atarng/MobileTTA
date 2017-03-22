@@ -45,11 +45,9 @@ namespace WF.AT {
 	    }
 	
 	    //Loads the dictionary
-	    public void Load()
-	    {
+	    public void Load() {
 		    selectedCallback = null;
-		    if(currentDataTable)
-		    {
+		    if(currentDataTable) {
 			    EditorUtility.SetDirty(currentDataTable);
 		    }
 		    AssetDatabase.SaveAssets();
@@ -57,8 +55,7 @@ namespace WF.AT {
 		    /////
 
 		    currentDataTable = (ExportData)Resources.Load(DATA_TABLE_PATH + currentType);
-		    if(currentDataTable == null)
-		    {
+		    if(currentDataTable == null) {
 			    string tableName = ((DataTableLookup.DataTables)currentType).ToString("F");
 			    currentDataTable = ScriptableObject.CreateInstance<ExportData>();
 			    AssetDatabase.CreateAsset(currentDataTable, "Assets/Resources/" + DATA_TABLE_PATH + tableName + ".asset");

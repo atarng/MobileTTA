@@ -56,7 +56,6 @@ namespace WF.AT {
 
         }
 
-
         public void AddRow(KeyValueString kvs) {
             dictionary.Add(kvs);
         }
@@ -85,7 +84,6 @@ namespace WF.AT {
                 else {
                     dictionary.Insert(newIndex, tmp);
                 }
-
             }
         }
 

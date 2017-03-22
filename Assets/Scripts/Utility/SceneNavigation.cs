@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 
 public class SceneNavigation : MonoBehaviour {
     public string m_sceneName;
-    public void NavigateToScene() {// string sceneName) {
+    public virtual void NavigateToScene() {// string sceneName) {
         SceneManager.LoadScene(m_sceneName);
     }
 }
