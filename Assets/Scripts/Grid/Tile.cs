@@ -28,8 +28,11 @@ public class Tile : MonoBehaviour {
     public void SetPlaceable(IPlaceable toSet){
         m_itemOnTile = toSet;
         if(toSet != null) {
-            toSet.GetGameObject().transform.position = transform.position;
             toSet.GetGameObject().transform.SetParent(transform);
+            Vector3 placement = transform.position;
+            placement.z -= 1;
+            toSet.GetGameObject().transform.position = placement;
+
             //toSet.AssignedToTile = this; // atarng: change to be based on unit instead of tile.
         }
     }

@@ -43,10 +43,23 @@ public class GameManager : SceneControl {
     public Unit m_unitPrefab;
 
     bool b_initialized = false;
-    bool load_deck_from_file = false;
 
     public int[] m_testDeckList;
     //private List<UnitManager.UnitDefinition> to_insert = new List<UnitManager.UnitDefinition>();
+
+    bool m_drawMode = false;
+    public void ToggleDrawMode() {
+        m_drawMode = !m_drawMode;
+    }
+    public bool DrawMode() {
+        return m_drawMode;
+    }
+
+    bool m_debug_mouse;
+    public void ToggleDebugMouse() {
+        m_debug_mouse = !m_debug_mouse;
+    }
+
 
     private void Start() {
         if (!b_initialized) {
@@ -147,6 +160,24 @@ public class GameManager : SceneControl {
         m_turnQueue.Enqueue(p);
 
         m_turnQueue.Peek().Reset();
+        if (m_drawMode) {
+            m_turnQueue.Peek().Draw();
+        }
+    }
+    
+    protected override void Update() {
+        base.Update();
+
+        if (m_debug_mouse) {
+            if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1)) {
+                RaycastHit2D rh2d = Physics2D.Raycast(new Vector2(CameraManager.Instance.GameCamera().ScreenToWorldPoint(Input.mousePosition).x,
+                                          CameraManager.Instance.GameCamera().ScreenToWorldPoint(Input.mousePosition).y),
+                                          Vector2.zero, 0f);
+                if (rh2d) {
+                    SceneControl.GetCurrentSceneControl().DisplayInfo("RayCastHit: " + rh2d.transform.name);
+                }
+            }
+        }
     }
 
     public void HandleCombat(ICombatPlaceable combatant1, ICombatPlaceable combatant2) {

@@ -120,8 +120,7 @@ namespace AtRng.MobileTTA {
         }
 
         public void Draw() {
-            if(m_deck.Count > 0) {
-
+            if(m_deck.Count > 0 && GetHand().Count < 5) {
                 // instantiate as a card
                 UnitManager.UnitDefinition ud = UnitManager.GetInstance<UnitManager>().GetDefinition( m_deck[0].DefinitionID );
                 Unit u = GameObject.Instantiate( SingletonMB.GetInstance<GameManager>().m_unitPrefab );
@@ -164,7 +163,7 @@ namespace AtRng.MobileTTA {
         public void RepositionCardsInHand() {
             for (int i = 0; i < m_hand.Count; i++) {
                 Vector3 v3 = m_hand[i].GetGameObject().transform.localPosition;
-                v3.x = i - (m_hand.Count / 2);
+                v3.x = (i - (m_hand.Count / 2)) - 0.5f;
                 v3.y = 0;
                 m_hand[i].GetGameObject().transform.localPosition = v3;
             }
@@ -194,7 +193,7 @@ namespace AtRng.MobileTTA {
             // Limit to ten.
             m_actionPointsMax = Mathf.Min(10, m_actionPointsMax + 1);
             m_actionPoints = m_actionPointsMax;
-            DrawCost = 1;
+            DrawCost = SingletonMB.GetInstance<GameManager>().DrawMode() ? 2 : 1;
 
             for (int i = m_actionPointsUI.Count; i < m_actionPointsMax; i++) {
                 SpriteRenderer sr = GameObject.Instantiate<SpriteRenderer>(m_actionPointPrefab);

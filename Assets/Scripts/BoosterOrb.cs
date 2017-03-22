@@ -1,6 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+
 using UnityEngine;
+
+using AtRng.MobileTTA;
 
 public class BoosterOrb : MonoBehaviour {
     BoosterMB m_ref;
@@ -14,6 +17,13 @@ public class BoosterOrb : MonoBehaviour {
         Debug.Log("Open An Orb: " + ud.DefinitionID);
 
         m_ref.SaveUnitToCollection(ud);
+
+        GameObject artInstance = GameObject.Instantiate(SingletonMB.GetInstance<UnitManager>().GetArtFromKey(ud.ArtKey));
+        artInstance.transform.position = transform.position;
+        artInstance.transform.SetParent(transform.parent);
+
+        m_ref.AddArt(artInstance);
+
         Destroy(gameObject);
     }
 }

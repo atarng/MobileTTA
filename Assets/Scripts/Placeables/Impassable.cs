@@ -27,7 +27,7 @@ public class Impassable : MonoBehaviour, IPlaceable {
         }
     }
 
-    bool IPlaceable.AttemptRelease(Tile sourceTile, Tile destinationTile, bool resolved) {
+    bool IPlaceable.AttemptRelease(bool resolved) {
         throw new NotImplementedException();
     }
 

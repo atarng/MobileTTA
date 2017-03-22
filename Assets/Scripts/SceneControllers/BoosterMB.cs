@@ -10,6 +10,7 @@ public class BoosterMB : SceneControl {
     BoosterOrb booster_orb_prefab;
 
     List<BoosterOrb> boosterOrbList = new List<BoosterOrb>();
+    List<GameObject> artList = new List<GameObject>();
 
     List<UnitManager.UnitDefinition> m_allUnits;
 
@@ -25,6 +26,12 @@ public class BoosterMB : SceneControl {
                 Destroy(boosterOrbList[0].gameObject);
             }
             boosterOrbList.RemoveAt(0);
+        }
+        while (artList.Count > 0) {
+            if (artList[0] != null) {
+                Destroy(artList[0].gameObject);
+            }
+            artList.RemoveAt(0);
         }
 
         for (int i = 0; i < 5; i++) {
@@ -44,7 +51,10 @@ public class BoosterMB : SceneControl {
         }
     }
 
-    
+    public void AddArt(GameObject art){
+        artList.Add(art);
+    }
+
     public UnitManager.UnitDefinition GetRandomUnit() {
         if (m_allUnits == null || m_allUnits.Count == 0) {
             return null;

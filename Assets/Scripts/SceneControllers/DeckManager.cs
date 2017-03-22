@@ -21,7 +21,6 @@ public class DeckManager : SceneControl {
 
     const int MAX_DECK_SIZE = 10;
 
-
     [SerializeField]
     Image m_examineImage;
 
@@ -91,7 +90,8 @@ public class DeckManager : SceneControl {
             }
         }
         else {
-            Debug.LogWarning("[DeckManager/AddUnit] Max Deck Size Reached.");
+            //Debug.LogWarning("[DeckManager/AddUnit] Max Deck Size Reached.");
+            SceneControl.GetCurrentSceneControl().DisplayWarning("Max Deck Size Reached.");
         }
         return false;
     }
@@ -108,6 +108,8 @@ public class DeckManager : SceneControl {
 
 
     public void ClearCollection() {
+        ClearDeck();
+
         for (int i = 0; i < m_cardSelectors.Count; i++) {
             Destroy(m_cardSelectors[i].gameObject);
         }
@@ -118,8 +120,6 @@ public class DeckManager : SceneControl {
     }
 
     public void ClearDeck() {
-        Debug.Log("[DeckManager/ClearDeck]");
-
         if (m_deckList != null) {
             m_deckList.Clear();
         }
