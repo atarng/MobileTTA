@@ -16,13 +16,32 @@ public class UnitManager : SingletonMB {
 
     [Serializable]
     public class UnitPersistence : UnitDesciption {
-        public int DefinitionID { get; private set; }
+        [SerializeField]
+        int m_definitionID;
+        public int DefinitionID {
+            get {
+                return m_definitionID;
+            }
+            private set {
+                m_definitionID = value;
+            }
+        }
 
         public int PHealthModifier { get; private set; }
         public int SHealthModifier { get; private set; }
         public int AttackModifier { get; private set; }
+
         public int Experience { get; private set; }
         public int TargetExperience { get; private set; }
+
+        [SerializeField]
+        int m_level;
+        public int Level {
+            get { return m_level; }
+            private set {
+                m_level = value;
+            }
+        }
 
         public Guid UnitID { get; private set; }
 

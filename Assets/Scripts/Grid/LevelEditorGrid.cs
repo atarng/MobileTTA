@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+
 using UnityEngine;
 
 
@@ -27,6 +28,12 @@ namespace AtRng.MobileTTA {
             return placeablesArray;
         }
 
+        [SerializeField]
+        UnitManager.UnitPersistence[] m_opponentDeckList;
+        public UnitManager.UnitPersistence[] GetOpponentDeckList() {
+            return m_opponentDeckList;
+        }
+
         public LevelScriptableObject AsScriptableObject() {
             //new LevelScriptableObject(placeablesArray);
 
@@ -34,11 +41,18 @@ namespace AtRng.MobileTTA {
             ret.ReadLevelEditorGrid(this);
             return ret;
         }
+
         public void ReadScriptableObject(LevelScriptableObject lso) {
             placeablesArray = new LevelEditorPlaceable[lso.PlaceablesArray.Length];
             for (int i = 0; i < placeablesArray.Length; i++) {
                 placeablesArray[i] = lso.PlaceablesArray[i];
             }
+
+            m_opponentDeckList = new UnitManager.UnitPersistence[lso.OpposingDeckList.Length];
+            for (int i = 0; i < m_opponentDeckList.Length; i++) {
+                m_opponentDeckList[i] = lso.OpposingDeckList[i];
+            }
+
             Width  = lso.Width;
             Height = lso.Height;
         }

@@ -6,7 +6,12 @@ namespace AtRng.MobileTTA {
     // ScriptableObject
     public class LevelScriptableObject : ScriptableObject {
         [SerializeField]
-        int[] m_opposingDeckList;
+        UnitManager.UnitPersistence[] m_opposingDeckList;
+        public UnitManager.UnitPersistence[] OpposingDeckList {
+            get {
+                return m_opposingDeckList;
+            }
+        }
 
         [SerializeField]
         LevelEditorPlaceable[] m_placeablesArray;
@@ -34,6 +39,13 @@ namespace AtRng.MobileTTA {
             for (int i = 0; i < m_placeablesArray.Length; i++) {
                 m_placeablesArray[i] = toCopy[i];
             }
+
+            UnitManager.UnitPersistence[] copyDeck = toPullFrom.GetOpponentDeckList();
+            m_opposingDeckList = new UnitManager.UnitPersistence[copyDeck.Length];
+            for (int i = 0; i < m_opposingDeckList.Length; i++) {
+                m_opposingDeckList[i] = copyDeck[i];
+            }
+
             m_width = toPullFrom.Width;
             m_height = toPullFrom.Height;
         }

@@ -178,10 +178,6 @@ public class Unit : MonoBehaviour, IUnit {
                                     // in case it's on a different tile/need to restore position.
                                     PendingPlacementTile = m_pendingAttackPlacementTile;
                                     if (previousPendingPlacement.Equals(PendingPlacementTile)) { //(previousPendingPlacement.name == m_pendingPlacementTile.name) {
-
-                                        Debug.Log("previousPendingPlacement: " + previousPendingPlacement.name +
-                                                   "PendingPlacement: " + m_pendingPlacementTile.name);
-
                                         resolved = true;
                                         AssignedToTile = PendingPlacementTile;
                                         SingletonMB.GetInstance<GameManager>().HandleCombat(this, icp);
@@ -288,39 +284,34 @@ public class Unit : MonoBehaviour, IUnit {
                                     m_pendingPlacementTile.sr.color = Color.cyan;
                                 }
                             }
-                            /*
-                            if (m_pendingPlacementTile != null) {
-                                Debug.Log("m_pendingPlacementTile: " + m_pendingPlacementTile.name);
-                            }
-                            */
                         }
                         /*** DEFAULT BEHAVOIR ***/
                         else if (m_pendingAttackPlacementTile != null) {
                             m_pendingAttackPlacementTile.sr.color = (paA_tse == TileStateEnum.CanMove) ? Color.blue : Color.white;
+
+                            m_pendingPlacementTile = null;
+
                         }
                         break;
                     case TileStateEnum.CanMove:
                     case TileStateEnum.CanStay:
                         if (m_pendingAttackList != null) {
+///*
+                            if (m_pendingPlacementTile != null) {
+                                m_pendingPlacementTile.sr.color = (pa_tse == TileStateEnum.CanMove) ? Color.blue : Color.white;
+                            }
+                            if (m_pendingAttackPlacementTile != null) {
+                                m_pendingAttackPlacementTile.sr.color = (paA_tse == TileStateEnum.CanMove) ? Color.blue : Color.white;
+                            }
+                            //*/
                             // there is a target.
-                            int indexOfTile = m_pendingAttackList.FindIndex(currentlyOverTile.MatchesTile);
+                            m_pendingPlacementTile = currentlyOverTile;
+                            int indexOfTile = m_pendingAttackList.FindIndex(currentlyOverTile.MatchesTilePredicate);
                             if (indexOfTile >= 0) {
                                 // is in attack list.
-                                m_pendingAttackPlacementTile = PendingPlacementTile = m_pendingAttackList[indexOfTile];
+                                m_pendingAttackPlacementTile = m_pendingPlacementTile = m_pendingAttackList[indexOfTile];
                             }
-                            else {
-                                if (m_pendingPlacementTile != null) {
-                                    m_pendingPlacementTile.sr.color = (pa_tse == TileStateEnum.CanMove) ? Color.blue : Color.white;
-                                }
-                                if (m_pendingAttackPlacementTile != null) {
-                                    m_pendingAttackPlacementTile.sr.color = (paA_tse == TileStateEnum.CanMove) ? Color.blue : Color.white;
-                                }
-
-                                //m_pendingAttackPlacementTile = currentlyOverTile;
-                                //m_pendingAttackPlacementTile.sr.color = Color.cyan;
-                                m_pendingPlacementTile = currentlyOverTile;
-                                m_pendingPlacementTile.sr.color = Color.cyan;
-                            }
+                            m_pendingPlacementTile.sr.color = Color.cyan;
                         }
                         else {
                             // Snapping Behavior

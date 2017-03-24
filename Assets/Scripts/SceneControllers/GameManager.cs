@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+
 using UnityEngine;
+
 using AtRng.MobileTTA;
 
 public class GameManager : SceneControl {
@@ -107,9 +110,12 @@ public class GameManager : SceneControl {
                     p.PopulateAndShuffleDeck<UnitManager.UnitPersistence>(playerDeck);
                 }
             }
+            /*
             else {
                 p.PopulateAndShuffleDeck<UnitManager.UnitDesciption>(InitializeDummyDeck_Temp());
             }
+            */
+
             if (!m_idPlayerMap.ContainsKey(i)) {
                 m_idPlayerMap.Add(i, p);
             }
@@ -122,36 +128,12 @@ public class GameManager : SceneControl {
         m_turnQueue.Peek().Reset();
     }
 
-    /*
-    private void MapInit() {
-        m_gridInstance.InitializeGrid();
-        //LevelInitData.PlaceablesArray.Length
-        for (int i = 0; i < m_tilesToInitUnits.Count; i++) {
-
-            // NEXUS
-            Unit unit_to_place_on_tile = GameObject.Instantiate<Unit>(m_unitPrefab);
-            UnitManager.UnitDefinition ud = UnitManager.GetInstance<UnitManager>().GetDefinition(m_tilesToInitUnits[i].unitType);
-            unit_to_place_on_tile.ReadDefinition(ud);
-
-
-            // this creates a dependency on GameManager.
-            IGamePlayer p = GameManager.GetInstance<GameManager>().GetPlayer(m_tilesToInitUnits[i].Player);
-            p.GetCurrentSummonedUnits().Add(unit_to_place_on_tile);
-
-            Tile tileAtXY = m_gridInstance.GetTileAt((m_tilesToInitUnits[i].x), (m_tilesToInitUnits[i].y));
-            tileAtXY.SetPlaceable(unit_to_place_on_tile);
-
-            IUnit iUnit = unit_to_place_on_tile;
-            iUnit.AssignPlayerOwner(m_tilesToInitUnits[i].Player);
-            iUnit.AssignedToTile = tileAtXY;
-        }
-    }
-    */
     private void MapInit() {
         Debug.Log("[GameManager/MapInit] LevelInitData: " + LevelInitData.name);
 
         m_gridInstance.InitializeGrid(LevelInitData.Width, LevelInitData.Height);
 
+        // Placeables Array
         for (int i = 0; i < LevelInitData.PlaceablesArray.Length; i++) {
             switch (LevelInitData.PlaceablesArray[i].placeableType) {
                 case PlaceableType.Unit: {
@@ -161,7 +143,7 @@ public class GameManager : SceneControl {
                     unit_to_place_on_tile.ReadDefinition(ud);
 
                     // Assign To Player
-                    IGamePlayer p = GameManager.GetInstance<GameManager>().GetPlayer(LevelInitData.PlaceablesArray[i].PlayerID);
+                    IGamePlayer p = SingletonMB.GetInstance<GameManager>().GetPlayer(LevelInitData.PlaceablesArray[i].PlayerID);
                     p.GetCurrentSummonedUnits().Add(unit_to_place_on_tile);
 
                     // Assign to Tile.
@@ -183,8 +165,18 @@ public class GameManager : SceneControl {
                     break;
                 }
             }
-            
         }
+
+        Player opposingPlayer = SingletonMB.GetInstance<GameManager>().GetPlayer(1) as Player;
+        if(opposingPlayer != null) {
+            if (LevelInitData.OpposingDeckList != null && LevelInitData.OpposingDeckList.Length > 0) {
+                opposingPlayer.PopulateAndShuffleDeck(LevelInitData.OpposingDeckList.ToList());
+            }
+            else {
+                opposingPlayer.PopulateAndShuffleDeck<UnitManager.UnitDesciption>(InitializeDummyDeck_Temp());
+            }
+        }
+
     }
 
     public IGamePlayer GetPlayer(int id) {

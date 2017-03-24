@@ -17,7 +17,7 @@ public class Tile : MonoBehaviour {
         return m_itemOnTile != null;
     }
 
-    public bool MatchesTile(Tile t) {
+    public bool MatchesTilePredicate(Tile t) {
         return t == this;
     }
 
