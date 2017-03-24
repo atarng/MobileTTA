@@ -95,8 +95,6 @@ namespace AtRng.MobileTTA {
             if (tileAt == null) return;
             if (depth == 0) {
                 // self tile.
-                //Debug.Log(string.Format("FillTileAdjacency: ({0}, {1})", TileX, TileY));
-                //m_accessibleTiles.Add(tileAt, new TileState( TileStateEnum.CanNotAccess, depth ) );
                 m_accessibleTiles.Add(tileAt, new TileState(TileStateEnum.CanStay, depth));
             }
 
@@ -104,7 +102,10 @@ namespace AtRng.MobileTTA {
             int da = 0;
 
             if (MovesLeft == 0) {
+                // this is an attack check.
+
                 if (attackRange > 0) {
+                    // is this needed anymore?
                     dm = 0;
                     da = attackRange;
                 }
@@ -119,17 +120,20 @@ namespace AtRng.MobileTTA {
                         }
                         else {
                             // Possibly need to change this to can attack if there is a pathable location to attack this object.
-                            //m_accessibleTiles.Add(tileAt, TileStateEnum.CanNotAccess);
                             TileStateEnum stateToSet = TileStateEnum.CanMove;
                             if (tileAt.GetPlaceable() != null) {
                                 Unit u = tileAt.GetPlaceable() as Unit;
                                 if (u != null) {
                                     if (!u.GetPlayerOwner().Equals(GameManager.GetInstance<GameManager>().CurrentPlayer())) {
-                                        stateToSet = TileStateEnum.CanNotAccess;
+                                        stateToSet = TileStateEnum.Pending;
                                     }
                                     else {
                                         stateToSet = TileStateEnum.CanPassThrough;
                                     }
+                                }
+                                else {
+                                    //Impassable.
+                                    stateToSet = TileStateEnum.CanAttack;// TileStateEnum.CanNotAccess;
                                 }
                             }
                             m_accessibleTiles.Add(tileAt, new TileState(stateToSet, depth));
@@ -150,11 +154,17 @@ namespace AtRng.MobileTTA {
                     Unit u = tileAt.GetPlaceable() as Unit;
                     if (u != null) {
                         if (!u.GetPlayerOwner().Equals(GameManager.GetInstance<GameManager>().CurrentPlayer())) {
-                            stateToSet = TileStateEnum.CanNotAccess;
+                            // Opposing unit.
+                            stateToSet = TileStateEnum.Pending;
                         }
                         else {
                             stateToSet = TileStateEnum.CanPassThrough;
                         }
+                    }
+                    else {
+                        //Impassable.
+                        //stateToSet = TileStateEnum.CanNotAccess;
+                        stateToSet = TileStateEnum.CanAttack;// TileStateEnum.CanNotAccess;
                     }
                 }
 
@@ -168,8 +178,9 @@ namespace AtRng.MobileTTA {
                 }
             }
 
-            if (depth == 0 || m_accessibleTiles.ContainsKey(tileAt)
-                && (m_accessibleTiles[tileAt].TSE == TileStateEnum.CanMove || m_accessibleTiles[tileAt].TSE == TileStateEnum.CanPassThrough)
+            if (depth == 0 || m_accessibleTiles.ContainsKey(tileAt) // 
+                && (m_accessibleTiles[tileAt].TSE == TileStateEnum.CanMove 
+                 || m_accessibleTiles[tileAt].TSE == TileStateEnum.CanPassThrough)
             ) {
                 // LEFT
                 FillTileAdjacency(TileX - dm - da, TileY, MovesLeft - dm, attackRange - da, depth + 1);
@@ -245,15 +256,14 @@ namespace AtRng.MobileTTA {
                     case TileStateEnum.CanPassThrough:
                         kvp.Key.sr.color = Color.gray;
                         break;
-                    case TileStateEnum.CanNotAccess:
-                    default:
+
+                    case TileStateEnum.Pending:
                         kvp.Key.sr.color = Color.white;
                         if (tile != kvp.Key) {
                             List<Tile> listOfCandidateAttackTilePositions = GetCircumference(kvp.Key, attack);
                             foreach (Tile t in listOfCandidateAttackTilePositions) {
                                 if (m_accessibleTiles.ContainsKey(t) &&
-                                   (t == tile || m_accessibleTiles[t].TSE == TileStateEnum.CanMove))
-                                {
+                                   (t == tile || m_accessibleTiles[t].TSE == TileStateEnum.CanMove)) {
                                     Unit u = kvp.Key.GetPlaceable() as Unit;
                                     if (u != null && !u.GetPlayerOwner().Equals(GameManager.GetInstance<GameManager>().CurrentPlayer())) {
                                         TilesToFlip.Add(kvp.Key);
@@ -263,8 +273,13 @@ namespace AtRng.MobileTTA {
                             }
                         }
                         break;
+                    case TileStateEnum.CanNotAccess:
+                    default:
+                        kvp.Key.sr.color = Color.white;
+                        break;
                 }
             }
+            // Flip from pending to attack state.
             for (int i = 0; i < TilesToFlip.Count; i++) {
                 TilesToFlip[i].sr.color = Color.red;
                 TileState ts = m_accessibleTiles[TilesToFlip[i]];

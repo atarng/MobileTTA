@@ -92,6 +92,9 @@ namespace AtRng.MobileTTA {
                 //Debug.LogWarning("[Player/AttemptToDraw] At Max Hand Size or not enough action points.");
                 SceneControl.GetCurrentSceneControl().DisplayWarning("At Max Hand Size or not enough action points.");
             }
+            else if (m_deck.Count == 0) {
+                SceneControl.GetCurrentSceneControl().DisplayWarning("You are out of tiles.");
+            }
             else {
                 if (m_deckPopulated) {
                     Draw();
@@ -193,7 +196,13 @@ namespace AtRng.MobileTTA {
             // Limit to ten.
             m_actionPointsMax = Mathf.Min(10, m_actionPointsMax + 1);
             m_actionPoints = m_actionPointsMax;
-            DrawCost = SingletonMB.GetInstance<GameManager>().DrawMode() ? 2 : 1;
+            if (m_deck.Count > 0) {
+                DrawCost = SingletonMB.GetInstance<GameManager>().DrawMode() ? 2 : 1;
+            }
+            else if ( m_fieldUnits.Count > 0 ) {
+                m_fieldUnits[0].TakeDamage(10, 0);
+                DrawCost = 0;
+            }
 
             for (int i = m_actionPointsUI.Count; i < m_actionPointsMax; i++) {
                 SpriteRenderer sr = GameObject.Instantiate<SpriteRenderer>(m_actionPointPrefab);
@@ -216,7 +225,7 @@ namespace AtRng.MobileTTA {
         public void EndTurn() {
 
             for (int i = 0; i < m_fieldUnits.Count; i++) {
-                m_fieldUnits[i].Clear();
+                m_fieldUnits[i].ClearStates();
             }
 
             if (GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(this)) {

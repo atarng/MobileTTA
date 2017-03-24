@@ -40,7 +40,8 @@ public class GameManager : SceneControl {
     Dictionary<int, Player> m_idPlayerMap = new Dictionary<int, Player>();
 
     // TEMPPPP
-    public Unit m_unitPrefab;
+    public Unit       m_unitPrefab;
+    public Impassable m_impassable;
 
     bool b_initialized = false;
 
@@ -67,10 +68,9 @@ public class GameManager : SceneControl {
         }
 
         if (!b_initialized) {
+            b_initialized = true;
             InitializePlayers();
-            
         }
-        b_initialized = true;
         MapInit();
     }
 
@@ -110,8 +110,12 @@ public class GameManager : SceneControl {
             else {
                 p.PopulateAndShuffleDeck<UnitManager.UnitDesciption>(InitializeDummyDeck_Temp());
             }
-
-            m_idPlayerMap.Add(i, p);
+            if (!m_idPlayerMap.ContainsKey(i)) {
+                m_idPlayerMap.Add(i, p);
+            }
+            else {
+                Debug.LogError("Inserting Duplicate Player Key: " + i);
+            }
             m_turnQueue.Enqueue(p);
         }
 
@@ -148,26 +152,38 @@ public class GameManager : SceneControl {
 
         m_gridInstance.InitializeGrid(LevelInitData.Width, LevelInitData.Height);
 
-        //
-
         for (int i = 0; i < LevelInitData.PlaceablesArray.Length; i++) {
+            switch (LevelInitData.PlaceablesArray[i].placeableType) {
+                case PlaceableType.Unit: {
+                    // Create Unit
+                    Unit unit_to_place_on_tile = GameObject.Instantiate<Unit>(m_unitPrefab);
+                    UnitManager.UnitDefinition ud = UnitManager.GetInstance<UnitManager>().GetDefinition(LevelInitData.PlaceablesArray[i].ID);
+                    unit_to_place_on_tile.ReadDefinition(ud);
 
-            // NEXUS
-            Unit unit_to_place_on_tile = GameObject.Instantiate<Unit>(m_unitPrefab);
-            UnitManager.UnitDefinition ud = UnitManager.GetInstance<UnitManager>().GetDefinition(LevelInitData.PlaceablesArray[i].ID);
-            unit_to_place_on_tile.ReadDefinition(ud);
+                    // Assign To Player
+                    IGamePlayer p = GameManager.GetInstance<GameManager>().GetPlayer(LevelInitData.PlaceablesArray[i].PlayerID);
+                    p.GetCurrentSummonedUnits().Add(unit_to_place_on_tile);
 
+                    // Assign to Tile.
+                    Tile tileAtXY = m_gridInstance.GetTileAt((LevelInitData.PlaceablesArray[i].X), (LevelInitData.PlaceablesArray[i].Y));
+                    tileAtXY.SetPlaceable(unit_to_place_on_tile);
 
-            // this creates a dependency on GameManager.
-            IGamePlayer p = GameManager.GetInstance<GameManager>().GetPlayer(LevelInitData.PlaceablesArray[i].PlayerID);
-            p.GetCurrentSummonedUnits().Add(unit_to_place_on_tile);
+                    IUnit iUnit = unit_to_place_on_tile;
+                    iUnit.AssignPlayerOwner(LevelInitData.PlaceablesArray[i].PlayerID);
+                    iUnit.AssignedToTile = tileAtXY;
 
-            Tile tileAtXY = m_gridInstance.GetTileAt((LevelInitData.PlaceablesArray[i].X), (LevelInitData.PlaceablesArray[i].Y));
-            tileAtXY.SetPlaceable(unit_to_place_on_tile);
+                    break;
+                }
+                case PlaceableType.Impassable: {
+                    Impassable impassable = GameObject.Instantiate<Impassable>(m_impassable);
 
-            IUnit iUnit = unit_to_place_on_tile;
-            iUnit.AssignPlayerOwner(LevelInitData.PlaceablesArray[i].PlayerID);
-            iUnit.AssignedToTile = tileAtXY;
+                    Tile tileAtXY = m_gridInstance.GetTileAt((LevelInitData.PlaceablesArray[i].X), (LevelInitData.PlaceablesArray[i].Y));
+                    tileAtXY.SetPlaceable(impassable);
+
+                    break;
+                }
+            }
+            
         }
     }
 

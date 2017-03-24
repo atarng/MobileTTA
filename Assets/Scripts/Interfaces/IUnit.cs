@@ -22,7 +22,7 @@ namespace AtRng.MobileTTA {
         int GetAttackRange();
 
         int GetMaxMovement();
-        bool Clear();
+        bool ClearStates();
 
         //
         void GenerateCardBehavior();

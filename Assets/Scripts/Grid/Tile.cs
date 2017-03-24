@@ -25,9 +25,11 @@ public class Tile : MonoBehaviour {
         m_parentGrid = parentGrid;
     }
 
-    public void SetPlaceable(IPlaceable toSet){
-        m_itemOnTile = toSet;
-        if(toSet != null) {
+    public void SetPlaceable(IPlaceable toSet, bool assign = true){
+        if (assign) {
+            m_itemOnTile = toSet;
+        }
+        if (toSet != null) {
             toSet.GetGameObject().transform.SetParent(transform);
             Vector3 placement = transform.position;
             placement.z -= 1;

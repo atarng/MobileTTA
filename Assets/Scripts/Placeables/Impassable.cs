@@ -6,37 +6,26 @@ using AtRng.MobileTTA;
 using System;
 
 public class Impassable : MonoBehaviour, IPlaceable {
-
-    // Use this for initialization
-    void Start() {
-
-    }
-
-    // Update is called once per frame
-    void Update() {
-
-    }
-
+    Tile m_assignedToTile = null;
     Tile IPlaceable.AssignedToTile {
         get {
-            throw new NotImplementedException();
+            return m_assignedToTile;
         }
-
         set {
-            throw new NotImplementedException();
+            m_assignedToTile = value;
+            //m_assignedToTile.gameObject.SetActive(false);
         }
     }
 
     bool IPlaceable.AttemptRelease(bool resolved) {
-        throw new NotImplementedException();
+        return false;
     }
 
     bool IPlaceable.AttemptSelection() {
-        throw new NotImplementedException();
+        return false;
     }
 
     GameObject IPlaceable.GetGameObject() {
-        throw new NotImplementedException();
+        return gameObject;
     }
-
 }
