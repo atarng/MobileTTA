@@ -25,7 +25,7 @@ namespace AtRng.MobileTTA {
         bool ClearStates();
 
         //
-        void GenerateCardBehavior();
+        //void GenerateCardBehavior();
         bool IsDragging();
 
     }

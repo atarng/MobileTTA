@@ -22,16 +22,12 @@ namespace AtRng.MobileTTA {
         }
         [SerializeField]
         int m_width, m_height;
-        public int Width {
-            get {
-                return m_width;
-            }
-        }
-        public int Height {
-            get {
-                return m_height;
-            }
-        }
+        public int Width { get { return m_width; } }
+        public int Height { get { return m_height; } }
+
+        [SerializeField]
+        bool m_usesPlayerDeckList = true;
+        public bool UsesPlayerDeckList { get { return m_usesPlayerDeckList; } }
 
         public void ReadLevelEditorGrid(LevelEditorGrid toPullFrom) {
             LevelEditorPlaceable[] toCopy = toPullFrom.GetPlaceablesList();
@@ -48,6 +44,8 @@ namespace AtRng.MobileTTA {
 
             m_width = toPullFrom.Width;
             m_height = toPullFrom.Height;
+
+            m_usesPlayerDeckList = toPullFrom.UsesPlayerDeckList();
         }
     }
 }

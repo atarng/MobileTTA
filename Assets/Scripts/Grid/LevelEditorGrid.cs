@@ -8,7 +8,8 @@ using UnityEngine;
 namespace AtRng.MobileTTA {
     public enum PlaceableType {
         Unit,
-        Impassable
+        Impassable,
+        Tile
     }
 
     [Serializable]
@@ -34,6 +35,10 @@ namespace AtRng.MobileTTA {
             return m_opponentDeckList;
         }
 
+        [SerializeField]
+        bool m_usesPlayerDeckList = true;
+        public bool UsesPlayerDeckList(){ return m_usesPlayerDeckList; }
+
         public LevelScriptableObject AsScriptableObject() {
             //new LevelScriptableObject(placeablesArray);
 
@@ -55,6 +60,8 @@ namespace AtRng.MobileTTA {
 
             Width  = lso.Width;
             Height = lso.Height;
+
+            m_usesPlayerDeckList = lso.UsesPlayerDeckList;
         }
     }
 }

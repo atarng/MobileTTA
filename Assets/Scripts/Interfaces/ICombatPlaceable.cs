@@ -8,5 +8,7 @@ using UnityEngine;
 namespace AtRng.MobileTTA {
     public interface ICombatPlaceable : IPlaceable {        
         void TakeDamage(int damage, int type);
+
+        bool IsAlive();
     }
 }

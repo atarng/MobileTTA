@@ -13,7 +13,9 @@ public class CardSelector : MonoBehaviour {
         get { return m_selected; }
         set {
             m_selected = value;
-            transform.localScale = m_selected ? (Vector3.one * 1.2f) : Vector3.one;
+
+            //transform.localScale = m_selected ? (Vector3.one * 1.2f) : Vector3.one;
+            transform.SetParent( m_selected ? m_dmRef.GetDeckTransform() : m_dmRef.GetCollectionTransform() );
         }
     }
 
@@ -29,6 +31,7 @@ public class CardSelector : MonoBehaviour {
     //bool pressed = false;
     [SerializeField]
     private Transform m_artAttachmentPoint;
+    static CardSelector isPreview = null;
 
     public void SetInfo(DeckManager dm, int id, System.Guid unitGuid) {
         m_dmRef = dm;
@@ -40,13 +43,17 @@ public class CardSelector : MonoBehaviour {
 
         UnitManager um = SingletonMB.GetInstance<UnitManager>();
         UnitManager.UnitDefinition ud = um.GetDefinition(m_unit_def_id);
-        GameObject go = GameObject.Instantiate(um.GetArtFromKey(ud.ArtKey));
+        ArtPrefab go = GameObject.Instantiate<ArtPrefab>(um.GetArtFromKey(ud.ArtKey));
         go.transform.SetParent(m_artAttachmentPoint);
+        go.transform.localPosition = Vector3.zero;
     }
 
     //private void Update() {
+
+    /*
+    // BOX COLLIDER 2D
     private void OnMouseOver() {
-        //Debug.Log("[CardSelector/OnMouseOver]");
+        Debug.Log("[CardSelector/OnMouseOver]" + name);
         if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1)) {
             // Add Unit
             m_mouseDownPosition = Input.mousePosition;
@@ -56,24 +63,39 @@ public class CardSelector : MonoBehaviour {
             // Add Unit
             Vector3 mousePos = Input.mousePosition;
             if (Vector3.Distance(m_mouseDownPosition, mousePos) < 10) {
-                if (m_selected) {
-                    m_dmRef.RemoveUnit(m_unitGuid);
-                    Selected = false;
+                if (isPreview != this) {
+                    m_dmRef.PreviewUnit(m_unitGuid);
+                    isPreview = this;
                 }
-                else if (m_dmRef.AddUnit(m_unitGuid)) { 
-                    Selected = true;
+                else {
+                    if (m_selected) {
+                        m_dmRef.RemoveUnit(m_unitGuid);
+                        Selected = false;
+                    }
+                    else if (m_dmRef.AddUnit(m_unitGuid)) {
+                        Selected = true;
+                    }
+                    isPreview = null;
                 }
             }
         }
-/*
-        if (Input.GetMouseButtonUp(0)) {
-            m_dmRef.AddUnit(m_unitGuid);
-        }
-        if (Input.GetMouseButtonUp(1)) {
-            // Remove Unit
-            m_dmRef.RemoveUnit(m_unitGuid);
-        }
-//*/
     }
+    */
 
+    public void PreviewOrToggleUnit() {
+        if (isPreview != this) {
+            m_dmRef.PreviewUnit(m_unitGuid);
+            isPreview = this;
+        }
+        else {
+            if (m_selected) {
+                m_dmRef.RemoveUnit(m_unitGuid);
+                Selected = false;
+            }
+            else if (m_dmRef.AddUnit(m_unitGuid)) {
+                Selected = true;
+            }
+            isPreview = null;
+        }
+    }
 }

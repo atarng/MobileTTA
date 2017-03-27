@@ -90,13 +90,13 @@ public class UnitManager : SingletonMB {
     [Serializable]
     struct KeyPrefabPair{
         public string ID;
-        public GameObject Prefab;
+        public ArtPrefab Prefab;
     }
 
     // this is for the sprite art.
     [SerializeField]
     KeyPrefabPair[] m_keyToPrefabArray;
-    Dictionary<string, GameObject> m_keyToPrefabMap = new Dictionary<string, GameObject>();
+    Dictionary<string, ArtPrefab> m_keyToPrefabMap = new Dictionary<string, ArtPrefab>();
 
     ///*
     protected override void OnAwake() {
@@ -128,12 +128,21 @@ public class UnitManager : SingletonMB {
         return m_definitions.ContainsKey(id) ? m_definitions[id] : null;
         //return m_definitionsAsList[id];
     }
-
+    long[] notCollectibles = new long[3] { 0, 7, 8 };
     public List<UnitDefinition> GetAsCollection() {
-        return m_definitions.Values.ToList();
+        List<UnitDefinition> toRet = new List<UnitDefinition>();
+
+        List<long> asList = notCollectibles.ToList();
+        for (Dictionary<long, UnitDefinition>.Enumerator iter = m_definitions.GetEnumerator(); iter.MoveNext();) {
+            if (!asList.Contains(iter.Current.Key)) {
+                toRet.Add(iter.Current.Value);
+            }
+        }
+
+        return toRet;
     }
 
-    public GameObject GetArtFromKey( string key ) {
+    public ArtPrefab GetArtFromKey( string key ) {
         return m_keyToPrefabMap[key];
     }
 }

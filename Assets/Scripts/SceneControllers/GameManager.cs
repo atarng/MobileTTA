@@ -9,18 +9,6 @@ using AtRng.MobileTTA;
 
 public class GameManager : SceneControl {
     /*** MAP INIT ***/
-    /*
-    [Serializable]
-    struct IntVector2 {
-        public int x;
-        public int y;
-        public int Player;
-        public int unitType;
-    }
-
-    [SerializeField]
-    List<IntVector2> m_tilesToInitUnits;
-    //*/
 
     public LevelScriptableObject LevelInitData;
 
@@ -30,6 +18,11 @@ public class GameManager : SceneControl {
 
     [SerializeField]
     private Player m_playerPrefab;
+    [SerializeField]
+    private SpriteRenderer m_actionPointPrefab;
+    public SpriteRenderer GetActionPointSprite(){
+        return m_actionPointPrefab;
+    }
 
     [SerializeField]
     private Grid m_gridInstance;
@@ -37,10 +30,10 @@ public class GameManager : SceneControl {
         return m_gridInstance;
     }
 
+    public Transform m_playerIndicator;
 
-
-    Queue<Player> m_turnQueue = new Queue<Player>();
-    Dictionary<int, Player> m_idPlayerMap = new Dictionary<int, Player>();
+    Queue<BasePlayer> m_turnQueue = new Queue<BasePlayer>();
+    Dictionary<int, BasePlayer> m_idPlayerMap = new Dictionary<int, BasePlayer>();
 
     // TEMPPPP
     public Unit       m_unitPrefab;
@@ -54,6 +47,7 @@ public class GameManager : SceneControl {
     /*** DEBUG/CONTROLS ***/
     bool m_debug_mouse;
     bool m_drawMode = false;
+    bool m_combatOrder = true;
     public void ToggleDrawMode() {
         m_drawMode = !m_drawMode;
     }
@@ -62,6 +56,9 @@ public class GameManager : SceneControl {
     }
     public void ToggleDebugMouse() {
         m_debug_mouse = !m_debug_mouse;
+    }
+    public void ToggleCombatOrder() {
+        m_combatOrder = !m_combatOrder;
     }
     /*** DEBUG/CONTROLS ***/
 
@@ -103,18 +100,13 @@ public class GameManager : SceneControl {
             p.transform.localRotation = Quaternion.Euler(0, 0, (i * 180));
             p.ID = i;
 
-            if (i == 0) {
+            if ( i == 0 && LevelInitData.UsesPlayerDeckList ) {
                 List<UnitManager.UnitPersistence> playerDeck = 
                     SaveGameManager.GetSaveGameData().LoadFrom("TestDeck") as List<UnitManager.UnitPersistence>;
                 if (playerDeck != null) {
                     p.PopulateAndShuffleDeck<UnitManager.UnitPersistence>(playerDeck);
                 }
             }
-            /*
-            else {
-                p.PopulateAndShuffleDeck<UnitManager.UnitDesciption>(InitializeDummyDeck_Temp());
-            }
-            */
 
             if (!m_idPlayerMap.ContainsKey(i)) {
                 m_idPlayerMap.Add(i, p);
@@ -125,11 +117,11 @@ public class GameManager : SceneControl {
             m_turnQueue.Enqueue(p);
         }
 
-        m_turnQueue.Peek().Reset();
+        m_turnQueue.Peek().BeginTurn();
     }
 
     private void MapInit() {
-        Debug.Log("[GameManager/MapInit] LevelInitData: " + LevelInitData.name);
+        //Debug.Log("[GameManager/MapInit] LevelInitData: " + LevelInitData.name);
 
         m_gridInstance.InitializeGrid(LevelInitData.Width, LevelInitData.Height);
 
@@ -179,30 +171,70 @@ public class GameManager : SceneControl {
 
     }
 
-    public IGamePlayer GetPlayer(int id) {
+    public BasePlayer GetPlayer(int id) {
         if (!b_initialized) {
             Start();
         }
         return m_idPlayerMap[id];
     }
 
-    public Player CurrentPlayer() {
+    public BasePlayer CurrentPlayer() {
         return m_turnQueue.Peek();
     }
 
     public void UI_EndTurn() {
-        Player p = m_turnQueue.Peek();
+        BasePlayer p = m_turnQueue.Peek();
         p.EndTurn();
     }
 
+        
+    private bool CheckVictory(BasePlayer winningPlayer, BasePlayer losingPlayer) {
+        bool hasWon = false;
+        if (losingPlayer.HandSize() == 0 && losingPlayer.DeckSize() == 0) {
+            if (losingPlayer.GetCurrentSummonedUnits().Count == 0) {
+                hasWon = true;
+            }
+            else if (losingPlayer.GetCurrentSummonedUnits().Count == 1) {
+                Unit u = losingPlayer.GetCurrentSummonedUnits()[0] as Unit;
+                if (u.IsNexus()) {
+                    hasWon = true;
+                }
+            }
+        }
+        // player is surrounded
+        hasWon |= !(GetGrid().DisplaySummonableTiles(losingPlayer));
+        GetGrid().ClearPathableTiles();
+
+        if (hasWon) {
+            string toDisplay = string.Format("Player{0} has Won!", winningPlayer.ID);
+
+            if (winningPlayer.ID == 0) {
+                // Award Currency.
+            }
+
+            SceneControl.GetCurrentSceneControl().DisplayInfo(toDisplay);
+        }
+
+        return hasWon;
+    }
+
     public void UpdateTurn() {
-        Player p = m_turnQueue.Dequeue();
+
+        BasePlayer p = m_turnQueue.Dequeue();
         m_turnQueue.Enqueue(p);
 
-        m_turnQueue.Peek().Reset();
+        BasePlayer currentPlayer = m_turnQueue.Peek();
+        currentPlayer.BeginTurn();
+
         if (m_drawMode) {
-            m_turnQueue.Peek().Draw();
+            currentPlayer.Draw();
         }
+
+        Vector3 newScale = m_playerIndicator.localScale;
+        newScale.y = newScale.y > 0 ? -1 : 1;
+        m_playerIndicator.localScale = newScale;
+
+        CheckVictory(p, currentPlayer);
     }
     
     protected override void Update() {
@@ -220,6 +252,9 @@ public class GameManager : SceneControl {
         }
     }
 
+    /***
+     * Combat Order
+     */
     public void HandleCombat(ICombatPlaceable combatant1, ICombatPlaceable combatant2) {
         IUnit iu1 = combatant1 as IUnit;
         IUnit iu2 = combatant2 as IUnit;
@@ -239,12 +274,17 @@ public class GameManager : SceneControl {
             iu2p_damageToDo = iu2.IsPhysicalAttack()  ? iu2.GetAttackValue() : 0;
             iu2s_damageToDo = iu2.IsSpiritualAttack() ? iu2.GetAttackValue() : 0;
         }
-        combatant1.TakeDamage(iu2p_damageToDo, 0);
-        combatant1.TakeDamage(iu2s_damageToDo, 1);
 
         combatant2.TakeDamage(iu1p_damageToDo, 0);
         combatant2.TakeDamage(iu1s_damageToDo, 1);
 
+        if (m_combatOrder && combatant2.IsAlive() ) {
+            combatant1.TakeDamage(iu2p_damageToDo, 0);
+            combatant1.TakeDamage(iu2s_damageToDo, 1);
+        }
+
+        CheckVictory(GetPlayer(0), GetPlayer(1));
+        CheckVictory(GetPlayer(1), GetPlayer(0));
     }
     ///*
     //*/

@@ -7,19 +7,20 @@ using System.Text;
 namespace AtRng.MobileTTA {
     public interface IGamePlayer {
 
-        void Reset(); // Drawing costs, etc.
+        //int DrawCost { get; }
+        //List<IUnit> GetHand();
 
-        //int GetCurrentDrawCost();
-        int DrawCost { get; }
-        bool GetEnoughActionPoints(int cost);
+        void Draw();
+        void RepositionCardsInHand();
 
-        //int GetHandSize();
-        List<IUnit> GetHand();
         List<IUnit> GetCurrentSummonedUnits();
         void PlaceUnitOnField(IUnit unitToPlace);
-        void RepositionCardsInHand();
+
+        bool GetEnoughActionPoints(int cost);
         void ExpendUnitActionPoint();
 
-        int GetHealth();
+        void BeginTurn();
+        void EndTurn();
+
     }
 }

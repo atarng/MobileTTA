@@ -11,27 +11,66 @@ public class DeckManager : SceneControl {
     [SerializeField]
     CardSelector m_cardSelector;
 
+    /*** POSITION / UI TRANSFORMS ***/
     [SerializeField]
     GridLayoutGroup m_gridLayoutGroup;
+    [SerializeField]
+    HorizontalLayoutGroup m_horizontalLayoutGroup;
 
-    [SerializeField]
-    bool m_debug = false;
-    [SerializeField]
-    int[] DebugList; // Collection Equivalent.
+
 
     const int MAX_DECK_SIZE = 10;
 
     [SerializeField]
-    Image m_examineImage;
+    RectTransform m_commonUI;
+    CommonUI m_commonUIInstance;
 
     List<UnitManager.UnitPersistence> m_deckList = null;
     Dictionary<System.Guid, UnitManager.UnitPersistence> m_Collection = null;
     //
     List<CardSelector> m_cardSelectors = new List<CardSelector>();
 
+    /*** UI ELEMENTS ***/
+    [SerializeField]
+    Text m_deckCountText;
+    [SerializeField]
+    Text m_collectionCountText;
+    [SerializeField]
+    Image m_examineImage;
+    [SerializeField]
+    Text m_attackValueText;
+    //[SerializeField] // might just be an icon
+    //Text m_attackTypeText;
+    [SerializeField]
+    Text m_movementText;
+    [SerializeField]
+    Text m_physicalHealthText;
+    [SerializeField]
+    Text m_spiritualHealthText;
+
+    /*** DEBUG / TEMP ***/
+    [SerializeField]
+    bool m_debug = false;
+    [SerializeField]
+    int[] DebugList; // Collection Equivalent.
+
     // Use this for initialization
     void Start () {
         SaveGameManager.Load();
+
+        // COMMON UI
+        RectTransform go = GameObject.Instantiate(m_commonUI);
+        go.SetParent(transform);
+        go.transform.localPosition = Vector3.zero;
+        go.localScale = Vector3.one;
+        go.offsetMin = Vector2.zero;
+        go.offsetMax = Vector2.zero;
+
+        m_commonUIInstance = go.GetComponent<CommonUI>();
+        if (m_commonUIInstance != null) {
+            m_commonUIInstance.UpdateCoinText(SingletonMB.GetInstance<AccountManager>().GetCoins().ToString());
+            m_commonUIInstance.UpdateSalvageText(SingletonMB.GetInstance<AccountManager>().GetSalvage().ToString());
+        }
 
         if (SaveGameManager.GetSaveGameData().Exists("TestDeck")) {
             m_deckList = SaveGameManager.GetSaveGameData().LoadFrom("TestDeck") as List<UnitManager.UnitPersistence>;
@@ -73,17 +112,46 @@ public class DeckManager : SceneControl {
             InstantiateCollectionObjects();
         }
 
+        m_collectionCountText.text = string.Format("{0}", m_Collection.Count);
+        m_deckCountText.text = string.Format("{0}/{1}", m_deckList.Count, MAX_DECK_SIZE);
+
     }
 
+    public Transform GetDeckTransform() {
+        return m_horizontalLayoutGroup.transform;
+    }
+
+    public Transform GetCollectionTransform() {
+        return m_gridLayoutGroup.transform;
+    }
+
+    public void PreviewUnit(System.Guid unitGuid) {
+        if (m_Collection.ContainsKey(unitGuid)) {
+            UnitManager um = SingletonMB.GetInstance<UnitManager>();
+            UnitManager.UnitPersistence up = m_Collection[unitGuid];
+            UnitManager.UnitDefinition ud  = um.GetDefinition( up.DefinitionID );
+            if (ud != null) {
+                m_attackValueText.text     = ud.AttackValue.ToString();
+                m_physicalHealthText.text  = ud.PhysicalHealth.ToString();
+                m_spiritualHealthText.text = ud.SpiritualHealth.ToString();
+                m_movementText.text        = ud.Movement.ToString();
+
+                m_examineImage.sprite = um.GetArtFromKey(ud.ArtKey).ImageRef.sprite;
+            }
+        }
+    }
 
     public bool AddUnit( System.Guid unitGuid ) { //defId ) {
+        bool unitAdded = false;
         if (m_deckList.Count < MAX_DECK_SIZE) {
             //UnitManager.GetInstance<UnitManager>().GetDefinition(defId)
             if (m_Collection.ContainsKey(unitGuid)) {
                 UnitManager.UnitPersistence up = m_Collection[unitGuid];
-                Debug.Log("[DeckManager/AddUnit] AddUnit DefId: " + up.DefinitionID);
+
+                //Debug.Log("[DeckManager/AddUnit] AddUnit DefId: " + up.DefinitionID);
+
                 m_deckList.Add( up );
-                return true;
+                unitAdded = true;
             }
             else {
                 Debug.LogError("This should not be possible");
@@ -93,7 +161,10 @@ public class DeckManager : SceneControl {
             //Debug.LogWarning("[DeckManager/AddUnit] Max Deck Size Reached.");
             SceneControl.GetCurrentSceneControl().DisplayWarning("Max Deck Size Reached.");
         }
-        return false;
+
+        m_deckCountText.text = string.Format("{0}/{1}", m_deckList.Count, MAX_DECK_SIZE);
+
+        return unitAdded;
     }
 
     public void RemoveUnit( System.Guid unitGuid ) {
@@ -104,6 +175,9 @@ public class DeckManager : SceneControl {
             // probably want to verify that this object actually exists in the deck.
             m_deckList.Remove(m_Collection[unitGuid]);
         }
+
+        m_deckCountText.text = string.Format("{0}/{1}", m_deckList.Count, MAX_DECK_SIZE);
+
     }
 
 
@@ -117,6 +191,9 @@ public class DeckManager : SceneControl {
 
         InitializeCollection();
         InstantiateCollectionObjects();
+
+        m_collectionCountText.text = string.Format("{0}", m_Collection.Count);
+
     }
 
     public void ClearDeck() {
@@ -126,6 +203,9 @@ public class DeckManager : SceneControl {
         for (int i = 0; i < m_cardSelectors.Count; i++) {
             m_cardSelectors[i].Selected = false;
         }
+
+        m_deckCountText.text = string.Format("{0}/{1}", m_deckList.Count, MAX_DECK_SIZE);
+
     }
     public void SaveDeck() {
         Debug.Log("[DeckManager/SaveDeck]");
@@ -155,8 +235,8 @@ public class DeckManager : SceneControl {
             CardSelector cs = GameObject.Instantiate<CardSelector>(m_cardSelector);
 
             cs.SetInfo(this, iter.Current.Value.DefinitionID, iter.Current.Value.UnitID);
-            cs.transform.SetParent(m_gridLayoutGroup.transform);
 
+            //cs.transform.SetParent(m_gridLayoutGroup.transform);
             cs.Selected = (m_deckList.Find(x => x.UnitID == iter.Current.Value.UnitID) != null);
 
             m_cardSelectors.Add(cs);

@@ -14,12 +14,43 @@ public class BoosterMB : SceneControl {
 
     List<UnitManager.UnitDefinition> m_allUnits;
 
+    [SerializeField]
+    RectTransform m_commonUIPrefab;
+    CommonUI m_commonUIInstance;
+
     private void Start() {
-        InstantiateOrbs();
+        //InstantiateOrbs();
         m_allUnits = UnitManager.GetInstance<UnitManager>().GetAsCollection();
+
+        RectTransform go = GameObject.Instantiate(m_commonUIPrefab);
+        go.SetParent(transform);
+        go.transform.localPosition = Vector3.zero;
+        go.localScale = Vector3.one;
+        go.offsetMin = Vector2.zero;
+        go.offsetMax = Vector2.zero;
+
+        m_commonUIInstance = go.GetComponent<CommonUI>();
+        if (m_commonUIInstance != null) {
+            m_commonUIInstance.UpdateCoinText(SingletonMB.GetInstance<AccountManager>().GetCoins().ToString());
+            m_commonUIInstance.UpdateSalvageText(SingletonMB.GetInstance<AccountManager>().GetSalvage().ToString());
+        }
     }
 
     public void InstantiateOrbs() {
+
+        if (SingletonMB.GetInstance<AccountManager>().GetCoins() < 5) {
+            SceneControl.GetCurrentSceneControl().DisplayWarning("Not Enough Coins to Open Pack.");
+            //
+            SingletonMB.GetInstance<AccountManager>().ModifyCoins(10);
+            m_commonUIInstance.UpdateCoinText(SingletonMB.GetInstance<AccountManager>().GetCoins().ToString());
+            m_commonUIInstance.UpdateSalvageText(SingletonMB.GetInstance<AccountManager>().GetSalvage().ToString());
+            //
+            return;
+        }
+        else {
+            SingletonMB.GetInstance<AccountManager>().ModifyCoins(-5);
+            m_commonUIInstance.UpdateCoinText(SingletonMB.GetInstance<AccountManager>().GetCoins().ToString());
+        }
 
         while (boosterOrbList.Count > 0) {
             if(boosterOrbList[0] != null) {
@@ -27,6 +58,7 @@ public class BoosterMB : SceneControl {
             }
             boosterOrbList.RemoveAt(0);
         }
+
         while (artList.Count > 0) {
             if (artList[0] != null) {
                 Destroy(artList[0].gameObject);
@@ -60,7 +92,7 @@ public class BoosterMB : SceneControl {
             return null;
         }
 
-        int randomIndex = UnityEngine.Random.Range(1, m_allUnits.Count);
+        int randomIndex = UnityEngine.Random.Range(0, m_allUnits.Count);
         return m_allUnits[randomIndex];
     }
 

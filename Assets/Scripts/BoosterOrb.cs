@@ -18,7 +18,7 @@ public class BoosterOrb : MonoBehaviour {
 
         m_ref.SaveUnitToCollection(ud);
 
-        GameObject artInstance = GameObject.Instantiate(SingletonMB.GetInstance<UnitManager>().GetArtFromKey(ud.ArtKey));
+        GameObject artInstance = GameObject.Instantiate(SingletonMB.GetInstance<UnitManager>().GetArtFromKey(ud.ArtKey)).gameObject;
         artInstance.transform.position = transform.position;
         artInstance.transform.SetParent(transform.parent);
 

@@ -17,7 +17,7 @@ public class Unit : MonoBehaviour, IUnit {
         }
         private set {
             m_hasPerformedAction = value;
-            if (m_actionPerformedImage != null && !isNexus() && (AssignedToTile != null)
+            if (m_actionPerformedImage != null && !IsNexus() && (AssignedToTile != null)
             ) {
                 m_actionPerformedImage.SetActive(m_hasPerformedAction);
             }
@@ -48,6 +48,7 @@ public class Unit : MonoBehaviour, IUnit {
 
     int m_sHealth = 4;
     int m_sHealthMax = 4;
+    int m_definitionID = -1;
 
     int m_Attack = 2;
     bool m_attackType = false;
@@ -82,28 +83,58 @@ public class Unit : MonoBehaviour, IUnit {
             return m_pendingPlacementTile;
         }
         set {
+            // just sets the color
             TileStateEnum paA_tse = SingletonMB.GetInstance<GameManager>().GetGrid().TileStateAt(m_pendingAttackPlacementTile);
             if (m_pendingAttackPlacementTile != null) {
-                m_pendingAttackPlacementTile.sr.color = (paA_tse == TileStateEnum.CanMove) ? Color.blue : Color.white;
+                m_pendingAttackPlacementTile.sr.color = (paA_tse == TileStateEnum.CanMove) ? TileColors.BLUE : TileColors.WHITE;
             }
 
+            // set color and tile value
             TileStateEnum pa_tse = SingletonMB.GetInstance<GameManager>().GetGrid().TileStateAt(m_pendingPlacementTile);
             if (m_pendingPlacementTile != null) {
-                m_pendingPlacementTile.sr.color = (pa_tse == TileStateEnum.CanMove) ? Color.blue : Color.white;
+                m_pendingPlacementTile.sr.color = (pa_tse == TileStateEnum.CanMove) ? TileColors.BLUE : TileColors.WHITE;
             }
-
             m_pendingPlacementTile = value;
             if(m_pendingPlacementTile != null) {
-                m_pendingPlacementTile.sr.color = Color.cyan;
-                m_pendingPlacementTile.SetPlaceable(this, false);
+                m_pendingPlacementTile.sr.color = TileColors.CYAN;
+
+                //
+                if (!m_isDragging) {
+                    m_pendingPlacementTile.SetPlaceable(this, false);
+                }
+                
+            }
+        }
+    }
+    private Tile CurrentTarget {
+        get {
+            return m_currentTarget;
+        }
+        set {
+            if (m_currentTarget != null) {
+                TileStateEnum tse = SingletonMB.GetInstance<GameManager>().GetGrid().TileStateAt(m_currentTarget);
+                switch (tse) {
+                    case TileStateEnum.CanAttack:
+                        m_currentTarget.sr.color = TileColors.RED;//Color.red;
+                        break;
+                    default:
+                        m_currentTarget.sr.color = TileColors.WHITE;
+                        break;
+                }
+            }
+            m_currentTarget = value;
+            if (m_currentTarget != null) {
+                m_currentTarget.sr.color = TileColors.PINK;
             }
         }
     }
     private Tile m_pendingPlacementTile = null;
     private Tile m_pendingAttackPlacementTile = null;
+    private Tile m_currentTarget = null;
     private List<Tile> m_pendingAttackList = null;
 
     public void ReadDefinition( UnitManager.UnitDefinition ud ) {
+        m_definitionID = ud.DefinitionID; 
         m_pHealthMax = m_pHealth = ud.PhysicalHealth;
         m_sHealthMax = m_sHealth = ud.SpiritualHealth;
         m_Attack      = ud.AttackValue;
@@ -111,11 +142,16 @@ public class Unit : MonoBehaviour, IUnit {
         m_attackRange = ud.AttackRange;
         m_maxMovement = ud.Movement;
 
-        GameObject artInstance = GameObject.Instantiate( SingletonMB.GetInstance<UnitManager>().GetArtFromKey( ud.ArtKey ) );
-        artInstance.transform.SetParent( m_artPlacement );
-        artInstance.transform.localPosition = Vector3.zero;
-        artInstance.transform.localRotation = Quaternion.identity;
-
+        ArtPrefab ap =SingletonMB.GetInstance<UnitManager>().GetArtFromKey(ud.ArtKey);
+        if (ap != null) {
+            ArtPrefab artInstance = GameObject.Instantiate<ArtPrefab>(ap);
+            artInstance.transform.SetParent(m_artPlacement);
+            artInstance.transform.localPosition = Vector3.zero;
+            artInstance.transform.localRotation = Quaternion.identity;
+        }
+        else {
+            SceneControl.GetCurrentSceneControl().DisplayError(string.Format("{0} error!", ud.ArtKey));
+        }
         //if(m_attackRange > 0) {
         //    m_tempArtRef.sprite = m_tempSpriteArray[m_attackRange - 1];
         //}
@@ -177,27 +213,43 @@ public class Unit : MonoBehaviour, IUnit {
                                     //bool matchingTile = (previousPendingPlacement.Equals(PendingPlacementTile));
                                     // in case it's on a different tile/need to restore position.
                                     PendingPlacementTile = m_pendingAttackPlacementTile;
+                                    //m_pendingPlacementTile.SetPlaceable(this, false);
+
                                     if (previousPendingPlacement.Equals(PendingPlacementTile)) { //(previousPendingPlacement.name == m_pendingPlacementTile.name) {
                                         resolved = true;
                                         AssignedToTile = PendingPlacementTile;
                                         SingletonMB.GetInstance<GameManager>().HandleCombat(this, icp);
                                     }
                                 }
+
+                                CurrentTarget = currentlyOverTile;
+
                                 //*/
+                            }
+                            else {
+                                CurrentTarget = null;
                             }
                             break;
                         case TileStateEnum.CanMove:
                             if (currentlyOverTile.GetPlaceable() == null) {
+                                // Match: Commit Action
                                 if (PendingPlacementTile == currentlyOverTile) {
                                     AssignedToTile = currentlyOverTile;
                                     resolved = true;
                                 }
                                 else {
-                                    if (m_pendingAttackList != null && m_pendingAttackList.Contains(currentlyOverTile)){
+                                    // If In Attack List, update pending attack position
+                                    // Update Pending Placement
+                                    // If not in attack List Clear Current Target if it is set.
+                                    if (m_pendingAttackList != null && m_pendingAttackList.Contains(currentlyOverTile)) {
                                         m_pendingAttackPlacementTile = currentlyOverTile;
+                                    }
+                                    else {
+                                        CurrentTarget = null;
                                     }
                                     // Unset original tile, place on new tile.
                                     PendingPlacementTile = currentlyOverTile;
+                                    //m_pendingPlacementTile.SetPlaceable(this, false);
                                 }
                             }
                             else {
@@ -211,11 +263,13 @@ public class Unit : MonoBehaviour, IUnit {
                             if (m_pendingAttackList != null && m_pendingAttackList.Contains(currentlyOverTile)) {
                                 m_pendingAttackPlacementTile = currentlyOverTile;
                                 PendingPlacementTile = currentlyOverTile;
+                                //m_pendingPlacementTile.SetPlaceable(this, false);
                             }
                             else {
+                                // Unset and restore position
                                 AssignedToTile.SetPlaceable(this);
-                                // Unselect
                                 s_selectedUnit = null;
+                                CurrentTarget  = null;
                             }
                             break;
                     }
@@ -229,6 +283,14 @@ public class Unit : MonoBehaviour, IUnit {
         }
         /*** DRAGGING LOGIC ***/
         else if (IsDragging()) {
+            if (!Input.GetMouseButton(0)) {
+                //Debug.LogWarning("No More Input!");
+                AssignedToTile = AssignedToTile;
+                AttemptRelease(false);
+                GameManager.GetInstance<GameManager>().GetGrid().ClearPathableTiles();
+                return;
+            }
+
             Vector3 mouse_to_world = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             mouse_to_world.z = 0;
             // attach to mouse
@@ -256,13 +318,9 @@ public class Unit : MonoBehaviour, IUnit {
                             ICombatPlaceable icp = currentlyOverTile.GetPlaceable() as ICombatPlaceable;
                             m_pendingAttackList = GameManager.GetInstance<GameManager>().GetGrid().GetAccessibleAttackPositions(AssignedToTile, currentlyOverTile);
 
-                            // PENDING ATTACK TILE
+                            // Restore Pending Attack tile
                             if (m_pendingAttackPlacementTile != null && m_pendingPlacementTile != m_pendingAttackPlacementTile) {
-                                
-                                // SNAP BEHAVIOR
-                                //PendingPlacementTile = m_pendingPlacementTile;
-
-                                // FREE DRAG
+                                /*
                                 if (m_pendingPlacementTile != null) {
                                     m_pendingPlacementTile.sr.color = (pa_tse == TileStateEnum.CanMove) ? Color.blue : Color.white;
                                 }
@@ -270,48 +328,60 @@ public class Unit : MonoBehaviour, IUnit {
                                 if (m_pendingPlacementTile != null) {
                                     m_pendingPlacementTile.sr.color = Color.cyan;
                                 }
+                                */
+                                PendingPlacementTile = m_pendingAttackPlacementTile;
                             }
                             // has not been set yet
                             else if (m_pendingPlacementTile == null || m_pendingAttackPlacementTile == null ||
                                 !m_pendingAttackList.Contains(m_pendingAttackPlacementTile) ) {
+                                /*
                                 // Free Drag
                                 if (m_pendingPlacementTile != null) {
                                     m_pendingPlacementTile.sr.color = (pa_tse == TileStateEnum.CanMove) ? Color.blue : Color.white;
                                 }
-
                                 m_pendingAttackPlacementTile = m_pendingPlacementTile = m_pendingAttackList[0];
                                 if (m_pendingPlacementTile != null) {
                                     m_pendingPlacementTile.sr.color = Color.cyan;
                                 }
+                                */
+                                m_pendingAttackPlacementTile = PendingPlacementTile = m_pendingAttackList[0];
                             }
+                            CurrentTarget = currentlyOverTile;
                         }
                         /*** DEFAULT BEHAVOIR ***/
-                        else if (m_pendingAttackPlacementTile != null) {
+                        else if (PendingPlacementTile != null || m_pendingAttackPlacementTile != null) {
+                            /*
                             m_pendingAttackPlacementTile.sr.color = (paA_tse == TileStateEnum.CanMove) ? Color.blue : Color.white;
-
                             m_pendingPlacementTile = null;
-
+                            */
+                            PendingPlacementTile = null;
+                            CurrentTarget = null;
                         }
                         break;
                     case TileStateEnum.CanMove:
                     case TileStateEnum.CanStay:
                         if (m_pendingAttackList != null) {
-///*
+                            /*
                             if (m_pendingPlacementTile != null) {
                                 m_pendingPlacementTile.sr.color = (pa_tse == TileStateEnum.CanMove) ? Color.blue : Color.white;
                             }
                             if (m_pendingAttackPlacementTile != null) {
                                 m_pendingAttackPlacementTile.sr.color = (paA_tse == TileStateEnum.CanMove) ? Color.blue : Color.white;
                             }
-                            //*/
                             // there is a target.
                             m_pendingPlacementTile = currentlyOverTile;
+                            */
+                            PendingPlacementTile = currentlyOverTile;
+
                             int indexOfTile = m_pendingAttackList.FindIndex(currentlyOverTile.MatchesTilePredicate);
                             if (indexOfTile >= 0) {
                                 // is in attack list.
                                 m_pendingAttackPlacementTile = m_pendingPlacementTile = m_pendingAttackList[indexOfTile];
                             }
-                            m_pendingPlacementTile.sr.color = Color.cyan;
+                            else {
+                                CurrentTarget = null;
+                            }
+                            m_pendingPlacementTile.sr.color = TileColors.CYAN;//Color.cyan;
                         }
                         else {
                             // Snapping Behavior
@@ -319,31 +389,30 @@ public class Unit : MonoBehaviour, IUnit {
 
                             // Free Drag
                             if (m_pendingPlacementTile != null) {
-                                m_pendingPlacementTile.sr.color = (pa_tse == TileStateEnum.CanMove) ? Color.blue : Color.white;
+                                m_pendingPlacementTile.sr.color = (pa_tse == TileStateEnum.CanMove) ? TileColors.BLUE : TileColors.WHITE;
                             }
                             m_pendingPlacementTile = currentlyOverTile;
                             if (m_pendingPlacementTile != null) {
-                                m_pendingPlacementTile.sr.color = Color.cyan;
+                                m_pendingPlacementTile.sr.color = TileColors.CYAN;
                             }
                         }
                         break;
-                    default: {
+                    default:
                         //*
                         if (m_pendingPlacementTile != null) {
-                            m_pendingPlacementTile.sr.color = (pa_tse == TileStateEnum.CanMove) ? Color.blue : Color.white;
+                            m_pendingPlacementTile.sr.color = (pa_tse == TileStateEnum.CanMove) ? TileColors.BLUE : TileColors.WHITE;
                         }
                         if (m_pendingAttackPlacementTile != null) {
-                            m_pendingAttackPlacementTile.sr.color = (paA_tse == TileStateEnum.CanMove) ? Color.blue : Color.white;
+                            m_pendingAttackPlacementTile.sr.color = (paA_tse == TileStateEnum.CanMove) ? TileColors.BLUE : TileColors.WHITE;
                         }
                         m_pendingPlacementTile = null;
-                        //*/
+                        CurrentTarget = null;
                         break;
-                    }
                 }
             }
         }
 
-        if (isNexus()) {
+        if (IsNexus()) {
             PHealthText.enabled = true;
             Vector3 newPos = PHealthText.transform.localPosition;
             newPos.x = 0;
@@ -437,6 +506,8 @@ public class Unit : MonoBehaviour, IUnit {
         m_isDragging = false;
         m_mouseDownSelected = false;
 
+        //GameManager.GetInstance<GameManager>().GetGrid().ClearPathableTiles();
+
         return true;
     }
 
@@ -495,6 +566,9 @@ public class Unit : MonoBehaviour, IUnit {
         return m_sHealth;
     }
 
+    bool ICombatPlaceable.IsAlive() {
+        return GetPhysicalHealth() > 0 && GetSpiritualHealth() > 0;
+    }
     public void TakeDamage(int damage, int type) {
         if (type == 0) {
             // physical
@@ -504,7 +578,7 @@ public class Unit : MonoBehaviour, IUnit {
             m_sHealth = Mathf.Max(0, m_sHealth - damage);
         }
 
-        if (isNexus()) {
+        if (IsNexus()) {
             m_pHealth = m_sHealth = Mathf.Min(m_sHealth, m_pHealth);
         }
 
@@ -575,7 +649,7 @@ public class Unit : MonoBehaviour, IUnit {
             GetPlayerOwner().GetEnoughActionPoints(GetPlayerOwner().GetCurrentSummonedUnits().Count)
         ) {
             m_isDragging = true;
-            GameManager.GetInstance<GameManager>().GetGrid().DisplaySummonableTiles(GetPlayerOwner());
+            SingletonMB.GetInstance<GameManager>().GetGrid().DisplaySummonableTiles(GetPlayerOwner());
         }
 
     }
@@ -624,12 +698,16 @@ public class Unit : MonoBehaviour, IUnit {
 
                             GameManager.GetInstance<GameManager>().HandleCombat(this, icp);
                             valid = true;
+
+                            //
+                            CurrentTarget = CurrentlyOverTile;
                         }
 
                         if (!valid) {
                             // if target tile is empty then place this tile back on original position.
                             AssignedToTile.SetPlaceable(this);
                             action_resolved = false;
+                            CurrentTarget = null;
                         }
                         break;
                     case TileStateEnum.CanNotAccess:
@@ -656,10 +734,6 @@ public class Unit : MonoBehaviour, IUnit {
                     AssignedToTile = CurrentlyOverTile; //CurrentlyOverTile.SetPlaceable(this);
                     HasPerformedAction = true;
 
-                    // keeping the collider to make it so that it's unit based tile placement instead of tile.
-                    // BoxCollider2D bc2d = gameObject.GetComponent<BoxCollider2D>();
-                    // bc2d.enabled = false;
-
                     if (GetPlayerOwner() != null) {
                         GetPlayerOwner().PlaceUnitOnField(this);
                     }
@@ -676,13 +750,16 @@ public class Unit : MonoBehaviour, IUnit {
     }
 
     /********************************************************/
-
+    /*
     void IUnit.GenerateCardBehavior() {
         BoxCollider2D bc2d = gameObject.GetComponent<BoxCollider2D>();
         bc2d.size = Vector2.one;
         bc2d.enabled = true;
     }
-    private bool isNexus() {
-        return m_pHealthMax == 200 && m_sHealthMax == 200;
+    */
+    public bool IsNexus() {
+        //return m_pHealthMax == 200 && m_sHealthMax == 200;
+        return m_definitionID == 0
+            || m_definitionID == 8;
     }
 }

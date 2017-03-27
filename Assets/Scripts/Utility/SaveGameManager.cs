@@ -64,17 +64,19 @@ namespace AtRng.MobileTTA {
                     try {
                         s_saveGame = (SaveGame)bformatter.Deserialize(stream);
                     }
-                    catch (SerializationException) {
+                    catch (SerializationException se) {
                         //SaveGameManager.ClearAllSaves();
-                        Debug.LogError("Yeah... that didn't work.");
+                        Debug.LogError("[SaveGameManager]" + se.Message);
+
                         s_saveGame = new SaveGame();
                     }
                     finally {
                         stream.Close();
                     }
                 }
-                catch (Exception) {
+                catch (Exception e) {
                     //SaveGameManager.ClearAllSaves();
+                    Debug.LogError("[SaveGameManager]" + e.Message);
                 }
             }
             else {

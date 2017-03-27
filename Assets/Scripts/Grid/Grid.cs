@@ -132,8 +132,9 @@ namespace AtRng.MobileTTA {
                                     }
                                 }
                                 else {
-                                    //Impassable.
-                                    stateToSet = TileStateEnum.CanAttack;// TileStateEnum.CanNotAccess;
+                                    // atarng: for now this is an Impassable.
+                                    //stateToSet = TileStateEnum.CanAttack;// TileStateEnum.CanNotAccess;
+                                    stateToSet = TileStateEnum.CanNotAccess;
                                 }
                             }
                             m_accessibleTiles.Add(tileAt, new TileState(stateToSet, depth));
@@ -163,8 +164,7 @@ namespace AtRng.MobileTTA {
                     }
                     else {
                         //Impassable.
-                        //stateToSet = TileStateEnum.CanNotAccess;
-                        stateToSet = TileStateEnum.CanAttack;// TileStateEnum.CanNotAccess;
+                        stateToSet =  TileStateEnum.CanNotAccess;
                     }
                 }
 
@@ -248,17 +248,17 @@ namespace AtRng.MobileTTA {
             foreach (KeyValuePair<Tile, TileState> kvp in m_accessibleTiles) {
                 switch (kvp.Value.TSE) {
                     case TileStateEnum.CanMove:
-                        kvp.Key.sr.color = Color.blue;
+                        kvp.Key.sr.color = TileColors.BLUE;
                         break;
                     case TileStateEnum.CanAttack:
-                        kvp.Key.sr.color = Color.red;
+                        kvp.Key.sr.color = TileColors.RED;
                         break;
                     case TileStateEnum.CanPassThrough:
-                        kvp.Key.sr.color = Color.gray;
+                        kvp.Key.sr.color = TileColors.GREY;
                         break;
 
                     case TileStateEnum.Pending:
-                        kvp.Key.sr.color = Color.white;
+                        kvp.Key.sr.color = TileColors.WHITE;
                         if (tile != kvp.Key) {
                             List<Tile> listOfCandidateAttackTilePositions = GetCircumference(kvp.Key, attack);
                             foreach (Tile t in listOfCandidateAttackTilePositions) {
@@ -275,34 +275,40 @@ namespace AtRng.MobileTTA {
                         break;
                     case TileStateEnum.CanNotAccess:
                     default:
-                        kvp.Key.sr.color = Color.white;
+                        kvp.Key.sr.color = TileColors.WHITE;
                         break;
                 }
             }
             // Flip from pending to attack state.
             for (int i = 0; i < TilesToFlip.Count; i++) {
-                TilesToFlip[i].sr.color = Color.red;
+                TilesToFlip[i].sr.color = TileColors.RED;
                 TileState ts = m_accessibleTiles[TilesToFlip[i]];
                 //ts.TSE = TileStateEnum.CanAttack;
                 m_accessibleTiles[TilesToFlip[i]] = new TileState(TileStateEnum.CanAttack, ts.Depth);
             }
         }
 
-        public void DisplaySummonableTiles(IGamePlayer p) {
+        public bool DisplaySummonableTiles(IGamePlayer p) {
             List<IUnit> units_summoned = p.GetCurrentSummonedUnits();
-            HashSet<Tile> hs_tile = new HashSet<Tile>();
+            HashSet<Tile> summonableTiles = new HashSet<Tile>();
             for (int i = 0; i < units_summoned.Count; i++) {
                 List<Tile> t = GetCircumference(units_summoned[i].AssignedToTile, 1);
                 for (int j = 0; j < t.Count; j++) {
-                    if (t[j].GetPlaceable() == null && !hs_tile.Contains(t[j]) ) {
-                        hs_tile.Add(t[j]);
+                    if (t[j].GetPlaceable() == null && !summonableTiles.Contains(t[j]) ) {
+                        summonableTiles.Add(t[j]);
                     }
                 }
             }
-
-            foreach (Tile t in hs_tile) {
-                t.sr.color = Color.cyan;
+            if (summonableTiles.Count > 0) {
+                foreach (Tile t in summonableTiles) {
+                    t.sr.color = TileColors.CYAN; //Color.cyan;
+                }
             }
+            // atarng: probably want to actually do this victory loss stuff somewhere else.
+            else {
+                return false;
+            }
+            return true;
         }
 
         public TileStateEnum TileStateAt(Tile t) {
@@ -321,7 +327,7 @@ namespace AtRng.MobileTTA {
             }
             */
             for (int i = 0; i < m_grid.Count; i++) {
-                m_grid[i].sr.color = Color.white;
+                m_grid[i].sr.color = TileColors.WHITE;
             }
         }
 
