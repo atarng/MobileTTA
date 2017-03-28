@@ -74,7 +74,7 @@ public class DeckManager : SceneControl {
 
         if (SaveGameManager.GetSaveGameData().Exists("TestDeck")) {
             m_deckList = SaveGameManager.GetSaveGameData().LoadFrom("TestDeck") as List<UnitManager.UnitPersistence>;
-            Debug.Log("[DeckManager] DeckSizeCount: " + m_deckList.Count);
+            //Debug.Log("[DeckManager] DeckSizeCount: " + m_deckList.Count);
         }
         else {
             m_deckList = new List<UnitManager.UnitPersistence>();

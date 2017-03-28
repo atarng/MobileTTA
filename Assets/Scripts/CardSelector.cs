@@ -19,6 +19,23 @@ public class CardSelector : MonoBehaviour {
         }
     }
 
+    static CardSelector s_isPreview = null;
+    static CardSelector isPreview {
+        get {
+            return s_isPreview;
+        }
+        set {
+            if (s_isPreview != null) {
+                s_isPreview.transform.localScale = Vector3.one;
+            }
+            s_isPreview = value;
+            if(s_isPreview != null) {
+                s_isPreview.transform.localScale = Vector3.one * 1.2f;
+            }
+        }
+    }
+
+
     System.Guid m_unitGuid;
 
     Vector3 m_mouseDownPosition = Vector3.zero;
@@ -31,7 +48,6 @@ public class CardSelector : MonoBehaviour {
     //bool pressed = false;
     [SerializeField]
     private Transform m_artAttachmentPoint;
-    static CardSelector isPreview = null;
 
     public void SetInfo(DeckManager dm, int id, System.Guid unitGuid) {
         m_dmRef = dm;

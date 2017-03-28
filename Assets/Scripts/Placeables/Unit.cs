@@ -589,6 +589,11 @@ public class Unit : MonoBehaviour, IUnit {
             GetPlayerOwner().GetCurrentSummonedUnits().Remove(this);
             //Destroy(gameObject);
             m_isDying = 1;
+
+            if (IsNexus()) {
+                string toDisplay = string.Format("Player{0} has Won!", SingletonMB.GetInstance<GameManager>().CurrentPlayer().ID);
+                SceneControl.GetCurrentSceneControl().DisplayInfo(toDisplay);
+            }
         }
     }
 
