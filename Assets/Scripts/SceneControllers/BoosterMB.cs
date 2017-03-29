@@ -83,8 +83,10 @@ public class BoosterMB : SceneControl {
         }
     }
 
-    public void AddArt(GameObject art){
+    public void AddArt(GameObject art, BoosterOrb bo){
         artList.Add(art);
+        boosterOrbList.Remove(bo);
+        Destroy(bo.gameObject);
     }
 
     public UnitManager.UnitDefinition GetRandomUnit() {

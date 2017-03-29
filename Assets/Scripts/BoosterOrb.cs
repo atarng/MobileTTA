@@ -20,10 +20,10 @@ public class BoosterOrb : MonoBehaviour {
 
         GameObject artInstance = GameObject.Instantiate(SingletonMB.GetInstance<UnitManager>().GetArtFromKey(ud.ArtKey)).gameObject;
         artInstance.transform.position = transform.position;
+
         artInstance.transform.SetParent(transform.parent);
+        artInstance.transform.localScale = Vector3.one;
 
-        m_ref.AddArt(artInstance);
-
-        Destroy(gameObject);
+        m_ref.AddArt(artInstance, this);
     }
 }
