@@ -13,5 +13,6 @@ namespace AtRng.MobileTTA {
         public static Color BLUE = new Color32(0, 0, 255, 168);
         public static Color CYAN = new Color32(96, 255, 255, 255);
         public static Color GREY = new Color32(128, 128, 128, 168);
+        public static Color CLEAR = new Color32(0, 0, 0, 0);
     }
 }

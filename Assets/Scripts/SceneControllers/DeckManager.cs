@@ -6,8 +6,9 @@ using UnityEngine;
 using UnityEngine.UI;
 
 using AtRng.MobileTTA;
+using System;
 
-public class DeckManager : SceneControl {
+public class DeckManager : SceneControl, ICardSelectorHandler {
     [SerializeField]
     CardSelector m_cardSelector;
 
@@ -48,11 +49,23 @@ public class DeckManager : SceneControl {
     [SerializeField]
     Text m_spiritualHealthText;
 
-    /*** DEBUG / TEMP ***/
-    [SerializeField]
-    bool m_debug = false;
-    [SerializeField]
-    int[] DebugList; // Collection Equivalent.
+    ///*
+    CardSelector m_isPreview = null;
+    CardSelector isPreview {
+        get {
+            return m_isPreview;
+        }
+        set {
+            if (m_isPreview != null) {
+                m_isPreview.transform.localScale = Vector3.one;
+            }
+            m_isPreview = value;
+            if (m_isPreview != null) {
+                m_isPreview.transform.localScale = Vector3.one * 1.1f;
+            }
+        }
+    }
+    //*/
 
     // Use this for initialization
     void Start () {
@@ -80,37 +93,24 @@ public class DeckManager : SceneControl {
             m_deckList = new List<UnitManager.UnitPersistence>();
         }
 
-        if (m_debug) {
-            for (int i = 0; i < DebugList.Length; i++) {
-                CardSelector cs = GameObject.Instantiate<CardSelector>(m_cardSelector);
-                cs.SetInfo(this, DebugList[i], System.Guid.Empty);
-                cs.transform.SetParent(transform);
-
-                Vector3 newPosition = Vector3.zero;
-                newPosition.x = i * 100;
-                cs.transform.localPosition = newPosition;
-            }
-        }
-        else {
-            bool collection_Handled = false;
-            if (SaveGameManager.GetSaveGameData().Exists("Collection")) {
-                List<UnitManager.UnitPersistence> collectionList = SaveGameManager.GetSaveGameData().LoadFrom("Collection") as List<UnitManager.UnitPersistence>;
-                m_Collection = new Dictionary<System.Guid, UnitManager.UnitPersistence>();
-                if (collectionList != null) {
-                    for (int i = 0; i < collectionList.Count; i++) {
-                        m_Collection.Add(collectionList[i].UnitID, collectionList[i]);
-                    }
-                    collection_Handled = true;
+        bool collection_Handled = false;
+        if (SaveGameManager.GetSaveGameData().Exists("Collection")) {
+            List<UnitManager.UnitPersistence> collectionList = SaveGameManager.GetSaveGameData().LoadFrom("Collection") as List<UnitManager.UnitPersistence>;
+            m_Collection = new Dictionary<System.Guid, UnitManager.UnitPersistence>();
+            if (collectionList != null) {
+                for (int i = 0; i < collectionList.Count; i++) {
+                    m_Collection.Add(collectionList[i].UnitID, collectionList[i]);
                 }
+                collection_Handled = true;
             }
-
-            if(!collection_Handled){
-                // Initialize a Basic Collection
-                InitializeCollection();
-            }
-            // 
-            InstantiateCollectionObjects();
         }
+
+        if(!collection_Handled){
+            // Initialize a Basic Collection
+            InitializeCollection();
+        }
+        // 
+        InstantiateCollectionObjects();
 
         m_collectionCountText.text = string.Format("{0}", m_Collection.Count);
         m_deckCountText.text = string.Format("{0}/{1}", m_deckList.Count, MAX_DECK_SIZE);
@@ -202,6 +202,7 @@ public class DeckManager : SceneControl {
         }
         for (int i = 0; i < m_cardSelectors.Count; i++) {
             m_cardSelectors[i].Selected = false;
+            m_cardSelectors[i].transform.SetParent(m_cardSelectors[i].Selected ? GetDeckTransform() : GetCollectionTransform());
         }
 
         m_deckCountText.text = string.Format("{0}/{1}", m_deckList.Count, MAX_DECK_SIZE);
@@ -234,13 +235,32 @@ public class DeckManager : SceneControl {
         for (Dictionary<System.Guid, UnitManager.UnitPersistence>.Enumerator iter = m_Collection.GetEnumerator(); iter.MoveNext();) {
             CardSelector cs = GameObject.Instantiate<CardSelector>(m_cardSelector);
 
-            cs.SetInfo(this, iter.Current.Value.DefinitionID, iter.Current.Value.UnitID);
-
-            //cs.transform.SetParent(m_gridLayoutGroup.transform);
+            cs.SetInfo(iter.Current.Value.DefinitionID, iter.Current.Value.UnitID);
             cs.Selected = (m_deckList.Find(x => x.UnitID == iter.Current.Value.UnitID) != null);
+
+            cs.transform.SetParent(cs.Selected ? GetDeckTransform() : GetCollectionTransform());
+            cs.transform.localScale = Vector3.one;
+            cs.SetCardSelectorHandler(this);
 
             m_cardSelectors.Add(cs);
         }
     }
 
+    public void HandleClick(CardSelector cs) {
+        if (isPreview != cs) {
+            PreviewUnit(cs.UnitID);
+            isPreview = cs;
+        }
+        else {
+            if (cs.Selected) {
+                RemoveUnit(cs.UnitID);
+                cs.Selected = false;
+            }
+            else if (AddUnit(cs.UnitID)) {
+                cs.Selected = true;
+            }
+            cs.transform.SetParent(cs.Selected ? GetDeckTransform() : GetCollectionTransform());
+            isPreview = null;
+        }
+    }
 }

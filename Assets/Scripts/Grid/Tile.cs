@@ -6,7 +6,6 @@ using AtRng.MobileTTA;
 public class Tile : MonoBehaviour {
 
     IPlaceable m_itemOnTile;
-    Grid       m_parentGrid;
 
     public SpriteRenderer sr;
 
@@ -21,10 +20,12 @@ public class Tile : MonoBehaviour {
         return t == this;
     }
 
+    /*
+    Grid       m_parentGrid;
     public void SetParentGrid(Grid parentGrid) {
         m_parentGrid = parentGrid;
     }
-
+    */
     public void SetPlaceable(IPlaceable toSet, bool assign = true){
         if (assign) {
             m_itemOnTile = toSet;

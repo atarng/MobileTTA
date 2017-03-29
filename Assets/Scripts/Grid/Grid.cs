@@ -67,7 +67,7 @@ namespace AtRng.MobileTTA {
                     go.yPos = i;
 
                     go.gameObject.name = "Tile_" + j + "_" + i;
-                    go.SetParentGrid(this);
+                    //go.SetParentGrid(this);
 
                     Transform tTransform = go.transform;
 

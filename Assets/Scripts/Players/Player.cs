@@ -104,9 +104,10 @@ namespace AtRng.MobileTTA {
                 Unit u = GameObject.Instantiate( SingletonMB.GetInstance<GameManager>().m_unitPrefab );
                 u.ReadDefinition(ud);
                 u.transform.SetParent(transform);
-                u.transform.localPosition = Vector3.zero;
 
+                u.transform.localPosition = Vector3.zero;
                 u.transform.localRotation = Quaternion.identity;
+                u.transform.localScale = Vector3.one * .01f;
 
                 IUnit iu = u;
                 iu.AssignPlayerOwner(ID);

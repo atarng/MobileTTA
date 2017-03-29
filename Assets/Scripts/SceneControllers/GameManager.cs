@@ -127,19 +127,21 @@ public class GameManager : SceneControl {
 
         // Placeables Array
         for (int i = 0; i < LevelInitData.PlaceablesArray.Length; i++) {
+            Tile tileAtXY = m_gridInstance.GetTileAt((LevelInitData.PlaceablesArray[i].X), (LevelInitData.PlaceablesArray[i].Y));
+
             switch (LevelInitData.PlaceablesArray[i].placeableType) {
-                case PlaceableType.Unit: {
+                case PlaceableType.Unit:
                     // Create Unit
                     Unit unit_to_place_on_tile = GameObject.Instantiate<Unit>(m_unitPrefab);
                     UnitManager.UnitDefinition ud = UnitManager.GetInstance<UnitManager>().GetDefinition(LevelInitData.PlaceablesArray[i].ID);
                     unit_to_place_on_tile.ReadDefinition(ud);
+                    unit_to_place_on_tile.transform.localScale = Vector3.one * .01f;
 
                     // Assign To Player
                     IGamePlayer p = SingletonMB.GetInstance<GameManager>().GetPlayer(LevelInitData.PlaceablesArray[i].PlayerID);
                     p.GetCurrentSummonedUnits().Add(unit_to_place_on_tile);
 
                     // Assign to Tile.
-                    Tile tileAtXY = m_gridInstance.GetTileAt((LevelInitData.PlaceablesArray[i].X), (LevelInitData.PlaceablesArray[i].Y));
                     tileAtXY.SetPlaceable(unit_to_place_on_tile);
 
                     IUnit iUnit = unit_to_place_on_tile;
@@ -147,15 +149,10 @@ public class GameManager : SceneControl {
                     iUnit.AssignedToTile = tileAtXY;
 
                     break;
-                }
-                case PlaceableType.Impassable: {
+                case PlaceableType.Impassable:
                     Impassable impassable = GameObject.Instantiate<Impassable>(m_impassable);
-
-                    Tile tileAtXY = m_gridInstance.GetTileAt((LevelInitData.PlaceablesArray[i].X), (LevelInitData.PlaceablesArray[i].Y));
                     tileAtXY.SetPlaceable(impassable);
-
                     break;
-                }
             }
         }
 

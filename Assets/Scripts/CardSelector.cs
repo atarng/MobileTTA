@@ -1,117 +1,60 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+
 using UnityEngine;
+using UnityEngine.UI;
 
 using AtRng.MobileTTA;
 
 public class CardSelector : MonoBehaviour {
-    DeckManager m_dmRef = null;
-
-    int m_unit_def_id = -1;
     bool m_selected = false;
     public bool Selected {
         get { return m_selected; }
         set {
             m_selected = value;
-
-            //transform.localScale = m_selected ? (Vector3.one * 1.2f) : Vector3.one;
-            transform.SetParent( m_selected ? m_dmRef.GetDeckTransform() : m_dmRef.GetCollectionTransform() );
         }
     }
 
-    static CardSelector s_isPreview = null;
-    static CardSelector isPreview {
-        get {
-            return s_isPreview;
-        }
-        set {
-            if (s_isPreview != null) {
-                s_isPreview.transform.localScale = Vector3.one;
-            }
-            s_isPreview = value;
-            if(s_isPreview != null) {
-                s_isPreview.transform.localScale = Vector3.one * 1.2f;
-            }
-        }
+    int m_unit_def_id = -1;
+    public int DefinitionID {
+        get { return m_unit_def_id; }
     }
-
-
     System.Guid m_unitGuid;
-
-    Vector3 m_mouseDownPosition = Vector3.zero;
-    //float m_clickTimeout = 0;
-
-    //  int m_count = 0;
-    //  int tier
-
+    public System.Guid UnitID {
+        get { return m_unitGuid; }
+    }
 
     //bool pressed = false;
     [SerializeField]
     private Transform m_artAttachmentPoint;
 
-    public void SetInfo(DeckManager dm, int id, System.Guid unitGuid) {
-        m_dmRef = dm;
+    [SerializeField]
+    private Image m_overlay;
+    bool overlayOn = false;
 
+    ICardSelectorHandler m_icsh = null;
+    public void SetCardSelectorHandler(ICardSelectorHandler icsh) {
+        m_icsh = icsh;
+    }
+
+    public void SetInfo(int id, System.Guid unitGuid) {
         m_unit_def_id = id;
         m_unitGuid = unitGuid;
-
-        //m_count = count;
 
         UnitManager um = SingletonMB.GetInstance<UnitManager>();
         UnitManager.UnitDefinition ud = um.GetDefinition(m_unit_def_id);
         ArtPrefab go = GameObject.Instantiate<ArtPrefab>(um.GetArtFromKey(ud.ArtKey));
         go.transform.SetParent(m_artAttachmentPoint);
+
         go.transform.localPosition = Vector3.zero;
+        go.transform.localScale    = Vector3.one;
     }
 
-    //private void Update() {
-
-    /*
-    // BOX COLLIDER 2D
-    private void OnMouseOver() {
-        Debug.Log("[CardSelector/OnMouseOver]" + name);
-        if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1)) {
-            // Add Unit
-            m_mouseDownPosition = Input.mousePosition;
-        }
-
-        if (Input.GetMouseButtonUp(0)) {
-            // Add Unit
-            Vector3 mousePos = Input.mousePosition;
-            if (Vector3.Distance(m_mouseDownPosition, mousePos) < 10) {
-                if (isPreview != this) {
-                    m_dmRef.PreviewUnit(m_unitGuid);
-                    isPreview = this;
-                }
-                else {
-                    if (m_selected) {
-                        m_dmRef.RemoveUnit(m_unitGuid);
-                        Selected = false;
-                    }
-                    else if (m_dmRef.AddUnit(m_unitGuid)) {
-                        Selected = true;
-                    }
-                    isPreview = null;
-                }
-            }
-        }
+    public void SetOverlay(bool on) {
+        m_overlay.color = on ? TileColors.GREY : TileColors.CLEAR;
     }
-    */
 
     public void PreviewOrToggleUnit() {
-        if (isPreview != this) {
-            m_dmRef.PreviewUnit(m_unitGuid);
-            isPreview = this;
-        }
-        else {
-            if (m_selected) {
-                m_dmRef.RemoveUnit(m_unitGuid);
-                Selected = false;
-            }
-            else if (m_dmRef.AddUnit(m_unitGuid)) {
-                Selected = true;
-            }
-            isPreview = null;
-        }
+        m_icsh.HandleClick(this);
     }
 }

@@ -85,7 +85,7 @@ public class UnitManager : SingletonMB {
     }
 
     Dictionary<long, UnitDefinition> m_definitions = new Dictionary<long, UnitDefinition>();
-    List<UnitDefinition> m_definitionsAsList = new List<UnitDefinition>();
+    //List<UnitDefinition> m_definitionsAsList = new List<UnitDefinition>();
 
     [Serializable]
     struct KeyPrefabPair{
