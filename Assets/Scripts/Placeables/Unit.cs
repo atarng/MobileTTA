@@ -24,19 +24,22 @@ public class Unit : MonoBehaviour, IUnit {
         }
     }
 
+    TileTraversalEnum m_canTraverse = TileTraversalEnum.WalkAndClimb;
+    public TileTraversalEnum CanTraverse {
+        get {
+            return m_canTraverse;
+        }
+    }
+
     bool m_isDragging = false;
     int m_maxMovement = 2;
     int m_attackRange = 1;
+    bool m_mouseDownSelected = false;
 
     [SerializeField]
     Transform m_artPlacement;
     [SerializeField]
     GameObject m_actionPerformedImage;
-
-    //[SerializeField]
-    //Image m_tempArtRef;
-    //[SerializeField]
-    //Sprite[] m_tempSpriteArray;
 
     // UI Components
     public Text AttackText;
@@ -51,7 +54,10 @@ public class Unit : MonoBehaviour, IUnit {
     int m_definitionID = -1;
 
     int m_Attack = 2;
-    bool m_attackType = false;
+
+    //bool m_attackType = false;
+    int m_attackType = 0;
+
     float m_isDying = 0;
 
     //IGamePlayer m_playerOwner = null;
@@ -86,17 +92,17 @@ public class Unit : MonoBehaviour, IUnit {
             // just sets the color
             TileStateEnum paA_tse = SingletonMB.GetInstance<GameManager>().GetGrid().TileStateAt(m_pendingAttackPlacementTile);
             if (m_pendingAttackPlacementTile != null) {
-                m_pendingAttackPlacementTile.sr.color = (paA_tse == TileStateEnum.CanMove) ? TileColors.BLUE : TileColors.WHITE;
+                m_pendingAttackPlacementTile.Sprite.color = (paA_tse == TileStateEnum.CanMove) ? TileColors.BLUE : TileColors.WHITE;
             }
 
             // set color and tile value
             TileStateEnum pa_tse = SingletonMB.GetInstance<GameManager>().GetGrid().TileStateAt(m_pendingPlacementTile);
             if (m_pendingPlacementTile != null) {
-                m_pendingPlacementTile.sr.color = (pa_tse == TileStateEnum.CanMove) ? TileColors.BLUE : TileColors.WHITE;
+                m_pendingPlacementTile.Sprite.color = (pa_tse == TileStateEnum.CanMove) ? TileColors.BLUE : TileColors.WHITE;
             }
             m_pendingPlacementTile = value;
             if(m_pendingPlacementTile != null) {
-                m_pendingPlacementTile.sr.color = TileColors.CYAN;
+                m_pendingPlacementTile.Sprite.color = TileColors.CYAN;
 
                 //
                 if (!m_isDragging) {
@@ -115,16 +121,16 @@ public class Unit : MonoBehaviour, IUnit {
                 TileStateEnum tse = SingletonMB.GetInstance<GameManager>().GetGrid().TileStateAt(m_currentTarget);
                 switch (tse) {
                     case TileStateEnum.CanAttack:
-                        m_currentTarget.sr.color = TileColors.RED;//Color.red;
+                        m_currentTarget.Sprite.color = TileColors.RED;//Color.red;
                         break;
                     default:
-                        m_currentTarget.sr.color = TileColors.WHITE;
+                        m_currentTarget.Sprite.color = TileColors.WHITE;
                         break;
                 }
             }
             m_currentTarget = value;
             if (m_currentTarget != null) {
-                m_currentTarget.sr.color = TileColors.PINK;
+                m_currentTarget.Sprite.color = TileColors.PINK;
             }
         }
     }
@@ -160,13 +166,9 @@ public class Unit : MonoBehaviour, IUnit {
 
     }
 
-    bool m_mouseDownSelected = false;
-    // Update is called once per frame
-    //protected override void OnUpdate() {
-    private void Update() {
+    private void Update_UnitSelectionBehavior() {
         Tile currentlyOverTile = null;
         RaycastHit2D rayCastToGridTiles;
-
         /*** THIS IS FOR CLICK SELECT INPUT ***/
         if (IsSelectedUnit()) {
             if (Input.GetMouseButtonDown(0)) {
@@ -217,7 +219,7 @@ public class Unit : MonoBehaviour, IUnit {
                                     PendingPlacementTile = m_pendingAttackPlacementTile;
                                     //m_pendingPlacementTile.SetPlaceable(this, false);
 
-                                    if (previousPendingPlacement.Equals(PendingPlacementTile)) { //(previousPendingPlacement.name == m_pendingPlacementTile.name) {
+                                    if (previousPendingPlacement != null && previousPendingPlacement.Equals(PendingPlacementTile)) { //(previousPendingPlacement.name == m_pendingPlacementTile.name) {
                                         resolved = true;
                                         AssignedToTile = PendingPlacementTile;
                                         SingletonMB.GetInstance<GameManager>().HandleCombat(this, icp);
@@ -258,7 +260,7 @@ public class Unit : MonoBehaviour, IUnit {
                                 SceneControl.GetCurrentSceneControl().DisplayError("Placeable on Tile Impossible.");
                                 AssignedToTile.SetPlaceable(this);
                             }
-                            
+
                             break;
                         case TileStateEnum.CanStay:
                         default:
@@ -271,7 +273,7 @@ public class Unit : MonoBehaviour, IUnit {
                                 // Unset and restore position
                                 AssignedToTile.SetPlaceable(this);
                                 s_selectedUnit = null;
-                                CurrentTarget  = null;
+                                CurrentTarget = null;
                             }
                             break;
                     }
@@ -325,7 +327,7 @@ public class Unit : MonoBehaviour, IUnit {
                             }
                             // has not been set yet
                             else if (m_pendingPlacementTile == null || m_pendingAttackPlacementTile == null ||
-                                !m_pendingAttackList.Contains(m_pendingAttackPlacementTile) ) {
+                                !m_pendingAttackList.Contains(m_pendingAttackPlacementTile)) {
                                 m_pendingAttackPlacementTile = PendingPlacementTile = m_pendingAttackList[0];
                             }
                             CurrentTarget = currentlyOverTile;
@@ -349,25 +351,25 @@ public class Unit : MonoBehaviour, IUnit {
                             else {
                                 CurrentTarget = null;
                             }
-                            m_pendingPlacementTile.sr.color = TileColors.CYAN;//Color.cyan;
+                            m_pendingPlacementTile.Sprite.color = TileColors.CYAN;//Color.cyan;
                         }
                         else {
                             if (m_pendingPlacementTile != null) {
-                                m_pendingPlacementTile.sr.color = (pa_tse == TileStateEnum.CanMove) ? TileColors.BLUE : TileColors.WHITE;
+                                m_pendingPlacementTile.Sprite.color = (pa_tse == TileStateEnum.CanMove) ? TileColors.BLUE : TileColors.WHITE;
                             }
                             m_pendingPlacementTile = currentlyOverTile;
                             if (m_pendingPlacementTile != null) {
-                                m_pendingPlacementTile.sr.color = TileColors.CYAN;
+                                m_pendingPlacementTile.Sprite.color = TileColors.CYAN;
                             }
                         }
                         break;
                     default:
                         //*
                         if (m_pendingPlacementTile != null) {
-                            m_pendingPlacementTile.sr.color = (pa_tse == TileStateEnum.CanMove) ? TileColors.BLUE : TileColors.WHITE;
+                            m_pendingPlacementTile.Sprite.color = (pa_tse == TileStateEnum.CanMove) ? TileColors.BLUE : TileColors.WHITE;
                         }
                         if (m_pendingAttackPlacementTile != null) {
-                            m_pendingAttackPlacementTile.sr.color = (paA_tse == TileStateEnum.CanMove) ? TileColors.BLUE : TileColors.WHITE;
+                            m_pendingAttackPlacementTile.Sprite.color = (paA_tse == TileStateEnum.CanMove) ? TileColors.BLUE : TileColors.WHITE;
                         }
                         m_pendingPlacementTile = null;
                         CurrentTarget = null;
@@ -375,7 +377,8 @@ public class Unit : MonoBehaviour, IUnit {
                 }
             }
         }
-
+    }
+    private void Update_Visuals() {
         if (IsNexus()) {
             PHealthText.enabled = true;
             Vector3 newPos = PHealthText.transform.localPosition;
@@ -389,10 +392,12 @@ public class Unit : MonoBehaviour, IUnit {
             m_actionPerformedImage.SetActive(!GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(GetPlayerOwner()));
         }
         // Else if Tile is on Board, or it is current players turn.
-        else if (AssignedToTile || GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(GetPlayerOwner())) {
+        else if ( AssignedToTile
+            || GetPlayerOwner() == null
+            || GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(GetPlayerOwner())) {
             if (GetAttackValue() > 0) {
                 AttackText.text = GetAttackValue().ToString();
-                AttackText.color = IsSpiritualAttack() ? (IsPhysicalAttack() ? Color.magenta : new Color(0,196, 255)) : Color.red;
+                AttackText.color = IsSpiritualAttack() ? (IsPhysicalAttack() ? Color.magenta : new Color(0, 196, 255)) : Color.red;
                 AttackText.enabled = true;
             }
             else {
@@ -420,6 +425,14 @@ public class Unit : MonoBehaviour, IUnit {
             }
         }
     }
+    // Update is called once per frame
+    //protected override void OnUpdate() {
+    private void Update() {
+
+        Update_UnitSelectionBehavior();
+        Update_Visuals();
+
+    }
 
     /// IPlaceable Interface Implementations
     public bool IsDragging() {
@@ -429,12 +442,13 @@ public class Unit : MonoBehaviour, IUnit {
 
     public bool AttemptSelection() {
         //cc2d.enabled = true;// 
-        if (GetPlayerOwner().Equals(GameManager.GetInstance<GameManager>().CurrentPlayer())) {
-            if ( GetPlayerOwner().GetEnoughActionPoints(1) && !HasPerformedAction && m_maxMovement > 0){
+        if (GetPlayerOwner() == null || GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(GetPlayerOwner())) {
+            if (GameManager.GetInstance<GameManager>().CurrentPlayer().GetEnoughActionPoints(1)
+                && !HasPerformedAction && m_maxMovement > 0){
                 m_isDragging = true;
                 return m_isDragging;
             }
-            else if (!(GetPlayerOwner().GetEnoughActionPoints(1))) {
+            else if (!(GameManager.GetInstance<GameManager>().CurrentPlayer().GetEnoughActionPoints(1))) {
                 SceneControl.GetCurrentSceneControl().DisplayWarning("Not enough action points.");
             }
             else if (HasPerformedAction) {
@@ -495,10 +509,10 @@ public class Unit : MonoBehaviour, IUnit {
 
     public bool IsPhysicalAttack() {
         //throw new NotImplementedException();
-        return !m_attackType;
+        return m_attackType == 0 || m_attackType == 2;
     }
     public bool IsSpiritualAttack() {
-        return m_attackType;
+        return m_attackType == 1 || m_attackType == 2;
     }
     public int GetAttackValue() {
         //throw new NotImplementedException();
@@ -512,7 +526,7 @@ public class Unit : MonoBehaviour, IUnit {
         return GameManager.GetInstance<GameManager>().GetPlayer(m_playerId);
         //return m_playerOwner;
     }
-    void IUnit.AssignPlayerOwner(int playerID) {
+    public void AssignPlayerOwner(int playerID) {
         //m_playerOwner = player;
         m_playerId = playerID;
     }
@@ -701,12 +715,15 @@ public class Unit : MonoBehaviour, IUnit {
                 // Tile is not null
                 if (IsAdjacentToAlliedUnit( CurrentlyOverTile ) && !CurrentlyOverTile.IsOccupied()) {
                     AssignedToTile = CurrentlyOverTile; //CurrentlyOverTile.SetPlaceable(this);
-                    HasPerformedAction = true;
 
                     if (GetPlayerOwner() != null) {
                         GetPlayerOwner().PlaceUnitOnField(this);
                     }
                     unit_placed = true;
+
+                    /*** not sure if this is good for this ***/
+                    //HasPerformedAction = true;
+                    AttemptRelease(unit_placed);
                 }
             }
 

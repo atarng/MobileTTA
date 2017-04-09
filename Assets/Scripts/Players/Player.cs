@@ -29,13 +29,16 @@ namespace AtRng.MobileTTA {
 
         public override void PlaceUnitOnField(IUnit unitToPlace) {
             //unitToPlace.GetGameObject().transform.rotation = Quaternion.identity;
-
             m_hand.Remove(unitToPlace);
             RepositionCardsInHand();
-            m_fieldUnits.Add(unitToPlace);
 
             // order matters.
+            // -1 because of nexus.
+            // placing above addition of unit because I am using AttemptRelease.
             ActionPoints -= (m_fieldUnits.Count - 1);
+
+            // order matters
+            m_fieldUnits.Add(unitToPlace);
         }
         //UnitManager.UnitDesciption
         public void PopulateAndShuffleDeck<T>(List<T> deck_to_populate_with) where T : UnitManager.UnitDesciption {

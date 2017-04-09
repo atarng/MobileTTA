@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 
 using UnityEngine;
 
@@ -67,7 +68,10 @@ public class UnitManager : SingletonMB {
         public int PhysicalHealth { get; private set; }
         public int SpiritualHealth { get; private set; }
         public int AttackValue { get; private set; }
-        public bool AttackType { get; private set; }
+        // /*
+        //[OptionalFieldAttribute]
+        public int AttackType { get; private set; }
+        //*/
         public int AttackRange { get; private set; }
         public int Movement { get; private set; }
         public string ArtKey { get; private set; }
@@ -77,7 +81,21 @@ public class UnitManager : SingletonMB {
             PhysicalHealth  = int.Parse(data[0]);
             SpiritualHealth = int.Parse(data[1]);
             AttackValue     = int.Parse(data[2]);
-            AttackType      = data[3].Equals("Spiritual") || data[3].Equals("S");
+            switch (data[3]) {
+                case "S":
+                case "Spiritual":
+                    AttackType = 1;
+                    break;
+                case "T":
+                case "True":
+                    AttackType = 2;
+                    break;
+                default:
+                    AttackType = 0;
+                    break;
+            }
+            
+
             Movement        = int.Parse(data[4]);
             AttackRange     = int.Parse(data[5]);
             ArtKey          = data[6];
@@ -128,11 +146,11 @@ public class UnitManager : SingletonMB {
         return m_definitions.ContainsKey(id) ? m_definitions[id] : null;
         //return m_definitionsAsList[id];
     }
-    long[] notCollectibles = new long[3] { 0, 7, 8 };
+    public long[] NotCollectibleIds;// = new long[3] { 0, 7, 8 };
     public List<UnitDefinition> GetAsCollection() {
         List<UnitDefinition> toRet = new List<UnitDefinition>();
 
-        List<long> asList = notCollectibles.ToList();
+        List<long> asList = NotCollectibleIds.ToList();
         for (Dictionary<long, UnitDefinition>.Enumerator iter = m_definitions.GetEnumerator(); iter.MoveNext();) {
             if (!asList.Contains(iter.Current.Key)) {
                 toRet.Add(iter.Current.Value);

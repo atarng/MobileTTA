@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace AtRng.MobileTTA {
     public interface IUnit : ICombatPlaceable {
-
+        TileTraversalEnum CanTraverse { get; }
         bool HasPerformedAction { get; }
 
         IGamePlayer GetPlayerOwner();

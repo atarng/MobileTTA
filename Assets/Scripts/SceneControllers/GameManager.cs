@@ -153,6 +153,9 @@ public class GameManager : SceneControl {
                     Impassable impassable = GameObject.Instantiate<Impassable>(m_impassable);
                     tileAtXY.SetPlaceable(impassable);
                     break;
+                case PlaceableType.Tile:
+                    tileAtXY.SetTileTraversal((TileTraversalEnum)LevelInitData.PlaceablesArray[i].ID);
+                    break;
             }
         }
 
@@ -172,7 +175,10 @@ public class GameManager : SceneControl {
         if (!b_initialized) {
             Start();
         }
-        return m_idPlayerMap[id];
+        if (m_idPlayerMap.ContainsKey(id)) {
+            return m_idPlayerMap[id];
+        }
+        return null;
     }
 
     public BasePlayer CurrentPlayer() {
