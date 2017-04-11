@@ -30,7 +30,8 @@ public class RepositionToUICamera : MonoBehaviour {
             m_Target.position = ToPosition + m_offset;
 
             if (SyncRotation) {
-                m_Target.localRotation = m_Source.localRotation;
+                //m_Target.localRotation = m_Source.localRotation;
+                m_Target.rotation = m_Source.rotation;
             }
 
             OnUpdate();

@@ -18,26 +18,18 @@ public class AIPlayer : BasePlayer {
         throw new NotImplementedException();
     }
 
-    public override List<IUnit> GetCurrentSummonedUnits() {
-        throw new NotImplementedException();
-    }
 
     public override bool GetEnoughActionPoints(int cost) {
         throw new NotImplementedException();
     }
 
-    public override int Health {
-        get {
-            return 0;
-        }
-        protected set {
-
-        }
-    }
-
     public override void PlaceUnitOnField(IUnit unitToPlace) {
         throw new NotImplementedException();
     }
+
+    private void MoveUnit(IUnit unitToMove, Tile tileToMoveTo) {//Tile toInteractWith) {
+    }
+
     public override void BeginTurn() {
         base.BeginTurn();
 
@@ -47,5 +39,10 @@ public class AIPlayer : BasePlayer {
         // Move towards a Unit or Nexus.
         // Place Units if enough action points left.
         // Draw Cards
+
+        for (int i = 0; i < m_fieldUnits.Count; i++) {
+            Tile targetTile = null;
+            MoveUnit(m_fieldUnits[i], targetTile);
+        }
     }
 }

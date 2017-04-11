@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace AtRng.MobileTTA {
-    public interface IUnit : ICombatPlaceable {
+    public interface IUnit : IPlaceable {
         TileTraversalEnum CanTraverse { get; }
         bool HasPerformedAction { get; }
 
@@ -11,10 +11,9 @@ namespace AtRng.MobileTTA {
         void AssignPlayerOwner(int playerID);
 
         int GetPhysicalHealth();
-        void ModifyPhysicalHealth(int amount);
-
         int GetSpiritualHealth();
-        void ModifySpiritualHealth(int amount);
+        //void ModifyPhysicalHealth(int amount);
+        //void ModifySpiritualHealth(int amount);
 
         int GetAttackValue();
         bool IsSpiritualAttack();

@@ -6,6 +6,10 @@ namespace AtRng.MobileTTA {
     // ScriptableObject
     public class LevelScriptableObject : ScriptableObject {
         [SerializeField]
+        bool m_usesOpponentDeck = true;
+        public bool UsesOpponentDeckList { get { return m_usesOpponentDeck; } }
+
+        [SerializeField]
         UnitManager.UnitPersistence[] m_opposingDeckList;
         public UnitManager.UnitPersistence[] OpposingDeckList {
             get {

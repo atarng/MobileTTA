@@ -7,6 +7,16 @@ using System;
 namespace AtRng.MobileTTA {
     public abstract class BasePlayer : MonoBehaviour, IGamePlayer {
 
+        private int m_playerHealth = 100;
+        public virtual int Health {
+            get {
+                return m_playerHealth;
+            }
+            protected set {
+                m_playerHealth = value;
+            }
+        }
+
         protected int m_actionPointsMax = 0;
         protected int m_actionPoints = 0;
         protected List<SpriteRenderer> m_actionPointsUI = new List<SpriteRenderer>();
@@ -23,7 +33,6 @@ namespace AtRng.MobileTTA {
         }
 
         public int ID { get; set; }
-        public abstract int Health { get; protected set; }
         public int ActionPoints {
             get {
                 return m_actionPoints;
@@ -40,13 +49,39 @@ namespace AtRng.MobileTTA {
             }
         }
 
+        public List<IUnit> GetCurrentSummonedUnits() {
+            return m_fieldUnits;
+        }
+
+///////////////
+
         public abstract void Draw();
         public abstract int DrawCost { get; protected set; }
+
+        public virtual bool CheckIfLost() {
+            bool hasLost = false;
+
+            // if lost all playable units.
+            if ((HandSize() == 0 && DeckSize() == 0)) {
+                hasLost = GetCurrentSummonedUnits().Count == 0;
+            }
+
+            if (!hasLost) {
+                hasLost = Health == 0;
+            }
+
+            return hasLost;
+        }
+
+        public virtual void UpdatePlayerHealth(int playerHealth) {
+            Health = playerHealth;
+            CheckIfLost();
+        }
 
         void IGamePlayer.ExpendUnitActionPoint() {
             ActionPoints--;
         }
-        public abstract List<IUnit> GetCurrentSummonedUnits();
+
         public abstract bool GetEnoughActionPoints(int cost);
 
         public abstract void PlaceUnitOnField(IUnit unitToPlace);
@@ -86,16 +121,6 @@ namespace AtRng.MobileTTA {
             if (m_deck.Count > 0) {
                 DrawCost = SingletonMB.GetInstance<GameManager>().DrawMode() ? 2 : 1;
             }
-/*
-            else if (m_fieldUnits.Count > 0) {
-                // if is nexus
-                Unit ifNexus = m_fieldUnits[0] as Unit;
-                if (ifNexus.IsNexus()) {
-                    m_fieldUnits[0].TakeDamage(10, 0);
-                }
-                DrawCost = 0;
-            }
-*/
         }
         public virtual void EndTurn() {
             for (int i = 0; i < m_fieldUnits.Count; i++) {

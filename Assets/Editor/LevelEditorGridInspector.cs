@@ -39,7 +39,10 @@ public class LevelEditorGridInspector : Editor {
         LevelScriptableObject lso = leg.AsScriptableObject();
 
         //LevelScriptableObject lso = ScriptableObject.CreateInstance<LevelScriptableObject>();
-        if(fileName.Length > 0) {
+        var path_to_save_level = EditorUtility.SaveFilePanel("Save Level as \'.asset\'", LEVEL_DATA_PATH, "test." + FILE_EXT, FILE_EXT);
+        fileName = Path.GetFileName(path_to_save_level);
+        if (fileName.Length > 0) {
+            fileName = fileName.Remove(fileName.Length - FILE_EXT.Length);
             try {
                 AssetDatabase.CreateAsset(lso, "Assets/Resources/" + LEVEL_DATA_PATH + fileName + FILE_EXT);
                 AssetDatabase.SaveAssets();
@@ -53,7 +56,7 @@ public class LevelEditorGridInspector : Editor {
     private void LoadMap(string filePath) {
         Debug.Log("[LevelEditorGridInspector] Load Map: " + filePath);
 
-        string fullPath = EditorUtility.OpenFilePanel("Open Map", "", "asset");
+        string fullPath = EditorUtility.OpenFilePanel("Open Map", "Assets/Resources/LevelData", "asset");
         fileName = Path.GetFileName(fullPath);
         if (fileName.Length > 0) {
             fileName = fileName.Remove(fileName.Length - FILE_EXT.Length); //".map"

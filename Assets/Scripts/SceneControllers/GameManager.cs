@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 using AtRng.MobileTTA;
 
@@ -31,12 +32,13 @@ public class GameManager : SceneControl {
     }
 
     public Transform m_playerIndicator;
+    public Transform m_militiaButton;
 
     Queue<BasePlayer> m_turnQueue = new Queue<BasePlayer>();
     Dictionary<int, BasePlayer> m_idPlayerMap = new Dictionary<int, BasePlayer>();
 
     // TEMPPPP
-    public Unit       m_unitPrefab;
+    public GameUnit       m_unitPrefab;
     public Impassable m_impassable;
 
     bool b_initialized = false;
@@ -127,19 +129,24 @@ public class GameManager : SceneControl {
 
         // Placeables Array
         for (int i = 0; i < LevelInitData.PlaceablesArray.Length; i++) {
-            Tile tileAtXY = m_gridInstance.GetTileAt((LevelInitData.PlaceablesArray[i].X), (LevelInitData.PlaceablesArray[i].Y));
+            Tile tileAtXY = m_gridInstance.GetTileAt((LevelInitData.PlaceablesArray[i].Y), (LevelInitData.PlaceablesArray[i].X));
 
             switch (LevelInitData.PlaceablesArray[i].placeableType) {
                 case PlaceableType.Unit:
                     // Create Unit
-                    Unit unit_to_place_on_tile = GameObject.Instantiate<Unit>(m_unitPrefab);
+                    GameUnit unit_to_place_on_tile = GameObject.Instantiate<GameUnit>(m_unitPrefab);
                     UnitManager.UnitDefinition ud = UnitManager.GetInstance<UnitManager>().GetDefinition(LevelInitData.PlaceablesArray[i].ID);
                     unit_to_place_on_tile.ReadDefinition(ud);
                     unit_to_place_on_tile.transform.localScale = Vector3.one * .01f;
 
                     // Assign To Player
                     IGamePlayer p = SingletonMB.GetInstance<GameManager>().GetPlayer(LevelInitData.PlaceablesArray[i].PlayerID);
-                    p.GetCurrentSummonedUnits().Add(unit_to_place_on_tile);
+                    if (unit_to_place_on_tile.IsNexus()) {
+                        p.PlaceUnitOnField(unit_to_place_on_tile);
+                    }
+                    else {
+                        p.GetCurrentSummonedUnits().Add(unit_to_place_on_tile);
+                    }
 
                     // Assign to Tile.
                     tileAtXY.SetPlaceable(unit_to_place_on_tile);
@@ -159,12 +166,13 @@ public class GameManager : SceneControl {
             }
         }
 
+        // Populate Opposing Player Deck.
         Player opposingPlayer = SingletonMB.GetInstance<GameManager>().GetPlayer(1) as Player;
         if(opposingPlayer != null) {
             if (LevelInitData.OpposingDeckList != null && LevelInitData.OpposingDeckList.Length > 0) {
                 opposingPlayer.PopulateAndShuffleDeck(LevelInitData.OpposingDeckList.ToList());
             }
-            else {
+            else if(LevelInitData.UsesOpponentDeckList) {
                 opposingPlayer.PopulateAndShuffleDeck<UnitManager.UnitDesciption>(InitializeDummyDeck_Temp());
             }
         }
@@ -192,7 +200,9 @@ public class GameManager : SceneControl {
 
         
     private bool CheckVictory(BasePlayer winningPlayer, BasePlayer losingPlayer) {
-        bool hasWon = false;
+        bool hasWon = losingPlayer.CheckIfLost();
+
+        /*
         if (losingPlayer.HandSize() == 0 && losingPlayer.DeckSize() == 0) {
             if (losingPlayer.GetCurrentSummonedUnits().Count == 0) {
                 hasWon = true;
@@ -204,20 +214,22 @@ public class GameManager : SceneControl {
                 }
             }
         }
-        // player is surrounded
-        hasWon |= !(GetGrid().DisplaySummonableTiles(losingPlayer));
-        GetGrid().ClearPathableTiles();
+        */
+        // player is surrounded with no units left.
+        // hasWon |= !(GetGrid().DisplaySummonableTiles(losingPlayer));
+        // GetGrid().ClearPathableTiles();
 
         if (hasWon) {
-            string toDisplay = string.Format("Player{0} has Won!", winningPlayer.ID);
-
             if (winningPlayer.ID == 0) {
                 // Award Currency.
             }
-
+            string toDisplay = string.Format("Player{0} has Won!", winningPlayer.ID);
             SceneControl.GetCurrentSceneControl().DisplayInfo(toDisplay);
+            WaitThenExecute.CreateWaitForSecondsThanExecute( 2, () => {
+                const string MAPS_NAME = "MapSelector";
+                SceneManager.LoadScene(MAPS_NAME);
+            });
         }
-
         return hasWon;
     }
 
@@ -236,6 +248,9 @@ public class GameManager : SceneControl {
         Vector3 newScale = m_playerIndicator.localScale;
         newScale.y = newScale.y > 0 ? -1 : 1;
         m_playerIndicator.localScale = newScale;
+
+
+        m_militiaButton.localRotation = Quaternion.Euler(0, 0, (currentPlayer.ID * 180));
 
         CheckVictory(p, currentPlayer);
     }
@@ -258,7 +273,7 @@ public class GameManager : SceneControl {
     /***
      * Combat Order
      */
-    public void HandleCombat(ICombatPlaceable combatant1, ICombatPlaceable combatant2) {
+    public void HandleCombat(ICombat combatant1, ICombat combatant2) {
         IUnit iu1 = combatant1 as IUnit;
         IUnit iu2 = combatant2 as IUnit;
         int iu1p_damageToDo = 0;
@@ -278,12 +293,10 @@ public class GameManager : SceneControl {
             iu2s_damageToDo = iu2.IsSpiritualAttack() ? iu2.GetAttackValue() : 0;
         }
 
-        combatant2.TakeDamage(iu1p_damageToDo, 0);
-        combatant2.TakeDamage(iu1s_damageToDo, 1);
+        combatant2.TakeDamage(iu1p_damageToDo, iu1s_damageToDo);
 
         if (m_combatOrder && combatant2.IsAlive() ) {
-            combatant1.TakeDamage(iu2p_damageToDo, 0);
-            combatant1.TakeDamage(iu2s_damageToDo, 1);
+            combatant1.TakeDamage(iu2p_damageToDo, iu2s_damageToDo);
         }
 
         CheckVictory(GetPlayer(0), GetPlayer(1));

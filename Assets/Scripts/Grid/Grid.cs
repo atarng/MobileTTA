@@ -1,20 +1,21 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace AtRng.MobileTTA {
-    public class Grid : MonoBehaviour {
+    public class Grid : MonoBehaviour, IGrid {
 
         [SerializeField]
         int m_width = 0, m_height = 0;
 
         [SerializeField]
         Tile m_tilePrefab;
-        List<Tile> m_grid;
+        List<Tile> m_grid = new List<Tile>();
 
         bool m_hasBeenInitialized = false;
 
-        public int Width {
+        public virtual int Width {
             get {
                 return m_width;
             }
@@ -22,7 +23,7 @@ namespace AtRng.MobileTTA {
                 m_width = value;
             }
         }
-        public int Height {
+        public virtual int Height {
             get {
                 return m_height;
             }
@@ -47,8 +48,16 @@ namespace AtRng.MobileTTA {
             InitializeGrid();
         }
 
-        public void InitializeGrid(int width = -1, int height = -1) {
+        public void ClearGrid() {
+            for (int i = 0; i < m_grid.Count; i++) {
+                Destroy(m_grid[i].gameObject);
+            }
+            m_grid.Clear();
+            m_hasBeenInitialized = false;
+        }
+        public virtual void InitializeGrid(int width = -1, int height = -1) {
             if (m_hasBeenInitialized) return;
+            //ClearGrid();
 
             Width  = (width  > 0) ? width  : m_width;
             Height = (height > 0) ? height : m_height;
@@ -56,7 +65,6 @@ namespace AtRng.MobileTTA {
             float x_offset = (m_width / 2f) - .5f;
             float y_offset = (m_height / 2f) - .5f;
 
-            m_grid = new List<Tile>();
             for (int i = 0; i < m_height; i++) { // row
                 for (int j = 0; j < m_width; j++) { // col
 
@@ -83,11 +91,11 @@ namespace AtRng.MobileTTA {
         }
 
         public Tile GetTileAt(int row, int col) {
-            if (row < 0 || col < 0 || row >= m_width || col >= m_height) {
+            if (row < 0 || col < 0 || row >= m_height || col >= m_width) {
                 return null;
             }
-            //return m_grid[(row * m_width) + col];
-            return m_grid[(col * m_height) + row];
+            Tile t = m_grid[(row * m_width) + col];
+            return t;
         }
 
         //         0,0
@@ -98,7 +106,7 @@ namespace AtRng.MobileTTA {
         //     0,0 0,1 0,0
         //         0,0
         private void FillTileAdjacency(int TileX, int TileY, int movesLeft, int attackRange, TileTraversalEnum canTraverse, int depth) {
-            Tile tileAt = GetTileAt(TileX, TileY);
+            Tile tileAt = GetTileAt(TileY, TileX);
             if (tileAt == null) return;
 
             // self tile.
@@ -116,7 +124,7 @@ namespace AtRng.MobileTTA {
             bool overrideDepth = false;
 
             if (tileAt.GetPlaceable() != null) {
-                Unit u = tileAt.GetPlaceable() as Unit;
+                GameUnit u = tileAt.GetPlaceable() as GameUnit;
                 if (u != null) {
                     if (!u.GetPlayerOwner().Equals(GameManager.GetInstance<GameManager>().CurrentPlayer())) {
                         stateToSet = TileStateEnum.Pending;
@@ -145,6 +153,7 @@ namespace AtRng.MobileTTA {
             // Debug.Log(string.Format("({0}, {1} :: {2}, {3}) : ({4}, {5})", 
             // TileX, TileY, movesLeft, attackRange, m_accessibleTiles[tileAt].TSE, m_accessibleTiles[tileAt].Depth));
             int tileOffset = 0;
+            int hackFix = attackRange;
             if (deductedMoves > 0) {
                 tileOffset = 1;
             }
@@ -152,17 +161,20 @@ namespace AtRng.MobileTTA {
                 tileOffset = attackRange;
                 attackRange = 0;
             }
-            bool tileAccessible = (m_accessibleTiles[tileAt].TSE == TileStateEnum.CanMove || m_accessibleTiles[tileAt].TSE == TileStateEnum.CanPassThrough);
 
+            bool tileAccessible = (m_accessibleTiles[tileAt].TSE == TileStateEnum.CanMove || m_accessibleTiles[tileAt].TSE == TileStateEnum.CanPassThrough);
             if (depth == 0 || (tileOffset > 0 && tileAccessible)) {
-                // Left
-                FillTileAdjacency(TileX - tileOffset, TileY, deductedMoves, attackRange, canTraverse, depth + 1);
-                // UP
-                FillTileAdjacency(TileX, TileY + tileOffset, deductedMoves, attackRange, canTraverse, depth + 1);
-                // RIGHT
-                FillTileAdjacency(TileX + tileOffset, TileY, deductedMoves, attackRange, canTraverse, depth + 1);
-                // BOT
-                FillTileAdjacency(TileX, TileY - tileOffset, deductedMoves, attackRange, canTraverse, depth + 1);
+
+                if(deductedMoves > 0) {
+                    // Left
+                    FillTileAdjacency(TileX - tileOffset, TileY, deductedMoves, attackRange, canTraverse, depth + 1);
+                    // UP
+                    FillTileAdjacency(TileX, TileY + tileOffset, deductedMoves, attackRange, canTraverse, depth + 1);
+                    // RIGHT
+                    FillTileAdjacency(TileX + tileOffset, TileY, deductedMoves, attackRange, canTraverse, depth + 1);
+                    // BOT
+                    FillTileAdjacency(TileX, TileY - tileOffset, deductedMoves, attackRange, canTraverse, depth + 1);
+                }
 
                 // RANGED attacks
                 //   .
@@ -170,12 +182,13 @@ namespace AtRng.MobileTTA {
                 // . x .
                 //  . .
                 //   .
-                if (deductedMoves < attackRange) {
-                    for (int i = -attackRange; i <= attackRange; i++) {
-                        int j = Mathf.Abs(i) - attackRange;
+                if (deductedMoves < hackFix) {// attackRange) {
+                    for (int i = -hackFix; i <= hackFix; i++) {
+                        int j = Mathf.Abs(i) - hackFix;
                         FillTileAdjacency(TileX + i, TileY + j, 0, 0, canTraverse, depth + 1);
                         FillTileAdjacency(TileX + i, TileY - j, 0, 0, canTraverse, depth + 1);
                     }
+
                 }
             }
         }
@@ -188,12 +201,12 @@ namespace AtRng.MobileTTA {
             for (int i = -radius; i <= radius; i++) {
                 int j = radius - Mathf.Abs(i);
 
-                Tile tileAt = GetTileAt(tile.xPos + i, tile.yPos + j);
+                Tile tileAt = GetTileAt(tile.yPos + j, tile.xPos + i);
                 if (tileAt != null) {
                     toRet.Add(tileAt);
                 }
                 if (j != 0) {
-                    tileAt = GetTileAt(tile.xPos + i, tile.yPos - j);
+                    tileAt = GetTileAt(tile.yPos - j, tile.xPos + i);
                     if (tileAt != null) {
                         toRet.Add(tileAt);
                     }
@@ -203,7 +216,7 @@ namespace AtRng.MobileTTA {
         }
 
         public List<Tile> GetAccessibleAttackPositions(Tile source, Tile target) {
-            IUnit u = source.GetPlaceable().GetGameObject().GetComponent<Unit>();
+            IUnit u = source.GetPlaceable().GetGameObject().GetComponent<GameUnit>();
             List<Tile> listOfCandidateAttackTilePositions = GetCircumference(target, u.GetAttackRange());
             List<Tile> retList = new List<Tile>();
             foreach (Tile t in listOfCandidateAttackTilePositions) {
@@ -244,7 +257,7 @@ namespace AtRng.MobileTTA {
                             foreach (Tile t in listOfCandidateAttackTilePositions) {
                                 if (m_accessibleTiles.ContainsKey(t) &&
                                    (t == tile || m_accessibleTiles[t].TSE == TileStateEnum.CanMove)) {
-                                    Unit u = kvp.Key.GetPlaceable() as Unit;
+                                    GameUnit u = kvp.Key.GetPlaceable() as GameUnit;
                                     if (u != null && !u.GetPlayerOwner().Equals(GameManager.GetInstance<GameManager>().CurrentPlayer())) {
                                         TilesToFlip.Add(kvp.Key);
                                         break;
@@ -310,8 +323,5 @@ namespace AtRng.MobileTTA {
                 m_grid[i].Sprite.color = TileColors.WHITE;
             }
         }
-
-
-
     }
 }

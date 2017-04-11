@@ -6,18 +6,18 @@ using AtRng.MobileTTA;
 
 public class Militia_MonoBehavior : MonoBehaviour {
     [SerializeField]
-    private Unit unit_prefab;
+    private GameUnit unit_prefab;
 
     const int MILITIA_ID = 10;
 
-    Unit pendingMilitia;
+    GameUnit pendingMilitia;
 
     private bool IsAdjacentToAlliedUnit(Tile t) {
         List<Tile> lt = GameManager.GetInstance<GameManager>().GetGrid().GetCircumference(t, 1);
         for (int i = 0; i < lt.Count; i++) {
             IPlaceable ip = lt[i].GetPlaceable();
             if (ip != null) {
-                Unit u = ip as Unit;
+                GameUnit u = ip as GameUnit;
                 if (u != null && GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(u.GetPlayerOwner()) ) {
                     return true;
                 }
@@ -43,8 +43,7 @@ public class Militia_MonoBehavior : MonoBehaviour {
                     pendingMilitia.AssignedToTile = CurrentlyOverTile;
                     pendingMilitia.AssignPlayerOwner(igp.ID);
 
-                    (igp as IGamePlayer).ExpendUnitActionPoint();
-                    (igp as IGamePlayer).ExpendUnitActionPoint();
+                    (igp as IGamePlayer).UpdatePlayerHealth(igp.Health - 10);
 
                     if (pendingMilitia.GetPlayerOwner() != null) {
                         pendingMilitia.GetPlayerOwner().PlaceUnitOnField(pendingMilitia);
@@ -54,22 +53,26 @@ public class Militia_MonoBehavior : MonoBehaviour {
             }
 
             if (unit_placed) {
-                Debug.Log("[Militia_MB/OnMouseUp] Successfully Placed");
+                //Debug.Log("[Militia_MB/OnMouseUp] Successfully Placed");
                 pendingMilitia.AttemptRelease(unit_placed);
             }
             else {
-                Debug.Log("[Militia_MB/OnMouseUp] Failed To Place Unit, Destroy");
+                //Debug.Log("[Militia_MB/OnMouseUp] Failed To Place Unit, Destroy");
                 Destroy(pendingMilitia.gameObject);
             }
 
+            pendingMilitia = null;
             SingletonMB.GetInstance<GameManager>().GetGrid().ClearPathableTiles();
         }
     }
 
     private void OnMouseDown() {
-        Debug.Log("[Militia_MB/OnMouseDown] GenerateMilitia");
-
-        if (GameManager.GetInstance<GameManager>().CurrentPlayer().GetEnoughActionPoints(3)){
+        //Debug.Log("[Militia_MB/OnMouseDown] GenerateMilitia");
+        BasePlayer bp = GameManager.GetInstance<GameManager>().CurrentPlayer();
+        if (bp.Health <= 10) {
+            SceneControl.GetCurrentSceneControl().DisplayWarning("Not Enough Wealth to Conscript Militia.");
+        }
+        else if (bp.GetEnoughActionPoints(3)) {
             GenerateMilitia();
             BasePlayer cp = GameManager.GetInstance<GameManager>().CurrentPlayer();
             SingletonMB.GetInstance<GameManager>().GetGrid().DisplaySummonableTiles(cp);
@@ -81,8 +84,9 @@ public class Militia_MonoBehavior : MonoBehaviour {
         pendingMilitia = GameObject.Instantiate(SingletonMB.GetInstance<GameManager>().m_unitPrefab);
         pendingMilitia.ReadDefinition(ud);
         pendingMilitia.AttemptSelection();
-
+        
         pendingMilitia.transform.SetParent(transform);
         pendingMilitia.transform.localScale = Vector3.one;
+        pendingMilitia.transform.localRotation = Quaternion.identity;
     }
 }

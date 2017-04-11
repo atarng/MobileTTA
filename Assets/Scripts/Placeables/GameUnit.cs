@@ -8,36 +8,25 @@ using System;
 
 // probably should not make this extend RepositionToUICamera as a class, but just require this as a monobehavior.
 /* Interfaces IPlaceable, */
-public class Unit : MonoBehaviour, IUnit {
+//
+public class GameUnit : BaseUnit, ICombat {
 
     bool m_hasPerformedAction = false;
-    public bool HasPerformedAction {
+    public override bool HasPerformedAction {
         get {
             return m_hasPerformedAction;
         }
-        private set {
+        protected set {
             m_hasPerformedAction = value;
-            if (m_actionPerformedImage != null && !IsNexus() && (AssignedToTile != null)
-            ) {
+            if (m_actionPerformedImage != null && !IsNexus() && (AssignedToTile != null)) {
                 m_actionPerformedImage.SetActive(m_hasPerformedAction);
             }
         }
     }
 
-    TileTraversalEnum m_canTraverse = TileTraversalEnum.WalkAndClimb;
-    public TileTraversalEnum CanTraverse {
-        get {
-            return m_canTraverse;
-        }
-    }
-
-    bool m_isDragging = false;
-    int m_maxMovement = 2;
-    int m_attackRange = 1;
     bool m_mouseDownSelected = false;
 
-    [SerializeField]
-    Transform m_artPlacement;
+
     [SerializeField]
     GameObject m_actionPerformedImage;
 
@@ -46,45 +35,15 @@ public class Unit : MonoBehaviour, IUnit {
     public Text PHealthText;
     public Text SHealthText;
 
-    int m_pHealth = 4;
-    int m_pHealthMax = 4;
-
-    int m_sHealth = 4;
-    int m_sHealthMax = 4;
-    int m_definitionID = -1;
-
-    int m_Attack = 2;
-
-    //bool m_attackType = false;
-    int m_attackType = 0;
-
     float m_isDying = 0;
 
-    //IGamePlayer m_playerOwner = null;
-    int m_playerId = -1;
 
-    static Unit s_selectedUnit = null;
+    static GameUnit s_selectedUnit = null;
     bool IsSelectedUnit() {
         return this == s_selectedUnit;
     }
 
-    Tile m_assignedToTile = null;
-    public Tile AssignedToTile {
-        get {
-            return m_assignedToTile;
-        } set {
-            if (m_assignedToTile != null) {
-                m_assignedToTile.SetPlaceable(null);
-            }
-            m_assignedToTile = value;
-            if(m_assignedToTile != null) {
-                m_assignedToTile.SetPlaceable(this);
-            }
-            //
-        }
-    } //private set; }
-
-    public Tile PendingPlacementTile {
+    private Tile PendingPlacementTile {
         get {
             return m_pendingPlacementTile;
         }
@@ -105,7 +64,7 @@ public class Unit : MonoBehaviour, IUnit {
                 m_pendingPlacementTile.Sprite.color = TileColors.CYAN;
 
                 //
-                if (!m_isDragging) {
+                if (!IsDragging()) {
                     m_pendingPlacementTile.SetPlaceable(this, false);
                 }
                 
@@ -139,32 +98,7 @@ public class Unit : MonoBehaviour, IUnit {
     private Tile m_currentTarget = null;
     private List<Tile> m_pendingAttackList = null;
 
-    public void ReadDefinition( UnitManager.UnitDefinition ud ) {
-        m_definitionID = ud.DefinitionID; 
-        m_pHealthMax = m_pHealth = ud.PhysicalHealth;
-        m_sHealthMax = m_sHealth = ud.SpiritualHealth;
-        m_Attack      = ud.AttackValue;
-        m_attackType  = ud.AttackType;
-        m_attackRange = ud.AttackRange;
-        m_maxMovement = ud.Movement;
-
-        ArtPrefab ap =SingletonMB.GetInstance<UnitManager>().GetArtFromKey(ud.ArtKey);
-        if (ap != null) {
-            ArtPrefab artInstance = GameObject.Instantiate<ArtPrefab>(ap);
-            artInstance.transform.SetParent(m_artPlacement);
-
-            artInstance.transform.localPosition = Vector3.zero;
-            artInstance.transform.localRotation = Quaternion.identity;
-            artInstance.transform.localScale    = Vector3.one;
-        }
-        else {
-            SceneControl.GetCurrentSceneControl().DisplayError(string.Format("{0} error!", ud.ArtKey));
-        }
-        //if(m_attackRange > 0) {
-        //    m_tempArtRef.sprite = m_tempSpriteArray[m_attackRange - 1];
-        //}
-
-    }
+    // ReadDefinition
 
     private void Update_UnitSelectionBehavior() {
         Tile currentlyOverTile = null;
@@ -203,8 +137,8 @@ public class Unit : MonoBehaviour, IUnit {
                     switch (c_tse) {
                         case TileStateEnum.CanAttack:
                             //hovering over an enemy
-                            if (currentlyOverTile.GetPlaceable() is ICombatPlaceable) {
-                                ICombatPlaceable icp = currentlyOverTile.GetPlaceable() as ICombatPlaceable;
+                            if (currentlyOverTile.GetPlaceable() is ICombat) {
+                                ICombat icp = currentlyOverTile.GetPlaceable() as ICombat;
                                 m_pendingAttackList = GameManager.GetInstance<GameManager>().GetGrid().GetAccessibleAttackPositions(AssignedToTile, currentlyOverTile);
 
                                 Tile previousPendingPlacement = PendingPlacementTile;
@@ -318,7 +252,7 @@ public class Unit : MonoBehaviour, IUnit {
                 switch (c_tse) {
                     case TileStateEnum.CanAttack:
 
-                        if (currentlyOverTile.GetPlaceable() is ICombatPlaceable) {
+                        if (currentlyOverTile.GetPlaceable() is ICombat) {
                             m_pendingAttackList = GameManager.GetInstance<GameManager>().GetGrid().GetAccessibleAttackPositions(AssignedToTile, currentlyOverTile);
 
                             // Restore Pending Attack tile
@@ -420,7 +354,7 @@ public class Unit : MonoBehaviour, IUnit {
             HasPerformedAction = true;
             transform.localScale = Vector3.Lerp(transform.localScale, Vector3.zero, m_isDying - 1);
             m_isDying += 0.05f;
-            if (transform.localScale.magnitude <= 0.1f) {
+            if (transform.localScale.magnitude <= 0.001f) {
                 Destroy(gameObject);
             }
         }
@@ -428,23 +362,17 @@ public class Unit : MonoBehaviour, IUnit {
     // Update is called once per frame
     //protected override void OnUpdate() {
     private void Update() {
-
         Update_UnitSelectionBehavior();
         Update_Visuals();
-
     }
 
     /// IPlaceable Interface Implementations
-    public bool IsDragging() {
-        //throw new NotImplementedException();
-        return m_isDragging;
-    }
 
-    public bool AttemptSelection() {
+    public override bool AttemptSelection() {
         //cc2d.enabled = true;// 
         if (GetPlayerOwner() == null || GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(GetPlayerOwner())) {
             if (GameManager.GetInstance<GameManager>().CurrentPlayer().GetEnoughActionPoints(1)
-                && !HasPerformedAction && m_maxMovement > 0){
+                && !HasPerformedAction && GetMaxMovement() > 0){
                 m_isDragging = true;
                 return m_isDragging;
             }
@@ -461,7 +389,7 @@ public class Unit : MonoBehaviour, IUnit {
         return false;
     }
 
-    public bool AttemptRelease(bool resolved ) {// Tile sourceTile, Tile destinationTile, ) {
+    public override bool AttemptRelease(bool resolved ) {// Tile sourceTile, Tile destinationTile, ) {
 
         if (m_isDragging || IsSelectedUnit()) {
             HasPerformedAction = resolved;
@@ -489,75 +417,34 @@ public class Unit : MonoBehaviour, IUnit {
         return true;
     }
 
-    public GameObject GetGameObject() {
-        return gameObject;
-    }
-    
-    /// IUnit Implementations.
-    bool IUnit.ClearStates() {
+    public override bool ClearStates() {
+        bool ret = base.ClearStates();
         if (IsSelectedUnit()) {
             AssignedToTile = AssignedToTile;
             AttemptRelease(false);
             GameManager.GetInstance<GameManager>().GetGrid().ClearPathableTiles();
         }
-
-        m_isDragging = false;
-        HasPerformedAction = false;
-        return true;
+        return ret;
     }
 
-
-    public bool IsPhysicalAttack() {
-        //throw new NotImplementedException();
-        return m_attackType == 0 || m_attackType == 2;
-    }
-    public bool IsSpiritualAttack() {
-        return m_attackType == 1 || m_attackType == 2;
-    }
-    public int GetAttackValue() {
-        //throw new NotImplementedException();
-        return m_Attack;
-    }
-    int IUnit.GetAttackRange() {
-        return m_attackRange;
-    }
-
-    public IGamePlayer GetPlayerOwner() {
+    public override IGamePlayer GetPlayerOwner() {
         return GameManager.GetInstance<GameManager>().GetPlayer(m_playerId);
         //return m_playerOwner;
     }
-    public void AssignPlayerOwner(int playerID) {
-        //m_playerOwner = player;
-        m_playerId = playerID;
-    }
 
-    int IUnit.GetMaxMovement() {
-        return m_maxMovement;
-    }
-
-    public int GetPhysicalHealth() {
-        return m_pHealth;
-    }
-
-    public int GetSpiritualHealth() {
-        //throw new NotImplementedException();
-        return m_sHealth;
-    }
-
-    bool ICombatPlaceable.IsAlive() {
+    bool ICombat.IsAlive() {
         return GetPhysicalHealth() > 0 && GetSpiritualHealth() > 0;
     }
-    public void TakeDamage(int damage, int type) {
-        if (type == 0) {
+    private void UpdatePlayerHealth(int playerHealth) {
+        GetPlayerOwner().UpdatePlayerHealth(playerHealth);
+    }
+    public void TakeDamage(int pdamage, int sdamage) {
             // physical
-            m_pHealth = Mathf.Max(0, m_pHealth - damage);
-        }
-        else {
-            m_sHealth = Mathf.Max(0, m_sHealth - damage);
-        }
+        m_pHealth = Mathf.Max(0, m_pHealth - pdamage);
+        m_sHealth = Mathf.Max(0, m_sHealth - sdamage);
 
         if (IsNexus()) {
-            m_pHealth = m_sHealth = Mathf.Min(m_sHealth, m_pHealth);
+            UpdatePlayerHealth(m_pHealth = m_sHealth = Mathf.Min(m_sHealth, m_pHealth));
         }
 
         if (m_sHealth <= 0 || m_pHealth <= 0) {
@@ -565,31 +452,24 @@ public class Unit : MonoBehaviour, IUnit {
                 AssignedToTile.SetPlaceable(null);
             }
             GetPlayerOwner().GetCurrentSummonedUnits().Remove(this);
-            //Destroy(gameObject);
             m_isDying = 1;
-
-            if (IsNexus()) {
-                string toDisplay = string.Format("Player{0} has Won!", SingletonMB.GetInstance<GameManager>().CurrentPlayer().ID);
-                SceneControl.GetCurrentSceneControl().DisplayInfo(toDisplay);
-            }
         }
     }
 
-
+    /*
     void IUnit.ModifyPhysicalHealth(int amount){
         throw new NotImplementedException();
     }
-
     void IUnit.ModifySpiritualHealth(int amount){
         throw new NotImplementedException();
     }
-
+    */
     private bool IsAdjacentToAlliedUnit(Tile t) {
         List<Tile> lt = GameManager.GetInstance<GameManager>().GetGrid().GetCircumference(t, 1);
         for (int i = 0; i < lt.Count; i++) {
             IPlaceable ip = lt[i].GetPlaceable();
             if (ip != null) {
-                Unit u = ip as Unit;
+                GameUnit u = ip as GameUnit;
                 if (u != null && u.GetPlayerOwner() == GetPlayerOwner()) {
                     return true;
                 }
@@ -629,7 +509,10 @@ public class Unit : MonoBehaviour, IUnit {
         /****************** BELOW: BEHAVIOR AS CARD ************************/
         else if (AssignedToTile == null &&
             GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(GetPlayerOwner()) &&
+
+            // this cost includes the nexus...
             GetPlayerOwner().GetEnoughActionPoints(GetPlayerOwner().GetCurrentSummonedUnits().Count)
+
         ) {
             m_isDragging = true;
             SingletonMB.GetInstance<GameManager>().GetGrid().DisplaySummonableTiles(GetPlayerOwner());
@@ -674,7 +557,7 @@ public class Unit : MonoBehaviour, IUnit {
                     case TileStateEnum.CanAttack:
                         bool valid = false;
 
-                        ICombatPlaceable icp = CurrentlyOverTile.GetPlaceable() as ICombatPlaceable;
+                        ICombat icp = CurrentlyOverTile.GetPlaceable() as ICombat;
                         if(icp != null && m_pendingPlacementTile != null) { // need to check what to do about this.
                             // Find Tile that can be placed at this location.
                             AssignedToTile = m_pendingPlacementTile;
@@ -747,5 +630,8 @@ public class Unit : MonoBehaviour, IUnit {
         //return m_pHealthMax == 200 && m_sHealthMax == 200;
         return m_definitionID == 0
             || m_definitionID == 8;
+    }
+    public bool IsMilitia() {
+        return m_definitionID == 10;
     }
 }

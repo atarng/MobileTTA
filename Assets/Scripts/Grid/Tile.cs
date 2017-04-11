@@ -26,10 +26,12 @@ public class Tile : MonoBehaviour {
         m_tte = tte;
         switch (m_tte) {
             case TileTraversalEnum.CanFly:
+                // Lake
                 m_spriteRenderer.sprite = m_spriteArray[1];
                 break;
             //case TileTraversalEnum.CanClimb:
             case TileTraversalEnum.FlyAndClimb:
+                // Mountain
                 m_spriteRenderer.sprite = m_spriteArray[2];
                 break;
             default:

@@ -1,14 +1,17 @@
-﻿using System;
+﻿/***
+ * IGamePlayer: An Interface that describes the behavior we expect a player
+ *              to be able to do on a grid based game.
+ *              
+ * Author: Alfred Tarng
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-//using System.Threading.Tasks;
 
 namespace AtRng.MobileTTA {
     public interface IGamePlayer {
-
-        //int DrawCost { get; }
-        //List<IUnit> GetHand();
 
         void Draw();
         void RepositionCardsInHand();
@@ -21,6 +24,9 @@ namespace AtRng.MobileTTA {
 
         void BeginTurn();
         void EndTurn();
+
+        void UpdatePlayerHealth(int playerHealth);
+        bool CheckIfLost();
 
     }
 }
