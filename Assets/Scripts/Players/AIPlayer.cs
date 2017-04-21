@@ -20,15 +20,13 @@ public class AIPlayer : BasePlayer {
         gu.AssignPlayerOwner(ID);
 
         m_hand.Add(gu);
-
-        ActionPoints -= DrawCost;
+        int oldDrawCost = DrawCost;
         DrawCost += 1;
 
-        Debug.Log("[AIPlayer/Draw] unit: " + ((gu != null) ? gu.name : "not implemented yet"));
-
         RepositionCardsInHand();
-
         m_deck.RemoveAt(0);
+
+        ActionPoints -= oldDrawCost;
     }
 
 

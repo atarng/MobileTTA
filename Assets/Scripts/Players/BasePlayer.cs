@@ -116,6 +116,7 @@ namespace AtRng.MobileTTA {
         }
 
         public virtual void BeginTurn() {
+            Debug.Log(string.Format("[BasePlayer/{0}] BeginTurn", name));
             // Add ActionPoint: Limit to ten.
             m_actionPointsMax = Mathf.Min(10, m_actionPointsMax + 1);
             m_actionPoints = m_actionPointsMax;
@@ -139,9 +140,11 @@ namespace AtRng.MobileTTA {
 
             // Reset Draw Cost if Deck Still Has Cards*.
             if (m_deck.Count > 0) {
-                DrawCost = SingletonMB.GetInstance<GameManager>().DrawMode() ? 2 : 1;
+                //DrawCost = SingletonMB.GetInstance<GameManager>().DrawMode() ? 2 : 1;
+                DrawCost = 1;
             }
         }
+
         public virtual void EndTurn() {
             for (int i = 0; i < m_fieldUnits.Count; i++) {
                 m_fieldUnits[i].ClearStates();

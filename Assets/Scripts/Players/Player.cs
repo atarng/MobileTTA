@@ -73,8 +73,10 @@ public class Player : BasePlayer {
                 m_soundManagerTemp.PlaySound("Draw");
 
                 Draw();
-                ActionPoints -= DrawCost;
+                int oldDrawCost = DrawCost;
                 DrawCost++;
+                ActionPoints -= oldDrawCost;
+                
             }
             else {
                 Debug.LogError("[Player] Deck Not Populated while Attempting to Draw.");
