@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 using UnityEngine;
+using UnityEngine.UI;
 using System;
 
 namespace AtRng.MobileTTA {
@@ -16,6 +17,8 @@ namespace AtRng.MobileTTA {
                 m_playerHealth = value;
             }
         }
+
+        protected bool m_deckPopulated = false;
 
         protected int m_actionPointsMax = 0;
         protected int m_actionPoints = 0;
@@ -53,10 +56,27 @@ namespace AtRng.MobileTTA {
             return m_fieldUnits;
         }
 
+        int m_drawCost = 1;
+        public int DrawCost {
+            get { return m_drawCost; }
+            protected set {//private 
+                m_drawCost = value;
+                m_drawCost_ui.text = m_drawCost.ToString();
+                m_deckCount_ui.text = DeckSize().ToString();
+            }
+        }
+
+        // UI Elements
+        //public SpriteRenderer m_actionPointPrefab;
+        [SerializeField]
+        private Text m_drawCost_ui;
+        [SerializeField]
+        private Text m_deckCount_ui;
+
 ///////////////
 
         public abstract void Draw();
-        public abstract int DrawCost { get; protected set; }
+        //public abstract int DrawCost { get; protected set; }
 
         public virtual bool CheckIfLost() {
             bool hasLost = false;
@@ -130,5 +150,21 @@ namespace AtRng.MobileTTA {
                 GameManager.GetInstance<GameManager>().UpdateTurn();
             }
         }
+
+        //UnitManager.UnitDesciption
+        public void PopulateAndShuffleDeck<T>(List<T> deck_to_populate_with) where T : UnitManager.UnitDesciption {
+            List<T> to_copy = new List<T>();
+            to_copy.AddRange(deck_to_populate_with);
+            while (to_copy.Count > 0) {
+                int random = (int)(UnityEngine.Random.Range(0, to_copy.Count));
+                m_deck.Add(to_copy[random]);
+                to_copy.RemoveAt(random);
+            }
+            for (int i = 0; i < 3; i++) {
+                Draw();
+            }
+            m_deckPopulated = true;
+        }
+
     }
 }

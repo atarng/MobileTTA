@@ -6,7 +6,7 @@ using System.Text;
 using UnityEngine;
 
 namespace AtRng.MobileTTA {
-    public interface ICombat {
+    public interface ICombat : IPlaceable {
         void TakeDamage(int damage, int type);
 
         bool IsAlive();

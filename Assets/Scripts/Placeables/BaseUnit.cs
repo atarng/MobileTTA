@@ -68,7 +68,9 @@ public abstract class BaseUnit : MonoBehaviour, IUnit {
     public int GetAttackValue() {
         return m_Attack;
     }
-    int IUnit.GetAttackRange() {
+
+    //int IUnit.GetAttackRange() {
+    public int GetAttackRange() {
         return m_attackRange;
     }
 

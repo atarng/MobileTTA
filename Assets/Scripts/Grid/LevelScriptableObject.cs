@@ -33,6 +33,11 @@ namespace AtRng.MobileTTA {
         bool m_usesPlayerDeckList = true;
         public bool UsesPlayerDeckList { get { return m_usesPlayerDeckList; } }
 
+        [SerializeField]
+        bool m_useAIOpponent = false;
+        public bool UsesAIOpponent { get { return m_useAIOpponent; } }
+
+#if UNITY_EDITOR
         public void ReadLevelEditorGrid(LevelEditorGrid toPullFrom) {
             LevelEditorPlaceable[] toCopy = toPullFrom.GetPlaceablesList();
             m_placeablesArray = new LevelEditorPlaceable[toCopy.Length];
@@ -50,6 +55,9 @@ namespace AtRng.MobileTTA {
             m_height = toPullFrom.Height;
 
             m_usesPlayerDeckList = toPullFrom.UsesPlayerDeckList();
+            m_useAIOpponent = toPullFrom.UsesAIOpponent();
         }
+#endif
+
     }
 }

@@ -9,24 +9,6 @@ using AtRng.MobileTTA;
 public class Player : BasePlayer {
 
     private GameUnit m_nexus = null;
-    
-    int m_drawCost = 1;
-    public override int DrawCost {
-        get { return m_drawCost; }
-        protected set {//private 
-            m_drawCost = value;
-            m_drawCost_ui.text = m_drawCost.ToString();
-
-            m_deckCount_ui.text = DeckSize().ToString();
-        }
-    }
-
-    // UI Elements
-    //public SpriteRenderer m_actionPointPrefab;
-    [SerializeField] private Text m_drawCost_ui;
-    [SerializeField] private Text m_deckCount_ui;
-
-    private bool m_deckPopulated = false;
 
     public override void PlaceUnitOnField(IUnit unitToPlace) {
         //unitToPlace.GetGameObject().transform.rotation = Quaternion.identity;
@@ -42,28 +24,21 @@ public class Player : BasePlayer {
             Health = m_nexus.GetPhysicalHealth();
         }
         else if (candidateNexus.IsMilitia()) {
-            ActionPoints -= 2; // - 1 because of Attempt Release deducting an action point already.
+
+            // 3: but - 1 because of Attempt Release deducting an action point
+            //    already. This might change because that seems kinda hacky to be
+            //    honest.
+            const int MILITIA_COST = 2;
+            ActionPoints -= MILITIA_COST;
+
         }
         else {
+            // don't include the nexus as a unit as far as cost goes.
             ActionPoints -= (m_fieldUnits.Count - (m_nexus != null ? 1 : 0));
         }
 
         // order matters
         m_fieldUnits.Add(unitToPlace);
-    }
-    //UnitManager.UnitDesciption
-    public void PopulateAndShuffleDeck<T>(List<T> deck_to_populate_with) where T : UnitManager.UnitDesciption {
-        List<T> to_copy = new List<T>();
-        to_copy.AddRange(deck_to_populate_with);
-        while (to_copy.Count > 0) {
-            int random = (int)(UnityEngine.Random.Range(0, to_copy.Count));
-            m_deck.Add(to_copy[random]);
-            to_copy.RemoveAt(random);
-        }
-        for (int i = 0; i < 3; i++) {
-            Draw();
-        }
-        m_deckPopulated = true;
     }
 
     public override void UpdatePlayerHealth(int playerHealth) {
@@ -76,6 +51,7 @@ public class Player : BasePlayer {
         }
     }
 
+    ISoundManager m_soundManagerTemp;
 
     public void AttemptToDraw() {
         if (!SingletonMB.GetInstance<GameManager>().CurrentPlayer().Equals(this)) {
@@ -91,28 +67,18 @@ public class Player : BasePlayer {
         }
         else {
             if (m_deckPopulated) {
+                if (m_soundManagerTemp == null) {
+                    m_soundManagerTemp = SingletonMB.GetInstance<GameManager>();
+                }
+                m_soundManagerTemp.PlaySound("Draw");
+
                 Draw();
                 ActionPoints -= DrawCost;
                 DrawCost++;
             }
-            /*
             else {
-                //int[] dummyDeckList = new int[10];
-                UnitManager um = SingletonMB.GetInstance<UnitManager>();
-                List<UnitManager.UnitDefinition> to_insert = new List<UnitManager.UnitDefinition>();
-                for (int i = 0; i < 10; i++) {//dummyDeckList.Length; i++) {
-                    UnitManager.UnitDefinition ud = um.GetDefinition( (int)UnityEngine.Random.Range(1, 6) );//dummyDeckList[i]);
-                    if (ud != null) {
-                        to_insert.Add(ud);
-                    }
-                }
-                PopulateDeck(to_insert);
-
-                for (int j = 0; j < 3; j++) {
-                    Draw();
-                }
+                Debug.LogError("[Player] Deck Not Populated while Attempting to Draw.");
             }
-            */
         }
     }
 
@@ -126,20 +92,18 @@ public class Player : BasePlayer {
 
             u.transform.localPosition = Vector3.zero;
             u.transform.localRotation = Quaternion.identity;
-            u.transform.localScale = Vector3.one * .01f;
+            u.transform.localScale    = Vector3.one * .01f;
 
-            IUnit iu = u;
-            iu.AssignPlayerOwner(ID);
+            u.AssignPlayerOwner(ID);
 
             m_hand.Add(u);
 
-            // TODO: Reposition "Cards"
             RepositionCardsInHand();
 
             m_deck.RemoveAt(0);
         }
         else{
-            Debug.LogWarning("No more cards in deck.");
+            Debug.LogError("[Player/Draw] We should never hit this.");
         }
     }
 

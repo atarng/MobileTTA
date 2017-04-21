@@ -1,11 +1,15 @@
-﻿using System;
+﻿
+using System;
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 
 using UnityEngine;
 using UnityEngine.UI;
+
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 
 namespace AtRng.MobileTTA {
     public enum PlaceableType {
@@ -25,6 +29,7 @@ namespace AtRng.MobileTTA {
 
     // Monobehavior
     public class LevelEditorGrid : Grid {
+#if UNITY_EDITOR
         const string FILE_EXT = "asset";
         const string PREFAB_EXT = "prefab";
         [SerializeField]
@@ -43,6 +48,10 @@ namespace AtRng.MobileTTA {
         [SerializeField]
         bool m_usesPlayerDeckList = true;
         public bool UsesPlayerDeckList() { return m_usesPlayerDeckList; }
+
+        [SerializeField]
+        bool m_usesAIOpponent = false;
+        public bool UsesAIOpponent() { return m_usesAIOpponent; }
 
         [SerializeField]
         EditorUnit m_unitPrefab;
@@ -150,6 +159,7 @@ namespace AtRng.MobileTTA {
             Height = lso.Height;
 
             m_usesPlayerDeckList = lso.UsesPlayerDeckList;
+            m_usesAIOpponent = lso.UsesAIOpponent;
         }
 
         public override void InitializeGrid(int width = -1, int height = -1) {
@@ -201,5 +211,6 @@ namespace AtRng.MobileTTA {
             ClearGrid();
             InitializeGrid();
         }
+#endif
     }
 }

@@ -30,6 +30,8 @@ public class GameUnit : BaseUnit, ICombat {
     [SerializeField]
     GameObject m_actionPerformedImage;
 
+    ISoundManager m_soundManagerTemp;
+
     // UI Components
     public Text AttackText;
     public Text PHealthText;
@@ -400,6 +402,12 @@ public class GameUnit : BaseUnit, ICombat {
                 m_pendingAttackList = null;
                 m_pendingAttackPlacementTile = null;
                 PendingPlacementTile = null;
+
+                
+                if(m_soundManagerTemp == null) {
+                    m_soundManagerTemp = SingletonMB.GetInstance<GameManager>();
+                }
+                m_soundManagerTemp.PlaySound("Tile");
             }
         }
 
@@ -492,19 +500,8 @@ public class GameUnit : BaseUnit, ICombat {
 
         /*** BEHAVIOR ON GRID ***/
         if( AssignedToTile != null && AttemptSelection()) {
-            /*** Might need to move this logic to mouse up code***/
-            /*
-            if (IsSelectedUnit()) {
-                AssignedToTile = PendingPlacementTile;
-                AttemptRelease(true);
-                GameManager.GetInstance<GameManager>().GetGrid().ClearPathableTiles();
-            }
-            else
-            */
-            {
-                m_lastMousePosition = Input.mousePosition;
-                GameManager.GetInstance<GameManager>().GetGrid().DeterminePathableTiles(AssignedToTile, this);
-            }
+            m_lastMousePosition = Input.mousePosition;
+            GameManager.GetInstance<GameManager>().GetGrid().DeterminePathableTiles(AssignedToTile, this);
         }
         /****************** BELOW: BEHAVIOR AS CARD ************************/
         else if (AssignedToTile == null &&

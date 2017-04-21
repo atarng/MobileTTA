@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 
 using AtRng.MobileTTA;
 
-public class GameManager : SceneControl {
+public class GameManager : SceneControl, ISoundManager {
     /*** MAP INIT ***/
 
     public LevelScriptableObject LevelInitData;
@@ -18,7 +18,10 @@ public class GameManager : SceneControl {
     private List<Transform> playerLocations;
 
     [SerializeField]
-    private Player m_playerPrefab;
+    private Player   m_playerPrefab;
+    [SerializeField]
+    private AIPlayer m_aiPlayerPrefab;
+
     [SerializeField]
     private SpriteRenderer m_actionPointPrefab;
     public SpriteRenderer GetActionPointSprite(){
@@ -38,7 +41,8 @@ public class GameManager : SceneControl {
     Dictionary<int, BasePlayer> m_idPlayerMap = new Dictionary<int, BasePlayer>();
 
     // TEMPPPP
-    public GameUnit       m_unitPrefab;
+    public GameUnit   m_unitPrefab;
+    public AIUnit     m_AIUnitPrefab;
     public Impassable m_impassable;
 
     bool b_initialized = false;
@@ -91,32 +95,43 @@ public class GameManager : SceneControl {
     }
 
     public void InitializePlayers() {// List<UnitManager.UnitDefinition> deckList) {
+        BasePlayer bp = null;
         for (int i = 0; i < playerLocations.Count; i++) { //m_number_of_players;
-            Player p = GameObject.Instantiate<Player>(m_playerPrefab);
-            p.transform.SetParent(transform);
-            p.transform.position = CameraManager.Instance.FromUIToGameVector( playerLocations[i].position );//new Vector3(i, 0.5f, 10) );
+            if ( i > 0 && LevelInitData.UsesAIOpponent) {
+                bp = GameObject.Instantiate<AIPlayer>(m_aiPlayerPrefab);
+            }
+            else {
+                bp = GameObject.Instantiate<Player>(m_playerPrefab);
+            }
 
-            Vector3 pPos = p.transform.position;
+            bp.transform.SetParent(transform);
+            bp.transform.position = CameraManager.Instance.FromUIToGameVector(playerLocations[i].position);
+
+            Vector3 pPos = bp.transform.position;
             pPos.z = 0;
-            p.transform.position = pPos;
-            p.transform.localRotation = Quaternion.Euler(0, 0, (i * 180));
-            p.ID = i;
+            bp.transform.position = pPos;
+            bp.transform.localRotation = Quaternion.Euler(0, 0, (i * 180));
+            bp.ID = i;
 
+            // Instantiate Player Deck.
             if ( i == 0 && LevelInitData.UsesPlayerDeckList ) {
                 List<UnitManager.UnitPersistence> playerDeck = 
                     SaveGameManager.GetSaveGameData().LoadFrom("TestDeck") as List<UnitManager.UnitPersistence>;
                 if (playerDeck != null) {
-                    p.PopulateAndShuffleDeck<UnitManager.UnitPersistence>(playerDeck);
+                    Player p = bp as Player;
+                    if(p != null) {
+                        p.PopulateAndShuffleDeck<UnitManager.UnitPersistence>(playerDeck);
+                    }
                 }
             }
 
             if (!m_idPlayerMap.ContainsKey(i)) {
-                m_idPlayerMap.Add(i, p);
+                m_idPlayerMap.Add(i, bp);
             }
             else {
                 Debug.LogError("Inserting Duplicate Player Key: " + i);
             }
-            m_turnQueue.Enqueue(p);
+            m_turnQueue.Enqueue(bp);
         }
 
         m_turnQueue.Peek().BeginTurn();
@@ -167,16 +182,18 @@ public class GameManager : SceneControl {
         }
 
         // Populate Opposing Player Deck.
-        Player opposingPlayer = SingletonMB.GetInstance<GameManager>().GetPlayer(1) as Player;
-        if(opposingPlayer != null) {
+        BasePlayer opposingPlayer = SingletonMB.GetInstance<GameManager>().GetPlayer(1);
+        if (opposingPlayer != null) {
             if (LevelInitData.OpposingDeckList != null && LevelInitData.OpposingDeckList.Length > 0) {
                 opposingPlayer.PopulateAndShuffleDeck(LevelInitData.OpposingDeckList.ToList());
             }
-            else if(LevelInitData.UsesOpponentDeckList) {
+            else if (LevelInitData.UsesOpponentDeckList) {
                 opposingPlayer.PopulateAndShuffleDeck<UnitManager.UnitDesciption>(InitializeDummyDeck_Temp());
             }
         }
-
+        else {
+            Debug.LogError("[GameManager/MapInit] Could not grab opposing player");
+        }
     }
 
     public BasePlayer GetPlayer(int id) {
@@ -276,13 +293,14 @@ public class GameManager : SceneControl {
     public void HandleCombat(ICombat combatant1, ICombat combatant2) {
         IUnit iu1 = combatant1 as IUnit;
         IUnit iu2 = combatant2 as IUnit;
+
         int iu1p_damageToDo = 0;
         int iu1s_damageToDo = 0;
         int iu2p_damageToDo = 0;
         int iu2s_damageToDo = 0;
 
-        int dist = Mathf.Abs(iu1.AssignedToTile.xPos - iu2.AssignedToTile.xPos) +
-                   Mathf.Abs(iu1.AssignedToTile.yPos - iu2.AssignedToTile.yPos);
+        int dist = Mathf.Abs(combatant1.AssignedToTile.xPos - combatant2.AssignedToTile.xPos) +
+                   Mathf.Abs(combatant1.AssignedToTile.yPos - combatant2.AssignedToTile.yPos);
 
         if (iu1 != null && iu1.GetAttackRange() == dist) {
             iu1p_damageToDo = iu1.IsPhysicalAttack()  ? iu1.GetAttackValue() : 0;
@@ -302,6 +320,23 @@ public class GameManager : SceneControl {
         CheckVictory(GetPlayer(0), GetPlayer(1));
         CheckVictory(GetPlayer(1), GetPlayer(0));
     }
+
+    [SerializeField]
+    AudioClip[] m_tempSoundArray;
+    [SerializeField]
+    AudioSource m_tempAudioSource;
+    public void PlaySound(string soundKey) {
+        switch (soundKey) {
+            case "Tile":
+                m_tempAudioSource.clip = m_tempSoundArray[0];
+                break;
+            case "Draw":
+                m_tempAudioSource.clip = m_tempSoundArray[1];
+                break;
+        }
+        m_tempAudioSource.Play();
+    }
+
     ///*
     //*/
 }

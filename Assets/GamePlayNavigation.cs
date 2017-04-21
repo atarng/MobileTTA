@@ -13,7 +13,7 @@ public class GamePlayNavigation : SceneNavigation {
     public static LevelScriptableObject loadedLevel;
 
     public override void NavigateToScene() {
-        Debug.Log("[SceneNavigation/NavigateToScene]");
+        //Debug.Log("[SceneNavigation/NavigateToScene]");
         transform.SetParent(null);
         loadedLevel = lso;
         StartCoroutine(OpenLevel());
@@ -24,7 +24,7 @@ public class GamePlayNavigation : SceneNavigation {
         DontDestroyOnLoad(gameObject);
         //LevelScriptableObject lso = (LevelScriptableObject)Resources.Load(LEVEL_DATA_PATH + mapName);
 
-        Debug.Log("[SceneNavigation/OpenLevel] StartSceneLoad. lso: " + lso.name);
+        //Debug.Log("[SceneNavigation/OpenLevel] StartSceneLoad. lso: " + lso.name);
 
         AsyncOperation asyncLoadLevel = SceneManager.LoadSceneAsync(m_sceneName);
         
