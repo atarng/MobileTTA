@@ -89,7 +89,7 @@ public class AIUnit : GameUnit {
             for (int i = 0; i < candidatesToMoveTo.Count; i++) {
 
                 if (m_tileMapToPath.ContainsKey(candidatesToMoveTo[i])) {
-                    if (!candidatesToMoveTo[i].IsOccupied()) {
+                    if (candidatesToMoveTo[i].GetPlaceable() == null || candidatesToMoveTo[i].GetPlaceable().Equals(this) ) {
                         List<Vector2> path = m_tileMapToPath[candidatesToMoveTo[i]];
                         if (shortestPathCount < 0 || shortestPathCount > path.Count) {
 
@@ -119,13 +119,15 @@ public class AIUnit : GameUnit {
                 else {
                     Debug.LogError("[AIUnit] HOW????");
                 }
-                
-                if (toMoveTo == null) {
+            }
+
+            if (toMoveTo == null) {
+                string s = "";
+                if (index_of_shortest_path >= 0) { 
                     List<Vector2> path = m_tileMapToPath[candidatesToMoveTo[index_of_shortest_path]];
-                    string s = "";
-                    path.ForEach((item) => { s += string.Format("({0}, {1})", item.x, item.y); } );
-                    Debug.LogWarning(string.Format("Path of unpathable: {0}", s));
+                    path.ForEach((item) => { s += string.Format("({0}, {1})", item.x, item.y); });
                 }
+                Debug.LogWarning(string.Format("Path of unpathable: {0}, index_ofSP: {1}", s, index_of_shortest_path));
             }
 
         }
