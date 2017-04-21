@@ -54,6 +54,12 @@ public class GameManager : SceneControl, ISoundManager {
     bool m_debug_mouse;
     bool m_drawMode = false;
     bool m_combatOrder = true;
+
+    [SerializeField]
+    AudioClip[] m_tempSoundArray;
+    [SerializeField]
+    AudioSource m_tempAudioSource;
+
     public void ToggleDrawMode() {
         m_drawMode = !m_drawMode;
     }
@@ -149,13 +155,16 @@ public class GameManager : SceneControl, ISoundManager {
             switch (LevelInitData.PlaceablesArray[i].placeableType) {
                 case PlaceableType.Unit:
                     // Create Unit
-                    GameUnit unit_to_place_on_tile = GameObject.Instantiate<GameUnit>(m_unitPrefab);
+                    //
+                    int playerID = LevelInitData.PlaceablesArray[i].PlayerID;
+                    BaseUnit toInstantiate = (playerID == 0 || !LevelInitData.UsesAIOpponent) ? m_unitPrefab : m_AIUnitPrefab;
+                    BaseUnit unit_to_place_on_tile = GameObject.Instantiate(toInstantiate);
                     UnitManager.UnitDefinition ud = UnitManager.GetInstance<UnitManager>().GetDefinition(LevelInitData.PlaceablesArray[i].ID);
                     unit_to_place_on_tile.ReadDefinition(ud);
                     unit_to_place_on_tile.transform.localScale = Vector3.one * .01f;
 
                     // Assign To Player
-                    IGamePlayer p = SingletonMB.GetInstance<GameManager>().GetPlayer(LevelInitData.PlaceablesArray[i].PlayerID);
+                    IGamePlayer p = SingletonMB.GetInstance<GameManager>().GetPlayer(playerID);
                     if (unit_to_place_on_tile.IsNexus()) {
                         p.PlaceUnitOnField(unit_to_place_on_tile);
                     }
@@ -218,24 +227,6 @@ public class GameManager : SceneControl, ISoundManager {
         
     private bool CheckVictory(BasePlayer winningPlayer, BasePlayer losingPlayer) {
         bool hasWon = losingPlayer.CheckIfLost();
-
-        /*
-        if (losingPlayer.HandSize() == 0 && losingPlayer.DeckSize() == 0) {
-            if (losingPlayer.GetCurrentSummonedUnits().Count == 0) {
-                hasWon = true;
-            }
-            else if (losingPlayer.GetCurrentSummonedUnits().Count == 1) {
-                Unit u = losingPlayer.GetCurrentSummonedUnits()[0] as Unit;
-                if (u.IsNexus()) {
-                    hasWon = true;
-                }
-            }
-        }
-        */
-        // player is surrounded with no units left.
-        // hasWon |= !(GetGrid().DisplaySummonableTiles(losingPlayer));
-        // GetGrid().ClearPathableTiles();
-
         if (hasWon) {
             if (winningPlayer.ID == 0) {
                 // Award Currency.
@@ -316,25 +307,31 @@ public class GameManager : SceneControl, ISoundManager {
         if (m_combatOrder && combatant2.IsAlive() ) {
             combatant1.TakeDamage(iu2p_damageToDo, iu2s_damageToDo);
         }
+        PlaySound("Combat1");
 
         CheckVictory(GetPlayer(0), GetPlayer(1));
         CheckVictory(GetPlayer(1), GetPlayer(0));
+
     }
 
-    [SerializeField]
-    AudioClip[] m_tempSoundArray;
-    [SerializeField]
-    AudioSource m_tempAudioSource;
     public void PlaySound(string soundKey) {
-        switch (soundKey) {
-            case "Tile":
-                m_tempAudioSource.clip = m_tempSoundArray[0];
-                break;
-            case "Draw":
-                m_tempAudioSource.clip = m_tempSoundArray[1];
-                break;
+        if (!m_tempAudioSource.isPlaying) {
+            switch (soundKey) {
+                case "Tile":
+                    m_tempAudioSource.clip = m_tempSoundArray[0];
+                    break;
+                case "Draw":
+                    m_tempAudioSource.clip = m_tempSoundArray[1];
+                    break;
+                case "Combat1":
+                    m_tempAudioSource.clip = m_tempSoundArray[2];
+                    break;
+                case "Combat2":
+                    m_tempAudioSource.clip = m_tempSoundArray[3];
+                    break;
+            }
+            m_tempAudioSource.Play();
         }
-        m_tempAudioSource.Play();
     }
 
     ///*

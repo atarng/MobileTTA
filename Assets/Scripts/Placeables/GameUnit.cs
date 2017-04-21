@@ -623,11 +623,7 @@ public class GameUnit : BaseUnit, ICombat {
         bc2d.enabled = true;
     }
     */
-    public bool IsNexus() {
-        //return m_pHealthMax == 200 && m_sHealthMax == 200;
-        return m_definitionID == 0
-            || m_definitionID == 8;
-    }
+
     public bool IsMilitia() {
         return m_definitionID == 10;
     }

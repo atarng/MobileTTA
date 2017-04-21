@@ -4,6 +4,8 @@ using UnityEngine;
 
 namespace AtRng.MobileTTA {
     public interface IUnit : IPlaceable {
+        int GetID();
+
         TileTraversalEnum CanTraverse { get; }
         bool HasPerformedAction { get; }
 
@@ -12,8 +14,6 @@ namespace AtRng.MobileTTA {
 
         int GetPhysicalHealth();
         int GetSpiritualHealth();
-        //void ModifyPhysicalHealth(int amount);
-        //void ModifySpiritualHealth(int amount);
 
         int GetAttackValue();
         bool IsSpiritualAttack();

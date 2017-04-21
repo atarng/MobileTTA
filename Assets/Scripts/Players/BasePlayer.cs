@@ -116,7 +116,7 @@ namespace AtRng.MobileTTA {
         }
 
         public virtual void BeginTurn() {
-            Debug.Log(string.Format("[BasePlayer/{0}] BeginTurn", name));
+            //Debug.Log(string.Format("[BasePlayer/{0}] BeginTurn", name));
             // Add ActionPoint: Limit to ten.
             m_actionPointsMax = Mathf.Min(10, m_actionPointsMax + 1);
             m_actionPoints = m_actionPointsMax;

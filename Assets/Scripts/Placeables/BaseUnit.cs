@@ -25,6 +25,9 @@ public abstract class BaseUnit : MonoBehaviour, IUnit {
     [SerializeField]
     protected Transform m_artPlacement;
 
+    public int GetID() {
+        return m_definitionID;
+    }
     public virtual bool HasPerformedAction { get; protected set; }
 
     public TileTraversalEnum CanTraverse {
@@ -128,5 +131,13 @@ public abstract class BaseUnit : MonoBehaviour, IUnit {
         else {
             SceneControl.GetCurrentSceneControl().DisplayError(string.Format("{0} error!", ud.ArtKey));
         }
+    }
+
+/**********************************/
+
+    public bool IsNexus() {
+        //return m_pHealthMax == 200 && m_sHealthMax == 200;
+        return m_definitionID == 0
+            || m_definitionID == 8;
     }
 }
