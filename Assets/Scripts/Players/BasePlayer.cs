@@ -22,7 +22,7 @@ namespace AtRng.MobileTTA {
 
         protected int m_actionPointsMax = 0;
         protected int m_actionPoints = 0;
-        protected List<SpriteRenderer> m_actionPointsUI = new List<SpriteRenderer>();
+        protected List<ActionPoint_MB> m_actionPointsUI = new List<ActionPoint_MB>();
 
         protected List<IUnit> m_hand       = new List<IUnit>();
         protected List<IUnit> m_fieldUnits = new List<IUnit>();
@@ -44,7 +44,8 @@ namespace AtRng.MobileTTA {
                 m_actionPoints = value;
                 // Color
                 for (int i = 0; i < m_actionPointsUI.Count; i++) {
-                    m_actionPointsUI[i].color = (i < m_actionPoints) ? Color.blue : Color.grey;
+                    //m_actionPointsUI[i].color = (i < m_actionPoints) ? Color.blue : Color.grey;
+                    m_actionPointsUI[i].SetAppearance((i < m_actionPoints));//  ? Color.blue : Color.grey;
                 }
                 if (m_actionPoints <= 0) {
                     EndTurn();
@@ -97,8 +98,8 @@ namespace AtRng.MobileTTA {
             Health = playerHealth;
             CheckIfLost();
         }
-
-        void IGamePlayer.ExpendUnitActionPoint() {
+        //IGamePlayer
+        public void ExpendUnitActionPoint() {
             ActionPoints--;
         }
 
@@ -123,7 +124,10 @@ namespace AtRng.MobileTTA {
 
             // Instantiate action point ui.
             for (int i = m_actionPointsUI.Count; i < m_actionPointsMax; i++) {
-                SpriteRenderer sr = GameObject.Instantiate<SpriteRenderer>(SingletonMB.GetInstance<GameManager>().GetActionPointSprite());
+                //SpriteRenderer sr = GameObject.Instantiate<SpriteRenderer>(SingletonMB.GetInstance<GameManager>().GetActionPointSprite());
+                ActionPoint_MB sr = GameObject.Instantiate<ActionPoint_MB>(
+                    SingletonMB.GetInstance<GameManager>().GetActionPointSprite()
+                );
                 sr.transform.SetParent(transform);
                 m_actionPointsUI.Add(sr);
             }
@@ -135,7 +139,8 @@ namespace AtRng.MobileTTA {
                 m_actionPointsUI[i].transform.localPosition = v3;
 
                 // Color
-                m_actionPointsUI[i].color = Color.blue;
+                m_actionPointsUI[i].SetAppearance(true); // Color.blue;
+                m_actionPointsUI[i].AssignPlayerReference(this);
             }
 
             // Reset Draw Cost if Deck Still Has Cards*.

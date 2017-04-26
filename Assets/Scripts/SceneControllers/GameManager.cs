@@ -23,8 +23,8 @@ public class GameManager : SceneControl, ISoundManager {
     private AIPlayer m_aiPlayerPrefab;
 
     [SerializeField]
-    private SpriteRenderer m_actionPointPrefab;
-    public SpriteRenderer GetActionPointSprite(){
+    private ActionPoint_MB m_actionPointPrefab;
+    public ActionPoint_MB GetActionPointSprite(){
         return m_actionPointPrefab;
     }
 
@@ -162,6 +162,7 @@ public class GameManager : SceneControl, ISoundManager {
                     UnitManager.UnitDefinition ud = UnitManager.GetInstance<UnitManager>().GetDefinition(LevelInitData.PlaceablesArray[i].ID);
                     unit_to_place_on_tile.ReadDefinition(ud);
                     unit_to_place_on_tile.transform.localScale = Vector3.one * .01f;
+                    unit_to_place_on_tile.transform.localRotation = Quaternion.Euler(0, 0, (playerID * 180));
 
                     // Assign To Player
                     IGamePlayer p = SingletonMB.GetInstance<GameManager>().GetPlayer(playerID);

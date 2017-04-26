@@ -6,6 +6,10 @@ using UnityEngine.UI;
 
 using AtRng.MobileTTA;
 
+/***
+ * CardSelector is the class that handles the card/unit behavior while on the deckbuilding
+ * or tile crafting scenes.
+ */
 public class CardSelector : MonoBehaviour {
     bool m_selected = false;
     public bool Selected {

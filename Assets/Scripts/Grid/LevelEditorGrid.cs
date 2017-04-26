@@ -18,6 +18,13 @@ namespace AtRng.MobileTTA {
         Tile
     }
 
+    public struct LevelEditorPlaceableRT {
+        public int X, Y;
+        public TileTraversalEnum tileTraversal;
+        public int unitDefAtLocation;
+        public int playerOwner;
+    }
+
     [Serializable]
     public struct LevelEditorPlaceable {
         public PlaceableType placeableType;
@@ -32,12 +39,16 @@ namespace AtRng.MobileTTA {
 #if UNITY_EDITOR
         const string FILE_EXT = "asset";
         const string PREFAB_EXT = "prefab";
+
+        ///*
         [SerializeField]
         List<LevelEditorPlaceable> placeablesList;
-
         public LevelEditorPlaceable[] GetPlaceablesList() {
             return placeablesList.ToArray();
         }
+        //*/
+
+        //Dictionary<Vector2, LevelEditorPlaceableRT>
 
         [SerializeField]
         UnitManager.UnitPersistence[] m_opponentDeckList;
@@ -90,6 +101,43 @@ namespace AtRng.MobileTTA {
             return ret;
         }
 
+        public void AddToPlaceablesList( int id, int x, int y, PlaceableType pt ) {
+            LevelEditorPlaceable lep = new LevelEditorPlaceable();
+            lep.ID = id;
+            lep.X = x;
+            lep.Y = y;
+            lep.placeableType = pt;
+            lep.PlayerID = 1;
+
+            placeablesList.Add( lep );
+        }
+
+        public void RemoveTileInfo(int x, int y) {
+            LevelEditorPlaceable found = placeablesList.Find((candidate) => {
+                bool match = candidate.X == x;
+                match &= (candidate.Y == y);
+                match &= (candidate.placeableType == PlaceableType.Tile);
+                return match;
+
+            });
+            placeablesList.Remove(found);
+        }
+
+        public void RemoveFromPlaceables(IUnit toFind) {
+            LevelEditorPlaceable found = placeablesList.Find((candidate)=> {
+
+                bool match = candidate.X == toFind.AssignedToTile.xPos;
+                match &= (candidate.Y == toFind.AssignedToTile.yPos);
+                match &= (candidate.ID == toFind.GetID());
+
+                return match;
+
+            });
+            if (!placeablesList.Remove(found)) {
+                Debug.LogError("Could Not Remove something not in List.");
+            }
+        }
+
         private void LoadPlaceables() {
             for (int i = placeablesList.Count - 1; i >= 0; i--) {
                 Tile tileAtXY = GetTileAt((placeablesList[i].Y), (placeablesList[i].X));
@@ -102,16 +150,6 @@ namespace AtRng.MobileTTA {
                             unit_to_place_on_tile.ReadDefinition(ud);
                             unit_to_place_on_tile.transform.localScale = Vector3.one * .01f;
 
-                            // Assign To Player
-                            /*
-                            IGamePlayer p = SingletonMB.GetInstance<GameManager>().GetPlayer(placeablesArray[i].PlayerID);
-                            if (unit_to_place_on_tile.IsNexus()) {
-                                p.PlaceUnitOnField(unit_to_place_on_tile);
-                            }
-                            else {
-                                p.GetCurrentSummonedUnits().Add(unit_to_place_on_tile);
-                            }
-                            */
                             // Assign to Tile.
                             tileAtXY.SetPlaceable(unit_to_place_on_tile);
 
@@ -192,14 +230,16 @@ namespace AtRng.MobileTTA {
             //var path_to_save_level = EditorUtility.SaveFilePanel("Save Level as \'.prefab\'", LEVEL_DATA_PATH, "LevelEditorGrid." + PREFAB_EXT, PREFAB_EXT);
             var path_to_save_level = EditorUtility.SaveFilePanel("Save Level as \'.asset\'", LEVEL_DATA_PATH, "test." + FILE_EXT, FILE_EXT);
             string fileName = Path.GetFileName(path_to_save_level);
-            Debug.Log(string.Format("Fullpath: {0} filename: {1}",path_to_save_level, fileName));
-            try {
-                LevelScriptableObject lso = AsScriptableObject();
-                AssetDatabase.CreateAsset(lso,  LEVEL_DATA_PATH + fileName);
-                AssetDatabase.SaveAssets();
-            }
-            catch (Exception e) {
-                Debug.LogError(e.Message);
+            if(fileName.Length > 0) {
+                Debug.Log(string.Format("Fullpath: {0} filename: {1}",path_to_save_level, fileName));
+                try {
+                    LevelScriptableObject lso = AsScriptableObject();
+                    AssetDatabase.CreateAsset(lso,  LEVEL_DATA_PATH + fileName);
+                    AssetDatabase.SaveAssets();
+                }
+                catch (Exception e) {
+                    Debug.LogError(e.Message);
+                }
             }
         }
 

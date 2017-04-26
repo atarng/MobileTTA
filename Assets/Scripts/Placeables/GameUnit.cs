@@ -51,15 +51,15 @@ public class GameUnit : BaseUnit, ICombat {
         }
         set {
             // just sets the color
-            TileStateEnum paA_tse = SingletonMB.GetInstance<GameManager>().GetGrid().TileStateAt(m_pendingAttackPlacementTile);
+            TileStateEnum pendingAttackState = SingletonMB.GetInstance<GameManager>().GetGrid().TileStateAt(m_pendingAttackPlacementTile);
             if (m_pendingAttackPlacementTile != null) {
-                m_pendingAttackPlacementTile.Sprite.color = (paA_tse == TileStateEnum.CanMove) ? TileColors.BLUE : TileColors.WHITE;
+                m_pendingAttackPlacementTile.Sprite.color = (pendingAttackState == TileStateEnum.CanMove) ? TileColors.BLUE : TileColors.WHITE;
             }
 
             // set color and tile value
-            TileStateEnum pa_tse = SingletonMB.GetInstance<GameManager>().GetGrid().TileStateAt(m_pendingPlacementTile);
+            TileStateEnum pendingPlacementState = SingletonMB.GetInstance<GameManager>().GetGrid().TileStateAt(m_pendingPlacementTile);
             if (m_pendingPlacementTile != null) {
-                m_pendingPlacementTile.Sprite.color = (pa_tse == TileStateEnum.CanMove) ? TileColors.BLUE : TileColors.WHITE;
+                m_pendingPlacementTile.Sprite.color = (pendingPlacementState == TileStateEnum.CanMove) ? TileColors.BLUE : TileColors.WHITE;
             }
             m_pendingPlacementTile = value;
             if(m_pendingPlacementTile != null) {
@@ -78,17 +78,23 @@ public class GameUnit : BaseUnit, ICombat {
             return m_currentTarget;
         }
         set {
+            // RESET COLOR
             if (m_currentTarget != null) {
                 TileStateEnum tse = SingletonMB.GetInstance<GameManager>().GetGrid().TileStateAt(m_currentTarget);
                 switch (tse) {
                     case TileStateEnum.CanAttack:
                         m_currentTarget.Sprite.color = TileColors.RED;//Color.red;
                         break;
+                    case TileStateEnum.CanMove:
+                        m_currentTarget.Sprite.color = TileColors.BLUE;
+                        break;
                     default:
-                        m_currentTarget.Sprite.color = TileColors.WHITE;
+                        m_currentTarget.Sprite.color = TileColors.WHITE; // WHITE;
                         break;
                 }
             }
+
+            // UPDATE TARGET
             m_currentTarget = value;
             if (m_currentTarget != null) {
                 m_currentTarget.Sprite.color = TileColors.PINK;
@@ -287,7 +293,7 @@ public class GameUnit : BaseUnit, ICombat {
                             else {
                                 CurrentTarget = null;
                             }
-                            m_pendingPlacementTile.Sprite.color = TileColors.CYAN;//Color.cyan;
+                            m_pendingPlacementTile.Sprite.color = TileColors.CYAN;
                         }
                         else {
                             if (m_pendingPlacementTile != null) {

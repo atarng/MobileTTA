@@ -16,15 +16,23 @@ public class Tile : MonoBehaviour {
 
     [SerializeField]
     private Image m_spriteRenderer;
-    public Image Sprite {
-        get { return m_spriteRenderer; }
-    }
+    public Image Sprite { get { return m_spriteRenderer; } }
+
+    public int TraversalCost { get { return m_tte == TileTraversalEnum.FlyAndClimb ? 2 : 1; } }
+    public int xPos { get; set; }
+    public int yPos { get; set; }
+
     // TODO: FIX THIS MASK LOGIC
     // Mask for tile Movement
     TileTraversalEnum m_tte = TileTraversalEnum.All;
     public void SetTileTraversal(TileTraversalEnum tte) {
         m_tte = tte;
         switch (m_tte) {
+            case TileTraversalEnum.None:
+                // IMPASSABLE
+                //m_spriteRenderer.color = Color.black;
+                m_spriteRenderer.sprite = m_spriteArray[3];
+                break;
             case TileTraversalEnum.CanFly:
                 // Lake
                 m_spriteRenderer.sprite = m_spriteArray[1];
@@ -34,24 +42,16 @@ public class Tile : MonoBehaviour {
                 // Mountain
                 m_spriteRenderer.sprite = m_spriteArray[2];
                 break;
+
+            case TileTraversalEnum.All:
             default:
-                //m_spriteRenderer.sprite = m_spriteArray[0];
+                m_spriteRenderer.sprite = m_spriteArray[0];
                 break;
         }
     }
     public bool CanTraverse(TileTraversalEnum targetTTE) {
         return ((m_tte & targetTTE) > TileTraversalEnum.None);
     }
-    // "Mountain"
-    public int TraversalCost {
-        get {
-            return m_tte == TileTraversalEnum.FlyAndClimb ? 2 : 1;
-            //return 1;
-        }
-    }
-
-    public int xPos { get; set; }
-    public int yPos { get; set; }
 
     public bool IsOccupied() {
         return m_itemOnTile != null;
@@ -61,12 +61,6 @@ public class Tile : MonoBehaviour {
         return t == this;
     }
 
-    /*
-    Grid       m_parentGrid;
-    public void SetParentGrid(Grid parentGrid) {
-        m_parentGrid = parentGrid;
-    }
-    */
     public void SetPlaceable(IPlaceable toSet, bool assign = true){
         if (assign) {
             m_itemOnTile = toSet;
@@ -76,8 +70,6 @@ public class Tile : MonoBehaviour {
             Vector3 placement = transform.position;
             placement.z -= 1;
             toSet.GetGameObject().transform.position = placement;
-
-            //toSet.AssignedToTile = this; // atarng: change to be based on unit instead of tile.
         }
     }
     public IPlaceable GetPlaceable() {

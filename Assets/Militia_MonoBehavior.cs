@@ -27,15 +27,14 @@ public class Militia_MonoBehavior : MonoBehaviour {
     }
     private void OnMouseUp() {
         if (pendingMilitia != null) {
-            RaycastHit2D rh2d = Physics2D.Raycast(new Vector2(CameraManager.Instance.GameCamera().ScreenToWorldPoint(Input.mousePosition).x,
-                                          CameraManager.Instance.GameCamera().ScreenToWorldPoint(Input.mousePosition).y),
-                                          Vector2.zero, 0f, 1 << LayerMask.NameToLayer("Grid"));
+            bool unit_placed = false;
+            Vector3 v3 = CameraManager.Instance.GameCamera().ScreenToWorldPoint(Input.mousePosition);
+            RaycastHit2D rh2d = Physics2D.Raycast(new Vector2(v3.x, v3.y), Vector2.zero, 0f, 1 << LayerMask.NameToLayer("Grid"));
 
             Tile CurrentlyOverTile = null;
             if (rh2d) {
                 CurrentlyOverTile = rh2d.transform.GetComponent<Tile>();
             }
-            bool unit_placed = false;
             if (CurrentlyOverTile != null) {
                 // Tile is not null
                 if (IsAdjacentToAlliedUnit(CurrentlyOverTile) && !CurrentlyOverTile.IsOccupied()) {

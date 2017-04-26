@@ -58,14 +58,14 @@ public class BoosterMB : SceneControl {
             }
             boosterOrbList.RemoveAt(0);
         }
-
+        /*
         while (artList.Count > 0) {
             if (artList[0] != null) {
                 Destroy(artList[0].gameObject);
             }
             artList.RemoveAt(0);
         }
-
+        */
         for (int i = 0; i < 5; i++) {
             BoosterOrb go = GameObject.Instantiate<BoosterOrb>(booster_orb_prefab);
             go.transform.SetParent(transform);
@@ -82,13 +82,13 @@ public class BoosterMB : SceneControl {
             boosterOrbList.Add(go);
         }
     }
-
+    /*
     public void AddArt(GameObject art, BoosterOrb bo){
         artList.Add(art);
         boosterOrbList.Remove(bo);
         Destroy(bo.gameObject);
     }
-
+    */
     public UnitManager.UnitDefinition GetRandomUnit() {
         if (m_allUnits == null || m_allUnits.Count == 0) {
             return null;

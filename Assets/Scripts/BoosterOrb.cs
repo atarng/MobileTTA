@@ -7,6 +7,12 @@ using AtRng.MobileTTA;
 
 public class BoosterOrb : MonoBehaviour {
     BoosterMB m_ref;
+
+    [SerializeField]
+    private Transform m_artPlacement;
+    [SerializeField]
+    private GameObject m_villageArt;
+
     public void SetReference(BoosterMB bmb) {
         m_ref = bmb;
     }
@@ -18,12 +24,20 @@ public class BoosterOrb : MonoBehaviour {
 
         m_ref.SaveUnitToCollection(ud);
 
-        GameObject artInstance = GameObject.Instantiate(SingletonMB.GetInstance<UnitManager>().GetArtFromKey(ud.ArtKey)).gameObject;
-        artInstance.transform.position = transform.position;
+        ArtPrefab ap = SingletonMB.GetInstance<UnitManager>().GetArtFromKey(ud.ArtKey);
+        
+        GameObject artInstance = 
+            GameObject.Instantiate(ap).gameObject;
+        
+        artInstance.transform.SetParent(m_artPlacement); //transform.parent);
 
-        artInstance.transform.SetParent(transform.parent);
+        artInstance.transform.position   = transform.position;
         artInstance.transform.localScale = Vector3.one;
+        //artInstance.transform.localPosition = ap.transform.localPosition;
+        //artInstance.transform.localScale    = ap.transform.localScale;
 
-        m_ref.AddArt(artInstance, this);
+        Destroy(m_villageArt);
+
+        //m_ref.AddArt(artInstance, this);
     }
 }

@@ -11,7 +11,7 @@ using AtRng.MobileTTA;
 [CustomEditor(typeof(LevelEditorGrid))]
 public class LevelEditorGridInspector : Editor {
     const string LEVEL_DATA_PATH = "LevelData/";
-    const string FILE_EXT = ".asset";
+    const string FILE_EXT = "asset";
     string fileName;
     public override void OnInspectorGUI() {
         DrawDefaultInspector();
@@ -59,7 +59,7 @@ public class LevelEditorGridInspector : Editor {
         string fullPath = EditorUtility.OpenFilePanel("Open Map", "Assets/Resources/LevelData", "asset");
         fileName = Path.GetFileName(fullPath);
         if (fileName.Length > 0) {
-            fileName = fileName.Remove(fileName.Length - FILE_EXT.Length); //".map"
+            fileName = fileName.Remove(fileName.Length - (FILE_EXT.Length + 1)); //".map"
             try{
                 LevelScriptableObject lso = (LevelScriptableObject)Resources.Load(LEVEL_DATA_PATH + fileName);
                 LevelEditorGrid leg = target as LevelEditorGrid;

@@ -14,6 +14,7 @@ public abstract class BaseUnit : MonoBehaviour, IUnit {
     private int m_pHealthMax = 4;
     private int m_sHealthMax = 4;
     private int m_Attack = 2;
+    private GameObject m_artInstance = null;
     private TileTraversalEnum m_canTraverse = TileTraversalEnum.WalkAndClimb;
 
     // PROTECTED
@@ -100,16 +101,18 @@ public abstract class BaseUnit : MonoBehaviour, IUnit {
         return m_attackType == 1 || m_attackType == 2;
     }
 
-    /*
-    public void ModifyPhysicalHealth(int amount) {
-        throw new NotImplementedException();
-    }
-    public void ModifySpiritualHealth(int amount) {
-        throw new NotImplementedException();
-    }
-    */
+    private int m_abilityID = -1;
 
     /*** ***/
+    public void ReadDefinitionID(int defID) {
+        UnitManager.UnitDefinition ud = UnitManager.GetInstance<UnitManager>().GetDefinition(defID);
+        if (ud != null) {
+            ReadDefinition(ud);
+        }
+        else {
+            SceneControl.GetCurrentSceneControl().DisplayError("No Definition Available for that id.");
+        }
+    }
     public void ReadDefinition(UnitManager.UnitDefinition ud) {
         m_definitionID = ud.DefinitionID;
         m_pHealthMax = m_pHealth = ud.PhysicalHealth;
@@ -118,15 +121,19 @@ public abstract class BaseUnit : MonoBehaviour, IUnit {
         m_attackType = ud.AttackType;
         m_attackRange = ud.AttackRange;
         m_maxMovement = ud.Movement;
+        //m_abilityID = ud.AbilityID;
 
         ArtPrefab ap = SingletonMB.GetInstance<UnitManager>().GetArtFromKey(ud.ArtKey);
         if (ap != null) {
-            ArtPrefab artInstance = GameObject.Instantiate<ArtPrefab>(ap);
-            artInstance.transform.SetParent(m_artPlacement);
+            if (m_artInstance != null) {
+                Destroy(m_artInstance);
+            }
+            m_artInstance = GameObject.Instantiate(ap.gameObject);
+            m_artInstance.transform.SetParent(m_artPlacement);
 
-            artInstance.transform.localPosition = Vector3.zero;
-            artInstance.transform.localRotation = Quaternion.identity;
-            artInstance.transform.localScale = Vector3.one;
+            m_artInstance.transform.localPosition = Vector3.zero;
+            m_artInstance.transform.localRotation = Quaternion.identity;
+            m_artInstance.transform.localScale = Vector3.one;
         }
         else {
             SceneControl.GetCurrentSceneControl().DisplayError(string.Format("{0} error!", ud.ArtKey));

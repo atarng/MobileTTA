@@ -182,11 +182,11 @@ namespace AtRng.MobileTTA {
                 // . x .
                 //  . .
                 //   .
-                if (deductedMoves < hackFix) {// attackRange) {
+                if (deductedMoves <= hackFix) {// attackRange) {
                     for (int i = -hackFix; i <= hackFix; i++) {
                         int j = Mathf.Abs(i) - hackFix;
-                        FillTileAdjacency(TileX + i, TileY + j, 0, 0, canTraverse, depth + 1);
-                        FillTileAdjacency(TileX + i, TileY - j, 0, 0, canTraverse, depth + 1);
+                        FillTileAdjacency(TileX + i, TileY + j, 0, 0, canTraverse, depth + 10);
+                        FillTileAdjacency(TileX + i, TileY - j, 0, 0, canTraverse, depth + 10);
                     }
 
                 }
@@ -215,6 +215,10 @@ namespace AtRng.MobileTTA {
             return toRet;
         }
 
+        /***
+         * Get Circumference around target
+         * Check to see if we can attack target tile from accessibile tile list.
+         */
         public List<Tile> GetAccessibleAttackPositions(Tile source, Tile target) {
             IUnit u = source.GetPlaceable().GetGameObject().GetComponent<GameUnit>();
             List<Tile> listOfCandidateAttackTilePositions = GetCircumference(target, u.GetAttackRange());
@@ -268,6 +272,7 @@ namespace AtRng.MobileTTA {
                         break;
                     case TileStateEnum.CanNotAccess:
                     default:
+                        //kvp.Key.Sprite.color = TileColors.DEBUG;
                         kvp.Key.Sprite.color = TileColors.WHITE;
                         break;
                 }
@@ -314,11 +319,6 @@ namespace AtRng.MobileTTA {
         }
 
         public void ClearPathableTiles() {
-            /*
-            foreach (KeyValuePair<Tile, TileStateEnum> kvp in m_accessibleTiles) {
-                kvp.Key.sr.color = Color.white;
-            }
-            */
             for (int i = 0; i < m_grid.Count; i++) {
                 m_grid[i].Sprite.color = TileColors.WHITE;
             }

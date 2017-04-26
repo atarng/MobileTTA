@@ -25,6 +25,6 @@ namespace AtRng.MobileTTA {
         FlyAndWalk   = 0x05, // 0101
         FlyAndClimb  = 0x06, // 0110
         //
-        All         = 0x0D,  // 0111 = 7
+        All         = 0x07,  // 0111 = 7
     }
 }

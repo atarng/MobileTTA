@@ -6,6 +6,19 @@ namespace AtRng.MobileTTA {
     // ScriptableObject
     public class LevelScriptableObject : ScriptableObject {
         [SerializeField]
+        int m_width, m_height;
+        public int Width { get { return m_width; } }
+        public int Height { get { return m_height; } }
+
+        [SerializeField]
+        bool m_useAIOpponent = false;
+        public bool UsesAIOpponent { get { return m_useAIOpponent; } }
+
+        [SerializeField]
+        bool m_usesPlayerDeckList = true;
+        public bool UsesPlayerDeckList { get { return m_usesPlayerDeckList; } }
+
+        [SerializeField]
         bool m_usesOpponentDeck = true;
         public bool UsesOpponentDeckList { get { return m_usesOpponentDeck; } }
 
@@ -24,18 +37,6 @@ namespace AtRng.MobileTTA {
                 return m_placeablesArray;
             }
         }
-        [SerializeField]
-        int m_width, m_height;
-        public int Width { get { return m_width; } }
-        public int Height { get { return m_height; } }
-
-        [SerializeField]
-        bool m_usesPlayerDeckList = true;
-        public bool UsesPlayerDeckList { get { return m_usesPlayerDeckList; } }
-
-        [SerializeField]
-        bool m_useAIOpponent = false;
-        public bool UsesAIOpponent { get { return m_useAIOpponent; } }
 
 #if UNITY_EDITOR
         public void ReadLevelEditorGrid(LevelEditorGrid toPullFrom) {

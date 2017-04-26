@@ -6,9 +6,11 @@ using System.Collections;
 
 namespace WF.AT {
     public static class DataTableLookup {
+        /*** THIS SHOULD BE REFACTORED ***/
         public enum DataTables {
             DebugOptions = 0,
             UnitDefinitions = 1,
+            AbilityDefinitions = 2
         }
 
         public const string DICTIONARY_PATH = "DataTables/{0}";

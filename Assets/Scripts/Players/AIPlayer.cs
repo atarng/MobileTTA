@@ -184,12 +184,13 @@ public class AIPlayer : BasePlayer {
                 remainingActionPoints -= DrawCost++;
                 tempDeckSize--;
             }
-            else if (remainingActionPoints >= MILITIA_COST) {
+            else if (remainingActionPoints >= MILITIA_COST && remainingHealth > 10) {
                 // place a militia on the field
                 m_actionQueue.Enqueue(() => {
                     AIUnit aiu = GenerateAIUnit(MILITIA_ID);
                     PlaceUnitOnField(aiu);
                     Health -= 10;
+                    UpdatePlayerHealth(Health);
                 });
                 remainingActionPoints -= MILITIA_COST;
                 remainingHealth       -= 10;
