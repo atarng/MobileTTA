@@ -73,6 +73,10 @@ namespace AtRng.MobileTTA {
         private Text m_drawCost_ui;
         [SerializeField]
         private Text m_deckCount_ui;
+        [SerializeField]
+        private Transform m_actionPointUITransform;
+        [SerializeField]
+        protected Transform m_handTransform;
 
 ///////////////
 
@@ -110,7 +114,8 @@ namespace AtRng.MobileTTA {
         public void RepositionCardsInHand() {
             for (int i = 0; i < m_hand.Count; i++) {
                 Vector3 v3 = m_hand[i].GetGameObject().transform.localPosition;
-                v3.x = (i - (m_hand.Count / 2)) - 0.5f;
+                v3.x = 110 * (i - (m_hand.Count / 2));// - 0.5f;
+                //v3.x = 110 * i;
                 v3.y = 0;
                 m_hand[i].GetGameObject().transform.localPosition = v3;
             }
@@ -128,14 +133,17 @@ namespace AtRng.MobileTTA {
                 ActionPoint_MB sr = GameObject.Instantiate<ActionPoint_MB>(
                     SingletonMB.GetInstance<GameManager>().GetActionPointSprite()
                 );
-                sr.transform.SetParent(transform);
+                sr.transform.SetParent(m_actionPointUITransform); //transform);
+                sr.transform.localPosition = Vector3.zero;
+                sr.transform.localScale    = Vector3.one;
+
                 m_actionPointsUI.Add(sr);
             }
             for (int i = 0; i < m_actionPointsUI.Count; i++) {
                 // Position
                 Vector3 v3 = m_actionPointsUI[i].transform.localPosition;
-                v3.x = -3 + (i * .5f);
-                v3.y = 1;
+                v3.x = ((i + .5f) * 50f); //v3.x = -3 + (i * .5f);
+                //v3.y = 1;
                 m_actionPointsUI[i].transform.localPosition = v3;
 
                 // Color

@@ -1,19 +1,22 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 using AtRng.MobileTTA;
 
 public class ActionPoint_MB : MonoBehaviour {
     [SerializeField]
-    SpriteRenderer m_sr;
+    Image m_image; //SpriteRenderer m_sr;
+    
+
     bool m_available = false;
 
     BasePlayer m_bp = null;
     GameObject m_listenForMouseUp = null;
 
     public void SetAppearance(bool on) {
-        m_sr.color = (on) ? Color.blue : Color.grey;
+        m_image.color = (on) ? Color.blue : Color.grey;
         m_available = on;
     }
 
@@ -34,6 +37,8 @@ public class ActionPoint_MB : MonoBehaviour {
         if (m_available && m_bp.GetEnoughActionPoints(1)) {
             //m_listenForMouseUp = true;
             m_listenForMouseUp = GameObject.Instantiate(gameObject);
+            m_listenForMouseUp.transform.SetParent(transform);
+            m_listenForMouseUp.transform.localScale = Vector3.one;
             // appear used up.
             SetAppearance(false);
         }

@@ -10,6 +10,52 @@ using System;
 /* Interfaces IPlaceable, */
 //
 public class AIUnit : GameUnit {
+    //TODO: REFACTOR SO AI UNIT IS NOT EXTENDING GAME UNIT
+    //      BaseUnit, ICombat { 
+    public override bool AttemptRelease(bool resolved) {
+        throw new NotImplementedException();
+    }
+
+    public override bool AttemptSelection() {
+        throw new NotImplementedException();
+    }
+
+    public override IGamePlayer GetPlayerOwner() {
+        return GameManager.GetInstance<GameManager>().GetPlayer(m_playerId);
+    }
+
+    protected override void OnMouseDown() {
+        return;
+    }
+
+    //private void Update() {
+    //    Update_Visuals();
+    //}
+
+    public bool IsAlive() {
+        return GetPhysicalHealth() > 0 && GetSpiritualHealth() > 0;
+    }
+    private void UpdatePlayerHealth(int playerHealth) {
+        GetPlayerOwner().UpdatePlayerHealth(playerHealth);
+    }
+    public void TakeDamage(int pdamage, int sdamage) {
+        m_pHealth = Mathf.Max(0, m_pHealth - pdamage);
+        m_sHealth = Mathf.Max(0, m_sHealth - sdamage);
+
+        if (IsNexus()) {
+            UpdatePlayerHealth(m_pHealth = m_sHealth = Mathf.Min(m_sHealth, m_pHealth));
+        }
+
+        if (m_sHealth <= 0 || m_pHealth <= 0) {
+            if (AssignedToTile != null) {
+                AssignedToTile.SetPlaceable(null);
+            }
+            GetPlayerOwner().GetCurrentSummonedUnits().Remove(this);
+            //m_isDying = 1;
+            Destroy(gameObject);
+        }
+    }
+
     public void DetermineTargetTiles(out Tile toMoveTo, out Tile toInteractWith) {
         toMoveTo = null;
         toInteractWith = null;

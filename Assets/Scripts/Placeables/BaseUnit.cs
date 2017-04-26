@@ -133,7 +133,9 @@ public abstract class BaseUnit : MonoBehaviour, IUnit {
 
             m_artInstance.transform.localPosition = Vector3.zero;
             m_artInstance.transform.localRotation = Quaternion.identity;
-            m_artInstance.transform.localScale = Vector3.one;
+            
+            m_artInstance.transform.localScale = (m_playerId > 0) ? -(Vector3.one) : Vector3.one;
+
         }
         else {
             SceneControl.GetCurrentSceneControl().DisplayError(string.Format("{0} error!", ud.ArtKey));

@@ -89,14 +89,15 @@ public class Player : BasePlayer {
             // instantiate as a card
             UnitManager.UnitDefinition ud = UnitManager.GetInstance<UnitManager>().GetDefinition( m_deck[0].DefinitionID );
             GameUnit u = GameObject.Instantiate( SingletonMB.GetInstance<GameManager>().m_unitPrefab );
+            u.AssignPlayerOwner(ID);
             u.ReadDefinition(ud);
-            u.transform.SetParent(transform);
+
+            u.transform.SetParent((ID % 2 > 0) ? m_handTransform : transform);
 
             u.transform.localPosition = Vector3.zero;
             u.transform.localRotation = Quaternion.identity;
-            u.transform.localScale    = Vector3.one * .01f;
+            u.transform.localScale    = Vector3.one;
 
-            u.AssignPlayerOwner(ID);
 
             m_hand.Add(u);
 

@@ -40,7 +40,7 @@ public class Militia_MonoBehavior : MonoBehaviour {
                 if (IsAdjacentToAlliedUnit(CurrentlyOverTile) && !CurrentlyOverTile.IsOccupied()) {
                     BasePlayer igp = GameManager.GetInstance<GameManager>().CurrentPlayer();
                     pendingMilitia.AssignedToTile = CurrentlyOverTile;
-                    pendingMilitia.AssignPlayerOwner(igp.ID);
+                    //pendingMilitia.AssignPlayerOwner(igp.ID);
 
                     (igp as IGamePlayer).UpdatePlayerHealth(igp.Health - 10);
 
@@ -57,7 +57,7 @@ public class Militia_MonoBehavior : MonoBehaviour {
             }
             else {
                 //Debug.Log("[Militia_MB/OnMouseUp] Failed To Place Unit, Destroy");
-                Destroy(pendingMilitia.gameObject);
+                //Destroy(pendingMilitia.gameObject);
             }
 
             pendingMilitia = null;
@@ -68,24 +68,28 @@ public class Militia_MonoBehavior : MonoBehaviour {
     private void OnMouseDown() {
         //Debug.Log("[Militia_MB/OnMouseDown] GenerateMilitia");
         BasePlayer bp = GameManager.GetInstance<GameManager>().CurrentPlayer();
-        if (bp.Health <= 10) {
-            SceneControl.GetCurrentSceneControl().DisplayWarning("Not Enough Wealth to Conscript Militia.");
-        }
-        else if (bp.GetEnoughActionPoints(3)) {
-            GenerateMilitia();
-            BasePlayer cp = GameManager.GetInstance<GameManager>().CurrentPlayer();
-            SingletonMB.GetInstance<GameManager>().GetGrid().DisplaySummonableTiles(cp);
+        if(bp is Player) {
+            if (bp.Health <= 10) {
+                SceneControl.GetCurrentSceneControl().DisplayWarning("Not Enough Wealth to Conscript Militia.");
+            }
+            else if (bp.GetEnoughActionPoints(3)) {
+                GenerateMilitia(bp.ID);
+                SingletonMB.GetInstance<GameManager>().GetGrid().DisplaySummonableTiles(bp);
+            }
         }
     }
 
-    public void GenerateMilitia() {
+    public void GenerateMilitia(int PlayerID) {
+
         UnitManager.UnitDefinition ud = UnitManager.GetInstance<UnitManager>().GetDefinition(MILITIA_ID);
         pendingMilitia = GameObject.Instantiate(SingletonMB.GetInstance<GameManager>().m_unitPrefab);
+        pendingMilitia.AssignPlayerOwner(PlayerID);
+
         pendingMilitia.ReadDefinition(ud);
         pendingMilitia.AttemptSelection();
         
         pendingMilitia.transform.SetParent(transform);
-        pendingMilitia.transform.localScale = Vector3.one;
+        pendingMilitia.transform.localScale = transform.localScale; //Vector3.one;
         pendingMilitia.transform.localRotation = Quaternion.identity;
     }
 }

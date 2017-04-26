@@ -14,30 +14,22 @@ public class AIPlayer : BasePlayer {
         UnitManager.UnitDefinition ud = UnitManager.GetInstance<UnitManager>().GetDefinition(defID);
 
         AIUnit generatedUnit = GameObject.Instantiate(SingletonMB.GetInstance<GameManager>().m_AIUnitPrefab);
+        generatedUnit.AssignPlayerOwner(ID);
         generatedUnit.ReadDefinition(ud);
-        generatedUnit.transform.SetParent(transform);
+        generatedUnit.transform.SetParent((ID % 2 > 0) ? m_handTransform : transform);
+        //generatedUnit.transform.SetParent(transform);
 
         generatedUnit.transform.localPosition = Vector3.zero;
         generatedUnit.transform.localRotation = Quaternion.identity;
-        generatedUnit.transform.localScale = Vector3.one * .01f;
-
-        generatedUnit.AssignPlayerOwner(ID);
+        generatedUnit.transform.localScale = Vector3.one;// * .01f;
 
         return generatedUnit;
     }
 
+    /***
+     * 
+     */
     public override void Draw() {
-        //UnitManager.UnitDefinition ud = UnitManager.GetInstance<UnitManager>().GetDefinition(m_deck[0].DefinitionID);
-
-        //AIUnit gu = GameObject.Instantiate(SingletonMB.GetInstance<GameManager>().m_AIUnitPrefab);
-        //gu.ReadDefinition(ud);
-        //gu.transform.SetParent(transform);
-
-        //gu.transform.localPosition = Vector3.zero;
-        //gu.transform.localRotation = Quaternion.identity;
-        //gu.transform.localScale    = Vector3.one * .01f;
-
-        //gu.AssignPlayerOwner(ID);
         AIUnit gu = GenerateAIUnit(m_deck[0].DefinitionID);
 
         m_hand.Add(gu);
@@ -56,7 +48,7 @@ public class AIPlayer : BasePlayer {
     }
 
     public override void PlaceUnitOnField(IUnit unitToPlace) {
-
+        GameManager gm = SingletonMB.GetInstance<GameManager>();
         GameUnit candidateNexus = unitToPlace as GameUnit;
         if (candidateNexus != null && candidateNexus.IsNexus()) {
             m_fieldUnits.Add(unitToPlace);
@@ -66,12 +58,15 @@ public class AIPlayer : BasePlayer {
         else {
             //Debug.Log("[AIPlayer/PlaceUnitOnField] unit: " + unitToPlace.GetGameObject().name);
             for (int i = 0; i < m_fieldUnits.Count; i++) {
-                List<Tile> tileList = GameManager.GetInstance<GameManager>().GetGrid().GetCircumference(m_fieldUnits[i].AssignedToTile, 1);
+                List<Tile> tileList = gm.GetGrid().GetCircumference(m_fieldUnits[i].AssignedToTile, 1);
                 for (int j = 0; j < tileList.Count; j++) {
                     if (!tileList[j].IsOccupied()) {
                         unitToPlace.AssignedToTile = tileList[j];
                         m_fieldUnits.Add(unitToPlace);
                         ActionPoints -= ((unitToPlace.GetID() == MILITIA_ID) ? MILITIA_COST : m_fieldUnits.Count);
+
+                        gm.PlaySound("Tile");
+
                         return;
                     }
                 }
@@ -84,6 +79,7 @@ public class AIPlayer : BasePlayer {
         Tile targetTile = null;
         Tile interactTile = null;
         AIUnit aiUnit = unitToMove as AIUnit;
+        GameManager gm = SingletonMB.GetInstance<GameManager>();
         if (aiUnit != null) {
             aiUnit.DetermineTargetTiles(out targetTile, out interactTile);
             if (targetTile != null) {
@@ -97,7 +93,7 @@ public class AIPlayer : BasePlayer {
                         int dist = Mathf.Abs(aiUnit.AssignedToTile.xPos - icp.AssignedToTile.xPos) +
                                    Mathf.Abs(aiUnit.AssignedToTile.yPos - icp.AssignedToTile.yPos);
                         if (aiUnit.GetAttackRange() == dist) {
-                            SingletonMB.GetInstance<GameManager>().HandleCombat(aiUnit, icp);
+                            gm.HandleCombat(aiUnit, icp);
                         }
                     }
                     Debug.Log(string.Format("[AIPlayer/PerformUnitAction] unit_tile: {0}, tile_move: {1}, tile_interact: {2}",
@@ -106,6 +102,7 @@ public class AIPlayer : BasePlayer {
                         interactTile.name
                     ));
                 }
+                gm.PlaySound("Tile");
             }
             else {
                 Debug.LogWarning(string.Format("[AIPlayer/PerformUnitAction] unit_tile: {0}", unitToMove.AssignedToTile.name));

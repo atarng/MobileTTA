@@ -6,9 +6,10 @@ using UnityEngine.UI;
 using AtRng.MobileTTA;
 using System;
 
-// probably should not make this extend RepositionToUICamera as a class, but just require this as a monobehavior.
-/* Interfaces IPlaceable, */
-//
+/***
+ * GameUnit Class is the Unit Class which is handled by the player.
+ *  
+ */
 public class GameUnit : BaseUnit, ICombat {
 
     bool m_hasPerformedAction = false;
@@ -453,7 +454,7 @@ public class GameUnit : BaseUnit, ICombat {
         GetPlayerOwner().UpdatePlayerHealth(playerHealth);
     }
     public void TakeDamage(int pdamage, int sdamage) {
-            // physical
+        // physical
         m_pHealth = Mathf.Max(0, m_pHealth - pdamage);
         m_sHealth = Mathf.Max(0, m_sHealth - sdamage);
 
@@ -496,7 +497,7 @@ public class GameUnit : BaseUnit, ICombat {
     /********************************************************/
 
     Vector3 m_lastMousePosition = Vector3.zero;
-    private void OnMouseDown() {
+    protected virtual void OnMouseDown() {
         /* Maybe need to move this logic somewhere */
         if (GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(GetPlayerOwner()) &&
             s_selectedUnit != this) {

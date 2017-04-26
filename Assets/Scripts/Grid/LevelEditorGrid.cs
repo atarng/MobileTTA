@@ -205,12 +205,14 @@ namespace AtRng.MobileTTA {
             LoadPlaceables();
         }
         public void LoadLevelData() {
-            string path_to_save_level = EditorUtility.OpenFilePanel("Load Level", "Assets/Resources/LevelData", FILE_EXT);
-            string fileName = Path.GetFileName(path_to_save_level);
+            string path_to_load_level = EditorUtility.OpenFilePanel("Load Level", "Assets/Resources/LevelData", FILE_EXT);
+            string fileName = Path.GetFileName(path_to_load_level);
+            bool isArena = path_to_load_level.Contains("Arena");
             if (fileName.Length > 0) {
                 fileName = fileName.Remove(fileName.Length - (FILE_EXT.Length + 1)); //".map"
                 try {
-                    LevelScriptableObject lso = (LevelScriptableObject)Resources.Load("LevelData/" + fileName);
+                    LevelScriptableObject lso =
+                        (LevelScriptableObject)Resources.Load("LevelData/" + (isArena ? "Arena/" : "Campaign/") + fileName);
                     if ( lso != null ) {
                         ReadScriptableObject(lso);
                         ClearGrid();
@@ -229,12 +231,14 @@ namespace AtRng.MobileTTA {
             const string LEVEL_DATA_PATH = "Assets/Resources/LevelData/";
             //var path_to_save_level = EditorUtility.SaveFilePanel("Save Level as \'.prefab\'", LEVEL_DATA_PATH, "LevelEditorGrid." + PREFAB_EXT, PREFAB_EXT);
             var path_to_save_level = EditorUtility.SaveFilePanel("Save Level as \'.asset\'", LEVEL_DATA_PATH, "test." + FILE_EXT, FILE_EXT);
+            bool isArena = path_to_save_level.Contains("Arena");
+
             string fileName = Path.GetFileName(path_to_save_level);
             if(fileName.Length > 0) {
-                Debug.Log(string.Format("Fullpath: {0} filename: {1}",path_to_save_level, fileName));
+                //Debug.Log(string.Format("Fullpath: {0} filename: {1}",path_to_save_level, fileName));
                 try {
                     LevelScriptableObject lso = AsScriptableObject();
-                    AssetDatabase.CreateAsset(lso,  LEVEL_DATA_PATH + fileName);
+                    AssetDatabase.CreateAsset(lso,  LEVEL_DATA_PATH + (isArena ? "Arena/" : "Campaign/") + fileName);
                     AssetDatabase.SaveAssets();
                 }
                 catch (Exception e) {

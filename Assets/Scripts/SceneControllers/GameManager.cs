@@ -117,6 +117,8 @@ public class GameManager : SceneControl, ISoundManager {
             pPos.z = 0;
             bp.transform.position = pPos;
             bp.transform.localRotation = Quaternion.Euler(0, 0, (i * 180));
+            bp.transform.localScale = Vector3.one;
+            //bp.transform.localScale = (i % 2 > 0) ? (Vector3.one * -1) : Vector3.one;
             bp.ID = i;
 
             // Instantiate Player Deck.
@@ -157,12 +159,17 @@ public class GameManager : SceneControl, ISoundManager {
                     // Create Unit
                     //
                     int playerID = LevelInitData.PlaceablesArray[i].PlayerID;
-                    BaseUnit toInstantiate = (playerID == 0 || !LevelInitData.UsesAIOpponent) ? m_unitPrefab : m_AIUnitPrefab;
+                    BaseUnit toInstantiate = (playerID == 0 || !LevelInitData.UsesAIOpponent) ? (BaseUnit)m_unitPrefab : (BaseUnit)m_AIUnitPrefab;
                     BaseUnit unit_to_place_on_tile = GameObject.Instantiate(toInstantiate);
                     UnitManager.UnitDefinition ud = UnitManager.GetInstance<UnitManager>().GetDefinition(LevelInitData.PlaceablesArray[i].ID);
+
+                    IUnit iUnit = unit_to_place_on_tile;
+                    iUnit.AssignedToTile = tileAtXY;
+                    iUnit.AssignPlayerOwner(LevelInitData.PlaceablesArray[i].PlayerID);
+
                     unit_to_place_on_tile.ReadDefinition(ud);
                     unit_to_place_on_tile.transform.localScale = Vector3.one * .01f;
-                    unit_to_place_on_tile.transform.localRotation = Quaternion.Euler(0, 0, (playerID * 180));
+                    //unit_to_place_on_tile.transform.localRotation = Quaternion.Euler(0, 0, (playerID * 180));
 
                     // Assign To Player
                     IGamePlayer p = SingletonMB.GetInstance<GameManager>().GetPlayer(playerID);
@@ -175,10 +182,6 @@ public class GameManager : SceneControl, ISoundManager {
 
                     // Assign to Tile.
                     tileAtXY.SetPlaceable(unit_to_place_on_tile);
-
-                    IUnit iUnit = unit_to_place_on_tile;
-                    iUnit.AssignPlayerOwner(LevelInitData.PlaceablesArray[i].PlayerID);
-                    iUnit.AssignedToTile = tileAtXY;
 
                     break;
                 case PlaceableType.Impassable:
@@ -222,7 +225,9 @@ public class GameManager : SceneControl, ISoundManager {
 
     public void UI_EndTurn() {
         BasePlayer p = m_turnQueue.Peek();
-        p.EndTurn();
+        if (p is Player) {
+            p.EndTurn();
+        }
     }
 
         
@@ -259,7 +264,8 @@ public class GameManager : SceneControl, ISoundManager {
         m_playerIndicator.localScale = newScale;
 
 
-        m_militiaButton.localRotation = Quaternion.Euler(0, 0, (currentPlayer.ID * 180));
+        //m_militiaButton.localRotation = Quaternion.Euler(0, 0, (currentPlayer.ID * 180));
+        m_militiaButton.localScale = (currentPlayer.ID > 0) ? -(Vector3.one) : Vector3.one;
 
         CheckVictory(p, currentPlayer);
     }
