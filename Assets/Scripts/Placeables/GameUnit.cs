@@ -398,7 +398,7 @@ public class GameUnit : BaseUnit, ICombat {
         return false;
     }
 
-    public override bool AttemptRelease(bool resolved ) {// Tile sourceTile, Tile destinationTile, ) {
+    public override bool AttemptRelease(bool resolved) {
 
         if (m_isDragging || IsSelectedUnit()) {
             HasPerformedAction = resolved;
@@ -427,7 +427,7 @@ public class GameUnit : BaseUnit, ICombat {
         m_isDragging = false;
         m_mouseDownSelected = false;
 
-        //GameManager.GetInstance<GameManager>().GetGrid().ClearPathableTiles();
+        //GameManager.GetInstance<GameManager>().BroadcastEvent("ReleaseUnit");
 
         return true;
     }
@@ -513,10 +513,7 @@ public class GameUnit : BaseUnit, ICombat {
         /****************** BELOW: BEHAVIOR AS CARD ************************/
         else if (AssignedToTile == null &&
             GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(GetPlayerOwner()) &&
-
-            // this cost includes the nexus...
-            GetPlayerOwner().GetEnoughActionPoints(GetPlayerOwner().GetCurrentSummonedUnits().Count)
-
+            GetPlayerOwner().GetEnoughActionPoints(GetPlayerOwner().GetCurrentSummonedUnits().Count) // this cost includes the nexus...
         ) {
             m_isDragging = true;
             SingletonMB.GetInstance<GameManager>().GetGrid().DisplaySummonableTiles(GetPlayerOwner());
@@ -537,7 +534,6 @@ public class GameUnit : BaseUnit, ICombat {
 
         /*** BEHAVIOR ON GRID ***/
         if (AssignedToTile != null) {
-
             if (Vector3.Distance(m_lastMousePosition, Input.mousePosition) < 2) {
                 s_selectedUnit = this;
                 AssignedToTile = AssignedToTile;
@@ -593,6 +589,7 @@ public class GameUnit : BaseUnit, ICombat {
                 //if(action_resolved || !IsSelectedUnit()) {
                 GameManager.GetInstance<GameManager>().GetGrid().ClearPathableTiles();
                 //}
+                GameManager.GetInstance<GameManager>().BroadcastEvent("ReleaseUnit");
             }
         }
         /*** BEHAVIOR WHILE IN HAND ***/
@@ -609,16 +606,21 @@ public class GameUnit : BaseUnit, ICombat {
                     unit_placed = true;
 
                     /*** not sure if this is good for this ***/
-                    //HasPerformedAction = true;
+                    // AR
                     AttemptRelease(unit_placed);
+                    // HasPerformedAction = true;
+
                 }
             }
+
 
             if (!unit_placed && GetPlayerOwner() != null) {
                 GetPlayerOwner().RepositionCardsInHand();
             }
             GameManager.GetInstance<GameManager>().GetGrid().ClearPathableTiles();
             m_isDragging = false;
+
+            GameManager.GetInstance<GameManager>().BroadcastEvent("ReleaseUnit");
         }
     }
 

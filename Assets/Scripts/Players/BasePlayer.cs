@@ -45,7 +45,7 @@ namespace AtRng.MobileTTA {
                 // Color
                 for (int i = 0; i < m_actionPointsUI.Count; i++) {
                     //m_actionPointsUI[i].color = (i < m_actionPoints) ? Color.blue : Color.grey;
-                    m_actionPointsUI[i].SetAppearance((i < m_actionPoints));//  ? Color.blue : Color.grey;
+                    m_actionPointsUI[i].SetState((i < m_actionPoints) ? ActionPoint_MB.AP_STATE.IDLE : ActionPoint_MB.AP_STATE.SPENT);//  ? Color.blue : Color.grey;
                 }
                 if (m_actionPoints <= 0) {
                     EndTurn();
@@ -147,7 +147,7 @@ namespace AtRng.MobileTTA {
                 m_actionPointsUI[i].transform.localPosition = v3;
 
                 // Color
-                m_actionPointsUI[i].SetAppearance(true); // Color.blue;
+                m_actionPointsUI[i].SetState(ActionPoint_MB.AP_STATE.IDLE);
                 m_actionPointsUI[i].AssignPlayerReference(this);
             }
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 using AtRng.MobileTTA;
 //namespace AtRng.MobileTTA {
@@ -9,6 +10,21 @@ using AtRng.MobileTTA;
 public class Player : BasePlayer {
 
     private GameUnit m_nexus = null;
+    private ISoundManager m_soundManagerTemp;
+
+    [SerializeField]
+    private EventTrigger m_et;
+
+    private void Start() {
+        GameManager.GetInstance<GameManager>().RegisterEventListener("ReleaseUnit", RestoreAPVisuals);
+
+        EventTrigger.Entry entry = new EventTrigger.Entry();
+        entry.eventID = EventTriggerType.PointerEnter;
+        entry.callback.AddListener((data)=> {
+            GetEnoughActionPoints(DrawCost);
+        });
+        m_et.triggers.Add(entry);
+    }
 
     public override void PlaceUnitOnField(IUnit unitToPlace) {
         //unitToPlace.GetGameObject().transform.rotation = Quaternion.identity;
@@ -51,7 +67,6 @@ public class Player : BasePlayer {
         }
     }
 
-    ISoundManager m_soundManagerTemp;
 
     public void AttemptToDraw() {
         if (!SingletonMB.GetInstance<GameManager>().CurrentPlayer().Equals(this)) {
@@ -110,17 +125,35 @@ public class Player : BasePlayer {
         }
     }
 
-
     public override bool GetEnoughActionPoints(int cost) {
         if (m_actionPoints < cost) {
-
             //Debug.LogWarning(string.Format("[Player/GetEnoughActionPoints] (Cost, Current, Total): ({0}, {1}, {2})",
             //    cost, m_actionPoints, m_actionPointsMax));
             SceneControl.GetCurrentSceneControl().DisplayWarning("Not Enough Action Points.");
 
             return false;
         }
+
+        for (int i = 0; i < m_actionPointsUI.Count; i++) {
+            if (i < m_actionPoints) {
+                m_actionPointsUI[i].SetState((i >= m_actionPoints - cost) ? ActionPoint_MB.AP_STATE.PENDING : ActionPoint_MB.AP_STATE.IDLE);
+            }
+            else {
+                m_actionPointsUI[i].SetState(ActionPoint_MB.AP_STATE.SPENT);
+            }
+        }
         return true;
+    }
+
+    public void RestoreAPVisuals() {
+        for (int i = 0; i < m_actionPointsUI.Count; i++) {
+            if (i < m_actionPoints) {
+                m_actionPointsUI[i].SetState(ActionPoint_MB.AP_STATE.IDLE);
+            }
+            else {
+                m_actionPointsUI[i].SetState(ActionPoint_MB.AP_STATE.SPENT);
+            }
+        }
     }
 
     // This behavior might be able to be moved back into base player.

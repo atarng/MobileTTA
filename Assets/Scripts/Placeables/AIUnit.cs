@@ -60,7 +60,7 @@ public class AIUnit : GameUnit {
         toMoveTo = null;
         toInteractWith = null;
 
-        Grid g = SingletonMB.GetInstance<GameManager>().GetGrid();
+        AtRng.MobileTTA.Grid g = SingletonMB.GetInstance<GameManager>().GetGrid();
         Dictionary<Tile, List<Vector2>> m_tileMapToPath = new Dictionary<Tile, List<Vector2>>();
         Queue<Tile> tilesToExplore = new Queue<Tile>();
 

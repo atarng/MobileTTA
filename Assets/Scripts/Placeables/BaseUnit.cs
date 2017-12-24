@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 using AtRng.MobileTTA;
 using System;
@@ -26,6 +27,16 @@ public abstract class BaseUnit : MonoBehaviour, IUnit {
     [SerializeField]
     protected Transform m_artPlacement;
 
+    [SerializeField]
+    Sprite[] m_sprites_to_use;
+    [SerializeField]
+    Image m_outline;
+    [SerializeField]
+    Image m_imageMask;
+
+    Tile m_assignedToTile = null;
+    private int m_abilityID = -1;
+
     public int GetID() {
         return m_definitionID;
     }
@@ -35,7 +46,6 @@ public abstract class BaseUnit : MonoBehaviour, IUnit {
         get { return m_canTraverse; }
     }
 
-    Tile m_assignedToTile = null;
     public Tile AssignedToTile {
         get {
             return m_assignedToTile;
@@ -101,7 +111,6 @@ public abstract class BaseUnit : MonoBehaviour, IUnit {
         return m_attackType == 1 || m_attackType == 2;
     }
 
-    private int m_abilityID = -1;
 
     /*** ***/
     public void ReadDefinitionID(int defID) {
@@ -133,9 +142,20 @@ public abstract class BaseUnit : MonoBehaviour, IUnit {
 
             m_artInstance.transform.localPosition = Vector3.zero;
             m_artInstance.transform.localRotation = Quaternion.identity;
-            
-            m_artInstance.transform.localScale = (m_playerId > 0) ? -(Vector3.one) : Vector3.one;
 
+            // orient art to be flipped or not dependent on player.
+            if(m_playerId == 0)
+            {
+                m_artInstance.transform.localScale = Vector3.one;
+                m_outline.sprite = m_sprites_to_use[0];
+                m_imageMask.sprite = m_sprites_to_use[2];
+            }
+            else
+            {
+                m_artInstance.transform.localScale = -(Vector3.one);
+                m_outline.sprite = m_sprites_to_use[1];
+                m_imageMask.sprite = m_sprites_to_use[3];
+            }
         }
         else {
             SceneControl.GetCurrentSceneControl().DisplayError(string.Format("{0} error!", ud.ArtKey));

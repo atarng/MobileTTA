@@ -29,8 +29,8 @@ public class GameManager : SceneControl, ISoundManager {
     }
 
     [SerializeField]
-    private Grid m_gridInstance;
-    public Grid GetGrid() {
+    private AtRng.MobileTTA.Grid m_gridInstance;
+    public AtRng.MobileTTA.Grid GetGrid() {
         return m_gridInstance;
     }
 
@@ -60,6 +60,8 @@ public class GameManager : SceneControl, ISoundManager {
     [SerializeField]
     AudioSource m_tempAudioSource;
 
+    Dictionary<string, Action> m_eventListeners;
+
     public void ToggleDrawMode() {
         m_drawMode = !m_drawMode;
     }
@@ -83,7 +85,30 @@ public class GameManager : SceneControl, ISoundManager {
             b_initialized = true;
             InitializePlayers();
         }
+
+        m_eventListeners = new Dictionary<string, Action>();
+
         MapInit();
+    }
+
+    public void RegisterEventListener(string event_name, Action a) {
+        Action toAddTo = null;
+        if (m_eventListeners.ContainsKey(event_name)) {
+            toAddTo = m_eventListeners[event_name];
+        }
+        else {
+            toAddTo = () => { };
+        }
+        toAddTo += a;
+        m_eventListeners[event_name] = toAddTo;
+    }
+
+    public void BroadcastEvent(string event_name) {
+        if (m_eventListeners.ContainsKey(event_name)) {
+            if(m_eventListeners[event_name] != null) {
+                m_eventListeners[event_name]();
+            }
+        }
     }
 
     private List<UnitManager.UnitDesciption> InitializeDummyDeck_Temp() {
