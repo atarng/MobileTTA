@@ -1,0 +1,6 @@
+﻿/**************************************************
+ * <CLASS_NAME>
+ * <DESCRIPTION OF CLASS>
+ * 
+ * author: Alfred Tarng <copy_right_information>
+ *************************************************/

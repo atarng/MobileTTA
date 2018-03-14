@@ -1,4 +1,9 @@
-﻿using System.Collections;
+﻿///////////////////////////////
+// TODO: Figure out wtf this class is for.
+// 
+///////////////////////////////
+
+using System.Collections;
 using System.Collections.Generic;
 
 using UnityEngine;

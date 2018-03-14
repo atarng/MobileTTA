@@ -33,6 +33,10 @@ public abstract class BaseUnit : MonoBehaviour, IUnit {
     Image m_outline;
     [SerializeField]
     Image m_imageMask;
+    [SerializeField]
+    Image m_shadow;
+    [SerializeField]
+    Image m_action;
 
     Tile m_assignedToTile = null;
     private int m_abilityID = -1;
@@ -148,13 +152,15 @@ public abstract class BaseUnit : MonoBehaviour, IUnit {
             {
                 m_artInstance.transform.localScale = Vector3.one;
                 m_outline.sprite = m_sprites_to_use[0];
-                m_imageMask.sprite = m_sprites_to_use[2];
+                m_shadow.sprite = m_action.sprite = m_imageMask.sprite
+                    = m_sprites_to_use[2];
             }
             else
             {
                 m_artInstance.transform.localScale = -(Vector3.one);
                 m_outline.sprite = m_sprites_to_use[1];
-                m_imageMask.sprite = m_sprites_to_use[3];
+                m_shadow.sprite = m_imageMask.sprite = m_action.sprite
+                    = m_sprites_to_use[3];
             }
         }
         else {

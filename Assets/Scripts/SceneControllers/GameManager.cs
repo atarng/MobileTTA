@@ -135,12 +135,12 @@ public class GameManager : SceneControl, ISoundManager {
                 bp = GameObject.Instantiate<Player>(m_playerPrefab);
             }
 
-            bp.transform.SetParent(transform);
-            bp.transform.position = CameraManager.Instance.FromUIToGameVector(playerLocations[i].position);
+            bp.transform.SetParent(playerLocations[i]);
+            //bp.transform.position = CameraManager.Instance.FromUIToGameVector(playerLocations[i].position);
+            //Vector3 pPos = bp.transform.position;
+            //pPos.z = 0;
+            bp.transform.position = Vector3.zero;
 
-            Vector3 pPos = bp.transform.position;
-            pPos.z = 0;
-            bp.transform.position = pPos;
             bp.transform.localRotation = Quaternion.Euler(0, 0, (i * 180));
             bp.transform.localScale = Vector3.one;
             //bp.transform.localScale = (i % 2 > 0) ? (Vector3.one * -1) : Vector3.one;
