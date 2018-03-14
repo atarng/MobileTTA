@@ -68,10 +68,7 @@ public class UnitManager : SingletonMB {
         public int PhysicalHealth { get; private set; }
         public int SpiritualHealth { get; private set; }
         public int AttackValue { get; private set; }
-        // /*
-        //[OptionalFieldAttribute]
         public int AttackType { get; private set; }
-        //*/
         public int AttackRange { get; private set; }
         public int Movement { get; private set; }
         public string ArtKey { get; private set; }
@@ -116,14 +113,12 @@ public class UnitManager : SingletonMB {
     KeyPrefabPair[] m_keyToPrefabArray;
     Dictionary<string, ArtPrefab> m_keyToPrefabMap = new Dictionary<string, ArtPrefab>();
 
-    ///*
     protected override void OnAwake() {
         for (int i = 0; i < m_keyToPrefabArray.Length; i++) {
             m_keyToPrefabMap.Add(m_keyToPrefabArray[i].ID, m_keyToPrefabArray[i].Prefab);
         }
         LoadDefinitions();
     }
-//*/
     void LoadDefinitions() {
         int defID = -1;
         m_definitions.Clear();
