@@ -15,17 +15,18 @@ public abstract class BaseUnit : MonoBehaviour, IUnit {
     private int m_pHealthMax = 4;
     private int m_sHealthMax = 4;
     private int m_Attack = 2;
-    private GameObject m_artInstance = null;
     private TileTraversalEnum m_canTraverse = TileTraversalEnum.WalkAndClimb;
 
-    // PROTECTED
+    #region PROTECTED_MEMBERS
     protected bool m_isDragging = false;
     protected int  m_pHealth = 4;
     protected int  m_sHealth = 4;
     protected int  m_playerId   = -1;
     protected int  m_definitionID = -1;
+    protected GameObject m_artInstance = null;
     [SerializeField]
     protected Transform m_artPlacement;
+    #endregion
 
     [SerializeField]
     Sprite[] m_sprites_to_use;

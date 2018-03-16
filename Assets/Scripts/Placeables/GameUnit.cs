@@ -11,8 +11,17 @@ using System;
  *  
  */
 public class GameUnit : BaseUnit, ICombat {
+    static GameUnit s_selectedUnit = null;
 
     bool m_hasPerformedAction = false;
+    bool m_mouseDownSelected = false;
+    float m_isDying = 0;
+
+
+    [SerializeField]
+    GameObject m_actionPerformedImage;
+    ISoundManager m_soundManagerTemp;
+
     public override bool HasPerformedAction {
         get {
             return m_hasPerformedAction;
@@ -25,23 +34,13 @@ public class GameUnit : BaseUnit, ICombat {
         }
     }
 
-    bool m_mouseDownSelected = false;
 
-
-    [SerializeField]
-    GameObject m_actionPerformedImage;
-
-    ISoundManager m_soundManagerTemp;
 
     // UI Components
     public Text AttackText;
     public Text PHealthText;
     public Text SHealthText;
 
-    float m_isDying = 0;
-
-
-    static GameUnit s_selectedUnit = null;
     bool IsSelectedUnit() {
         return this == s_selectedUnit;
     }
@@ -322,6 +321,7 @@ public class GameUnit : BaseUnit, ICombat {
         }
     }
     private void Update_Visuals() {
+        m_artInstance.SetActive(true);
         if (IsNexus()) {
             PHealthText.enabled = true;
             Vector3 newPos = PHealthText.transform.localPosition;
@@ -334,7 +334,7 @@ public class GameUnit : BaseUnit, ICombat {
 
             m_actionPerformedImage.SetActive(!GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(GetPlayerOwner()));
         }
-        // Else if Tile is on Board, or it is current players turn.
+        // Else if Tile is on Board, or it is current players turn, display text.
         else if ( AssignedToTile
             || GetPlayerOwner() == null
             || GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(GetPlayerOwner())) {
@@ -357,6 +357,8 @@ public class GameUnit : BaseUnit, ICombat {
             AttackText.enabled = false;
             SHealthText.enabled = false;
             PHealthText.enabled = false;
+
+            m_artInstance.SetActive(false);
         }
 
         if (m_isDying > 0) {
@@ -380,10 +382,10 @@ public class GameUnit : BaseUnit, ICombat {
     public override bool AttemptSelection() {
         //cc2d.enabled = true;// 
         if (GetPlayerOwner() == null || GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(GetPlayerOwner())) {
-            if (GameManager.GetInstance<GameManager>().CurrentPlayer().GetEnoughActionPoints(1)
-                && !HasPerformedAction && GetMaxMovement() > 0){
+            if (!HasPerformedAction && GetMaxMovement() > 0 && 
+                (IsMilitia() || GameManager.GetInstance<GameManager>().CurrentPlayer().GetEnoughActionPoints(1) )) {
                 m_isDragging = true;
-                return m_isDragging;
+                return true;
             }
             else if (!(GameManager.GetInstance<GameManager>().CurrentPlayer().GetEnoughActionPoints(1))) {
                 SceneControl.GetCurrentSceneControl().DisplayWarning("Not enough action points.");

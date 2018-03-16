@@ -274,6 +274,8 @@ public class GameManager : SceneControl, ISoundManager {
 
     public void UpdateTurn() {
 
+        PlaySound("NewTurn");
+
         BasePlayer p = m_turnQueue.Dequeue();
         m_turnQueue.Enqueue(p);
 
@@ -356,9 +358,10 @@ public class GameManager : SceneControl, ISoundManager {
                     m_tempAudioSource.clip = m_tempSoundArray[1];
                     break;
                 case "Combat1":
+                case "Combat2":
                     m_tempAudioSource.clip = m_tempSoundArray[2];
                     break;
-                case "Combat2":
+                case "NewTurn":
                     m_tempAudioSource.clip = m_tempSoundArray[3];
                     break;
             }
