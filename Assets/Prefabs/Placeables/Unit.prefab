@@ -252,6 +252,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_artPlacement: {fileID: 224900615978588650}
+  m_uiOverlay: {fileID: 224339987219712672}
   m_sprites_to_use:
   - {fileID: 21300000, guid: a5ceb8990653e3044bd38d04de669727, type: 3}
   - {fileID: 21300000, guid: 4882a6649f336994baa033e0ad5916aa, type: 3}

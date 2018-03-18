@@ -7,8 +7,7 @@ using AtRng.MobileTTA;
 using System;
 
 public abstract class BaseUnit : MonoBehaviour, IUnit {
-    // Properties
-    // PRIVATE
+    #region PRIVATE_PROPERTIES
     private int m_maxMovement = 2;
     private int m_attackRange = 1;
     private int m_attackType = 0;
@@ -16,6 +15,7 @@ public abstract class BaseUnit : MonoBehaviour, IUnit {
     private int m_sHealthMax = 4;
     private int m_Attack = 2;
     private TileTraversalEnum m_canTraverse = TileTraversalEnum.WalkAndClimb;
+    #endregion
 
     #region PROTECTED_MEMBERS
     protected bool m_isDragging = false;
@@ -26,6 +26,8 @@ public abstract class BaseUnit : MonoBehaviour, IUnit {
     protected GameObject m_artInstance = null;
     [SerializeField]
     protected Transform m_artPlacement;
+    [SerializeField]
+    protected Transform m_uiOverlay;
     #endregion
 
     [SerializeField]
@@ -149,6 +151,7 @@ public abstract class BaseUnit : MonoBehaviour, IUnit {
             m_artInstance.transform.localRotation = Quaternion.identity;
 
             // orient art to be flipped or not dependent on player.
+            // TODO: This only works with Two Players.
             if(m_playerId == 0)
             {
                 m_artInstance.transform.localScale = Vector3.one;

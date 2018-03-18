@@ -49,11 +49,11 @@ public class LayoutHandler : MonoBehaviour {
         switch (device_orientation) {
             case DeviceOrientation.Portrait:
             case DeviceOrientation.PortraitUpsideDown:
-                parent = m_horizontal_transform;
+                parent = m_vertical_transform;
                 break;
             case DeviceOrientation.LandscapeLeft:
             case DeviceOrientation.LandscapeRight:
-                parent = m_vertical_transform;
+                parent = m_horizontal_transform;
                 break;
             default:
                 break;
@@ -74,11 +74,18 @@ public class LayoutHandler : MonoBehaviour {
         Debug.Log(string.Format("Switch Layout Based On Resolution: {0}", device_resolution));
         foreach (Transform t in m_list_of_children)
         {
-            t.SetParent((device_resolution.x > device_resolution.y) ? m_horizontal_transform : m_vertical_transform);
+            Transform parent = (device_resolution.x > device_resolution.y) ? m_horizontal_transform : m_vertical_transform;
+            t.SetParent(parent);
             t.localScale = Vector3.one;
-            RectTransform tr = t as RectTransform;
-            if (tr) { tr.anchoredPosition = Vector3.zero; }
-            else { tr.localPosition = Vector3.zero; }
+            RectTransform rt = t as RectTransform;
+            if (rt) {
+                rt.anchoredPosition = Vector3.zero;
+                RectTransform parent_rt = parent as RectTransform;
+                if (parent_rt && parent_rt.rect.width > 0 || parent_rt.rect.height > 0) {
+                    rt.sizeDelta = new Vector2(parent_rt.rect.width, parent_rt.rect.height);
+                }
+            }
+            else { t.localPosition = Vector3.zero; }
         }
     }
     #endregion
