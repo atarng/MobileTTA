@@ -122,6 +122,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_sceneName: GameScene
   lso: {fileID: 0}
+  m_fader_go: {fileID: 114447532543679330, guid: ebc3208eb555b8a40bf68dbd96735ae0,
+    type: 2}
 --- !u!222 &222216538432275082
 CanvasRenderer:
   m_ObjectHideFlags: 1

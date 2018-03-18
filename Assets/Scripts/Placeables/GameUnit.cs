@@ -62,14 +62,14 @@ public class GameUnit : BaseUnit, ICombat {
                 m_pendingPlacementTile.Sprite.color = (pendingPlacementState == TileStateEnum.CanMove) ? TileColors.BLUE : TileColors.WHITE;
             }
             m_pendingPlacementTile = value;
-            if(m_pendingPlacementTile != null) {
+            if (m_pendingPlacementTile != null) {
                 m_pendingPlacementTile.Sprite.color = TileColors.CYAN;
 
                 //
                 if (!IsDragging()) {
                     m_pendingPlacementTile.SetPlaceable(this, false);
                 }
-                
+
             }
         }
     }
@@ -321,7 +321,10 @@ public class GameUnit : BaseUnit, ICombat {
         }
     }
     private void Update_Visuals() {
-        m_artInstance.SetActive(true);
+        if (m_artInstance != null) {
+            m_artInstance.SetActive(true);
+        }
+
         if (IsNexus()) {
             PHealthText.enabled = true;
             Vector3 newPos = PHealthText.transform.localPosition;

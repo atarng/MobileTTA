@@ -34,6 +34,11 @@ public class LayoutHandler : MonoBehaviour {
         OrientationMonitor.OnOrientationChange += SwitchLayout;
         OrientationMonitor.OnResolutionChange += SwitchLayout;
     }
+    private void OnDestroy()
+    {
+        OrientationMonitor.OnOrientationChange -= SwitchLayout;
+        OrientationMonitor.OnResolutionChange -= SwitchLayout;
+    }
     #endregion
 
     #region PRIVATE_METHODS

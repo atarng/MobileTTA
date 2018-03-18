@@ -12,11 +12,14 @@ public class GamePlayNavigation : SceneNavigation {
     const string LEVEL_DATA_PATH = "LevelData/";
     public LevelScriptableObject lso;
     public static LevelScriptableObject loadedLevel;
+    //public Fader_MB m_fader_go;
+    private Fader_MB fader_instance = null;
 
     public override void NavigateToScene() {
         transform.SetParent(null);
         loadedLevel = lso;
         StartCoroutine(OpenLevel());
+
     }
     
     /// <summary>
@@ -24,6 +27,14 @@ public class GamePlayNavigation : SceneNavigation {
     // gameobject upon completion.
     /// </summary>
     private IEnumerator OpenLevel() {
+        fader_instance = Fader_MB.CreateFader();
+        fader_instance.FadeInTime = 1f;
+        fader_instance.FadeOutTime = 1f;
+        fader_instance.FadeColor = new Color(0,0,0);
+        fader_instance.BeginFadeIn();
+
+        while (fader_instance.IsFading) yield return null;
+
         DontDestroyOnLoad(gameObject);
         AsyncOperation asyncLoadLevel = SceneManager.LoadSceneAsync(m_sceneName);
         
@@ -32,6 +43,14 @@ public class GamePlayNavigation : SceneNavigation {
         }
         Debug.Log("[SceneNavigation/OpenLevel] Done");
         loadedLevel = null;
+
+        yield return new WaitForSeconds(1);
+
+
+        fader_instance.BeginFadeOut();
+        while (fader_instance.IsFading) yield return null;
+
+        Destroy(fader_instance.gameObject);
         Destroy(gameObject);
     }
 }
