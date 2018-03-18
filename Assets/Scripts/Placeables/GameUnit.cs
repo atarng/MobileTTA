@@ -425,7 +425,8 @@ public class GameUnit : BaseUnit, ICombat {
 
                 
                 if(m_soundManagerTemp == null) {
-                    m_soundManagerTemp = SingletonMB.GetInstance<GameManager>();
+                    // SingletonMB.GetInstance<GameManager>();
+                    m_soundManagerTemp = SingletonMB.GetInstance<AudioManager>();
                 }
                 m_soundManagerTemp.PlaySound("Tile");
             }
