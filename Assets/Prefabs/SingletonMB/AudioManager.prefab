@@ -57,9 +57,13 @@ MonoBehaviour:
   m_tempSoundArray:
   - m_key: Tile
     m_clip: {fileID: 8300000, guid: 2c024c6b34eeaaf4aab3579192629f9b, type: 3}
+    m_audio_volume: 1
   - m_key: Draw
     m_clip: {fileID: 8300000, guid: 53fa7bf6e966a714bb8e991c02ad1f28, type: 3}
+    m_audio_volume: 1
   - m_key: Combat
     m_clip: {fileID: 8300000, guid: df49877e112c6da418ad9516d8671482, type: 3}
+    m_audio_volume: 1
   - m_key: NewTurn
-    m_clip: {fileID: 8300000, guid: b4d0114c0124b0043945eef6b9b4f46a, type: 3}
+    m_clip: {fileID: 8300000, guid: 14e2d1ce1c4784445b71bb353e9d8eae, type: 3}
+    m_audio_volume: 0.05

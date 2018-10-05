@@ -6,8 +6,10 @@ public class AudioHelper : MonoBehaviour {
     [SerializeField]
     private AudioSource m_audioSource;
 
-    public void PlayOneShot(AudioClip audio_clip) {
+    public void PlayOneShot(AudioClip audio_clip, float volume = 1) {
         m_audioSource.clip = audio_clip;
+        m_audioSource.volume = volume;
+
         StartCoroutine(TerminateOnCompletion());
     }
 
