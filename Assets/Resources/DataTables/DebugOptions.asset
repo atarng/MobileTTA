@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Name: DebugOptions
   m_EditorClassIdentifier: 
   currentColumns: 1
-  tableID: test
+  tableID: debug_options
   dictionary: []

@@ -17,7 +17,8 @@ namespace AtRng.MobileTTA {
         Impassable,
         Tile
     }
-
+    // Runtime "LevelEditorPlaceable"?
+    // WHAT IS THIS??!!
     public struct LevelEditorPlaceableRT {
         public int X, Y;
         public TileTraversalEnum tileTraversal;
@@ -32,6 +33,14 @@ namespace AtRng.MobileTTA {
         public int Y;
         public int ID;
         public int PlayerID;
+
+        public string m_on_death_trigger;
+        public string m_on_attacked_trigger;
+        public int m_on_attacked_counter;
+
+        public string m_on_move_trigger;
+        public int m_on_move_counter;
+        public Vector2 m_on_target_move;
     }
 
     // Monobehavior
@@ -47,8 +56,6 @@ namespace AtRng.MobileTTA {
             return placeablesList.ToArray();
         }
         //*/
-
-        //Dictionary<Vector2, LevelEditorPlaceableRT>
 
         [SerializeField]
         UnitManager.UnitPersistence[] m_opponentDeckList;

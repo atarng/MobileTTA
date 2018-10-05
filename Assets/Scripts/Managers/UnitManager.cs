@@ -10,11 +10,9 @@ using AtRng.MobileTTA;
 using WF.AT;
 
 public class UnitManager : SingletonMB {
-
     public interface UnitDesciption {
         int DefinitionID { get; }
     }
-
     [Serializable]
     public class UnitPersistence : UnitDesciption {
         [SerializeField]
@@ -72,6 +70,7 @@ public class UnitManager : SingletonMB {
         public int AttackRange { get; private set; }
         public int Movement { get; private set; }
         public string ArtKey { get; private set; }
+        public int Cost { get; private set; }
 
         public void ParseData(int id, List<string> data) {
             DefinitionID    = id;
@@ -91,11 +90,11 @@ public class UnitManager : SingletonMB {
                     AttackType = 0;
                     break;
             }
-            
 
-            Movement        = int.Parse(data[4]);
-            AttackRange     = int.Parse(data[5]);
-            ArtKey          = data[6];
+            Movement    = int.Parse(data[4]);
+            AttackRange = int.Parse(data[5]);
+            ArtKey      = data[6];
+            Cost        = int.Parse(data[7]);
         }
     }
 
@@ -139,9 +138,9 @@ public class UnitManager : SingletonMB {
 
     public UnitDefinition GetDefinition(int id) {
         return m_definitions.ContainsKey(id) ? m_definitions[id] : null;
-        //return m_definitionsAsList[id];
     }
-    public long[] NotCollectibleIds;// = new long[3] { 0, 7, 8 };
+
+    public long[] NotCollectibleIds;
     public List<UnitDefinition> GetAsCollection() {
         List<UnitDefinition> toRet = new List<UnitDefinition>();
 

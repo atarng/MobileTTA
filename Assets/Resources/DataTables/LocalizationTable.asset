@@ -9,29 +9,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff4003eca4e42e94aadb4a79fa6051b5, type: 3}
-  m_Name: AbilityDefinitions
+  m_Name: LocalizationTable
   m_EditorClassIdentifier: 
-  currentColumns: 5
-  tableID: ability_0
+  currentColumns: 3
+  tableID: localization_table
   dictionary:
-  - key: ID
+  - key: localization_key
     val:
-    - Type
-    - Value1
-    - Value2
-    - Value3
-    - Description
-  - key: 0
+    - English
+    - Language_1
+    - Language_2
+    - Language_3
+  - key: tutorial_00_00
     val:
-    - 0
-    - 0
-    - 0
-    - 0
-    - Test Description
-  - key: 1
-    val:
-    - 1
-    - 2
+    - Drag your unit on top of the enemy unit to attack it.
     - 
     - 
-    - +2 Attack
+    - 

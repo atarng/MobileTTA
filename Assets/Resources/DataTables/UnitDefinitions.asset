@@ -11,8 +11,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff4003eca4e42e94aadb4a79fa6051b5, type: 3}
   m_Name: UnitDefinitions
   m_EditorClassIdentifier: 
-  currentColumns: 11
-  tableID: test
+  currentColumns: 12
+  tableID: unit_definitions
   dictionary:
   - key: ID
     val:
@@ -23,6 +23,7 @@ MonoBehaviour:
     - Movement
     - Range
     - UnitArtKey
+    - Cost
     - Ability1
     - Ability2
     - Ability3
@@ -36,6 +37,7 @@ MonoBehaviour:
     - 0
     - 0
     - Nexus
+    - 0
     - 
     - 
     - 
@@ -49,6 +51,7 @@ MonoBehaviour:
     - 2
     - 1
     - Soldier
+    - 0
     - 
     - 
     - 
@@ -62,6 +65,7 @@ MonoBehaviour:
     - 2
     - 1
     - Monk
+    - 0
     - 
     - 
     - 
@@ -75,6 +79,7 @@ MonoBehaviour:
     - 2
     - 2
     - Archer
+    - 0
     - 
     - 
     - 
@@ -88,6 +93,7 @@ MonoBehaviour:
     - 2
     - 2
     - Mage
+    - 0
     - 
     - 
     - 
@@ -101,6 +107,7 @@ MonoBehaviour:
     - 1
     - 1
     - Armor
+    - 0
     - 
     - 
     - 
@@ -114,6 +121,7 @@ MonoBehaviour:
     - 3
     - 1
     - Cavalry
+    - 0
     - 
     - 
     - 
@@ -127,6 +135,7 @@ MonoBehaviour:
     - 0
     - 1
     - Soldier
+    - 0
     - 
     - 
     - 
@@ -140,6 +149,7 @@ MonoBehaviour:
     - 0
     - 0
     - Nexus
+    - 0
     - 
     - 
     - 
@@ -153,6 +163,7 @@ MonoBehaviour:
     - 1
     - 2
     - Sorceror
+    - 0
     - 
     - 
     - 
@@ -166,6 +177,7 @@ MonoBehaviour:
     - 2
     - 1
     - Militia
+    - 0
     - 
     - 
     - 
@@ -179,7 +191,22 @@ MonoBehaviour:
     - 2
     - 1
     - Soldier
+    - 0
     - 1
     - 
     - 
     - Ability User
+  - key: 12
+    val:
+    - 30
+    - 30
+    - 20
+    - True
+    - 2
+    - 1
+    - Militia
+    - 1
+    - 
+    - 
+    - 
+    - Test

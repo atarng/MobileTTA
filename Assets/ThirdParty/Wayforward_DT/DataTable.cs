@@ -34,8 +34,8 @@ namespace WF.AT {
         int     columnFilter = -1, prevColumnFilter = -1;
 	    Vector2 scrollPos;
         Vector2 scrollPos_2;
-
-	    [MenuItem("Custom/Tables/Data Tables #&d")]
+        //Tables/
+        [MenuItem("Custom/Data Tables #&d")]
 	    //Initializes
 	    public static void Init()
 	    {

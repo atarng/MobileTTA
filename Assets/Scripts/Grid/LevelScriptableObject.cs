@@ -38,6 +38,9 @@ namespace AtRng.MobileTTA {
             }
         }
 
+        [SerializeField]
+        string tutorial_prefab_name;
+
 #if UNITY_EDITOR
         public void ReadLevelEditorGrid(LevelEditorGrid toPullFrom) {
             LevelEditorPlaceable[] toCopy = toPullFrom.GetPlaceablesList();
