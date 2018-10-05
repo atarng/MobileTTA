@@ -513,12 +513,12 @@ public class GameUnit : BaseUnit, ICombat {
         /****************** BELOW: BEHAVIOR AS CARD ************************/
         else if (AssignedToTile == null &&
             GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(GetPlayerOwner()) &&
-            GetPlayerOwner().GetEnoughActionPoints(GetPlayerOwner().GetCurrentSummonedUnits().Count) // this cost includes the nexus...
+            // TODO: Exclude the nexus?
+            GetPlayerOwner().GetEnoughActionPoints(GetPlayerOwner().GetCurrentSummonedUnits().Count + GetCost())
         ) {
             m_isDragging = true;
             SingletonMB.GetInstance<GameManager>().GetGrid().DisplaySummonableTiles(GetPlayerOwner());
         }
-
     }
     private void OnMouseUp() {
         if (!m_isDragging) return;

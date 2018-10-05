@@ -14,6 +14,7 @@ public abstract class BaseUnit : MonoBehaviour, IUnit {
     private int m_attackType = 0;
     private int m_pHealthMax = 4;
     private int m_sHealthMax = 4;
+    protected int m_cost = 0;
     private int m_Attack = 2;
     private GameObject m_artInstance = null;
     private TileTraversalEnum m_canTraverse = TileTraversalEnum.WalkAndClimb;
@@ -87,7 +88,6 @@ public abstract class BaseUnit : MonoBehaviour, IUnit {
         return m_Attack;
     }
 
-    //int IUnit.GetAttackRange() {
     public int GetAttackRange() {
         return m_attackRange;
     }
@@ -114,7 +114,9 @@ public abstract class BaseUnit : MonoBehaviour, IUnit {
     public bool IsSpiritualAttack() {
         return m_attackType == 1 || m_attackType == 2;
     }
-
+    public int GetCost() {
+        return m_cost;
+    }
 
     /*** ***/
     public void ReadDefinitionID(int defID) {
@@ -130,11 +132,13 @@ public abstract class BaseUnit : MonoBehaviour, IUnit {
         m_definitionID = ud.DefinitionID;
         m_pHealthMax = m_pHealth = ud.PhysicalHealth;
         m_sHealthMax = m_sHealth = ud.SpiritualHealth;
+
+        // dupicating data that could just be referenced to definition
         m_Attack = ud.AttackValue;
         m_attackType = ud.AttackType;
         m_attackRange = ud.AttackRange;
         m_maxMovement = ud.Movement;
-        //m_abilityID = ud.AbilityID;
+        m_cost = ud.Cost;
 
         ArtPrefab ap = SingletonMB.GetInstance<UnitManager>().GetArtFromKey(ud.ArtKey);
         if (ap != null) {

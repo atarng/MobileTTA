@@ -6,11 +6,14 @@ using System.Collections;
 
 namespace WF.AT {
     public static class DataTableLookup {
+
         /*** THIS SHOULD BE REFACTORED ***/
+        // For some reason I'm using this to loop up data tables... this is terrible!
         public enum DataTables {
             DebugOptions = 0,
             UnitDefinitions = 1,
-            AbilityDefinitions = 2
+            AbilityDefinitions = 2,
+            LocalizationTable= 3,
         }
 
         public const string DICTIONARY_PATH = "DataTables/{0}";
@@ -24,8 +27,7 @@ namespace WF.AT {
             }
             return currentDataObject.Exists(key);
         }
-        public static string GetDataTableValue(string key, int index = 0)//GetLocalizedString
-        {
+        public static string GetDataTableValue(string key, int index = 0) {
             if (currentDataObject == null) {
                 GetCurrentDataTable();
             }

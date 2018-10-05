@@ -28,3 +28,4 @@ MonoBehaviour:
     Y: 2
     ID: 7
     PlayerID: 1
+  tutorial_prefab_name: tutorial_script_00

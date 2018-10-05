@@ -34,13 +34,14 @@ public class LayoutHandler : MonoBehaviour {
         OrientationMonitor.OnOrientationChange += SwitchLayout;
         OrientationMonitor.OnResolutionChange  += SwitchLayout;
     }
-    /*
+<<<<<<< Updated upstream
+=======
     private void OnDestroy()
     {
         OrientationMonitor.OnOrientationChange -= SwitchLayout;
         OrientationMonitor.OnResolutionChange  -= SwitchLayout;
     }
-    */
+>>>>>>> Stashed changes
     #endregion
 
     #region PRIVATE_METHODS
