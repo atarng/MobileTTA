@@ -36,6 +36,8 @@ public class OrientationMonitor : MonoBehaviour {
     IEnumerator CheckForChange()
     {
         s_resolution = new Vector2(Screen.width, Screen.height);
+        yield return new WaitForSeconds(0.5f);
+
         if (OnResolutionChange != null) OnResolutionChange(s_resolution);
 
         s_orientation = Input.deviceOrientation;

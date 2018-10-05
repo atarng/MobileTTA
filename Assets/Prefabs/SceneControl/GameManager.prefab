@@ -20,9 +20,9 @@ GameObject:
   m_Component:
   - component: {fileID: 224268289479916978}
   - component: {fileID: 223362245297194384}
-  - component: {fileID: 114712924516550662}
-  - component: {fileID: 114469606715287770}
   - component: {fileID: 82585532011156316}
+  - component: {fileID: 114469606715287770}
+  - component: {fileID: 114712924516550662}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -159,6 +159,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 2c024c6b34eeaaf4aab3579192629f9b, type: 3}
   - {fileID: 8300000, guid: 53fa7bf6e966a714bb8e991c02ad1f28, type: 3}
   - {fileID: 8300000, guid: df49877e112c6da418ad9516d8671482, type: 3}
+  - {fileID: 8300000, guid: b4d0114c0124b0043945eef6b9b4f46a, type: 3}
   m_tempAudioSource: {fileID: 82585532011156316}
 --- !u!223 &223362245297194384
 Canvas:

@@ -11,8 +11,31 @@ using System;
  *  
  */
 public class GameUnit : BaseUnit, ICombat {
+    static GameUnit s_selectedUnit = null;
 
+    #region PRIVATE_MEMBERS
     bool m_hasPerformedAction = false;
+    bool m_mouseDownSelected = false;
+    float m_isDying = 0;
+    private Tile m_pendingPlacementTile = null;
+    private Tile m_pendingAttackPlacementTile = null;
+    private Tile m_currentTarget = null;
+    private List<Tile> m_pendingAttackList = null;
+
+    [SerializeField]
+    private GameObject m_actionPerformedImage;
+    private ISoundManager m_soundManagerTemp;
+    private Vector3 m_lastMousePosition = Vector3.zero;
+    #endregion
+
+    #region PUBLIC MEMBERS
+    // UI Components
+    public Text AttackText;
+    public Text PHealthText;
+    public Text SHealthText;
+    #endregion
+
+    // override from base
     public override bool HasPerformedAction {
         get {
             return m_hasPerformedAction;
@@ -25,24 +48,7 @@ public class GameUnit : BaseUnit, ICombat {
         }
     }
 
-    bool m_mouseDownSelected = false;
-
-
-    [SerializeField]
-    GameObject m_actionPerformedImage;
-
-    ISoundManager m_soundManagerTemp;
-
-    // UI Components
-    public Text AttackText;
-    public Text PHealthText;
-    public Text SHealthText;
-
-    float m_isDying = 0;
-
-
-    static GameUnit s_selectedUnit = null;
-    bool IsSelectedUnit() {
+    private bool IsSelectedUnit() {
         return this == s_selectedUnit;
     }
 
@@ -63,14 +69,14 @@ public class GameUnit : BaseUnit, ICombat {
                 m_pendingPlacementTile.Sprite.color = (pendingPlacementState == TileStateEnum.CanMove) ? TileColors.BLUE : TileColors.WHITE;
             }
             m_pendingPlacementTile = value;
-            if(m_pendingPlacementTile != null) {
+            if (m_pendingPlacementTile != null) {
                 m_pendingPlacementTile.Sprite.color = TileColors.CYAN;
 
                 //
                 if (!IsDragging()) {
                     m_pendingPlacementTile.SetPlaceable(this, false);
                 }
-                
+
             }
         }
     }
@@ -102,13 +108,8 @@ public class GameUnit : BaseUnit, ICombat {
             }
         }
     }
-    private Tile m_pendingPlacementTile = null;
-    private Tile m_pendingAttackPlacementTile = null;
-    private Tile m_currentTarget = null;
-    private List<Tile> m_pendingAttackList = null;
 
-    // ReadDefinition
-
+    // Called Every Frame... (ReadDefinition?)
     private void Update_UnitSelectionBehavior() {
         Tile currentlyOverTile = null;
         RaycastHit2D rayCastToGridTiles;
@@ -157,10 +158,8 @@ public class GameUnit : BaseUnit, ICombat {
 
                                 ///*
                                 if (icp != null) {
-                                    //bool matchingTile = (previousPendingPlacement.Equals(PendingPlacementTile));
                                     // in case it's on a different tile/need to restore position.
                                     PendingPlacementTile = m_pendingAttackPlacementTile;
-                                    //m_pendingPlacementTile.SetPlaceable(this, false);
 
                                     if (previousPendingPlacement != null && previousPendingPlacement.Equals(PendingPlacementTile)) { //(previousPendingPlacement.name == m_pendingPlacementTile.name) {
                                         resolved = true;
@@ -196,7 +195,6 @@ public class GameUnit : BaseUnit, ICombat {
                                     }
                                     // Unset original tile, place on new tile.
                                     PendingPlacementTile = currentlyOverTile;
-                                    //m_pendingPlacementTile.SetPlaceable(this, false);
                                 }
                             }
                             else {
@@ -321,7 +319,22 @@ public class GameUnit : BaseUnit, ICombat {
             }
         }
     }
+
+    // This is called every Frame... try to move stuff out of this location...
     private void Update_Visuals() {
+        if (m_artInstance != null) {
+            m_artInstance.SetActive(true);
+        }
+
+        if (m_playerId != 0) {
+            m_uiOverlay.localRotation = Quaternion.Euler(0, 0, 180);
+        }
+        float euler_rot = !IsCurrentPlayerTurn ? 180 : 0;
+        AttackText.transform.localRotation = Quaternion.Euler(0, 0, euler_rot);
+        PHealthText.transform.localRotation = Quaternion.Euler(0, 0, euler_rot);
+        SHealthText.transform.localRotation = Quaternion.Euler(0, 0, euler_rot);
+
+
         if (IsNexus()) {
             PHealthText.enabled = true;
             Vector3 newPos = PHealthText.transform.localPosition;
@@ -334,7 +347,7 @@ public class GameUnit : BaseUnit, ICombat {
 
             m_actionPerformedImage.SetActive(!GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(GetPlayerOwner()));
         }
-        // Else if Tile is on Board, or it is current players turn.
+        // Else if Tile is on Board, or it is current players turn, display text.
         else if ( AssignedToTile
             || GetPlayerOwner() == null
             || GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(GetPlayerOwner())) {
@@ -357,6 +370,8 @@ public class GameUnit : BaseUnit, ICombat {
             AttackText.enabled = false;
             SHealthText.enabled = false;
             PHealthText.enabled = false;
+
+            m_artInstance.SetActive(false);
         }
 
         if (m_isDying > 0) {
@@ -369,21 +384,19 @@ public class GameUnit : BaseUnit, ICombat {
         }
     }
     // Update is called once per frame
-    //protected override void OnUpdate() {
     private void Update() {
         Update_UnitSelectionBehavior();
         Update_Visuals();
     }
 
     /// IPlaceable Interface Implementations
-
     public override bool AttemptSelection() {
         //cc2d.enabled = true;// 
         if (GetPlayerOwner() == null || GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(GetPlayerOwner())) {
-            if (GameManager.GetInstance<GameManager>().CurrentPlayer().GetEnoughActionPoints(1)
-                && !HasPerformedAction && GetMaxMovement() > 0){
+            if (!HasPerformedAction && GetMaxMovement() > 0 && 
+                (IsMilitia() || GameManager.GetInstance<GameManager>().CurrentPlayer().GetEnoughActionPoints(1) )) {
                 m_isDragging = true;
-                return m_isDragging;
+                return true;
             }
             else if (!(GameManager.GetInstance<GameManager>().CurrentPlayer().GetEnoughActionPoints(1))) {
                 SceneControl.GetCurrentSceneControl().DisplayWarning("Not enough action points.");
@@ -412,7 +425,8 @@ public class GameUnit : BaseUnit, ICombat {
 
                 
                 if(m_soundManagerTemp == null) {
-                    m_soundManagerTemp = SingletonMB.GetInstance<GameManager>();
+                    // SingletonMB.GetInstance<GameManager>();
+                    m_soundManagerTemp = SingletonMB.GetInstance<AudioManager>();
                 }
                 m_soundManagerTemp.PlaySound("Tile");
             }
@@ -432,6 +446,7 @@ public class GameUnit : BaseUnit, ICombat {
         return true;
     }
 
+    // Called When Ending Turn.
     public override bool ClearStates() {
         bool ret = base.ClearStates();
         if (IsSelectedUnit()) {
@@ -471,14 +486,8 @@ public class GameUnit : BaseUnit, ICombat {
         }
     }
 
-    /*
-    void IUnit.ModifyPhysicalHealth(int amount){
-        throw new NotImplementedException();
-    }
-    void IUnit.ModifySpiritualHealth(int amount){
-        throw new NotImplementedException();
-    }
-    */
+    // This Function returns whether or not this tile is adjacent to other units... not sure why
+    // it's on this class... Should Move this to grid...
     private bool IsAdjacentToAlliedUnit(Tile t) {
         List<Tile> lt = GameManager.GetInstance<GameManager>().GetGrid().GetCircumference(t, 1);
         for (int i = 0; i < lt.Count; i++) {
@@ -495,11 +504,13 @@ public class GameUnit : BaseUnit, ICombat {
 
 
     /********************************************************/
+    private bool IsCurrentPlayerTurn {
+        get { return GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(GetPlayerOwner()); }
+    }
 
-    Vector3 m_lastMousePosition = Vector3.zero;
     protected virtual void OnMouseDown() {
         /* Maybe need to move this logic somewhere */
-        if (GameManager.GetInstance<GameManager>().CurrentPlayer().Equals(GetPlayerOwner()) &&
+        if (IsCurrentPlayerTurn &&
             s_selectedUnit != this) {
             s_selectedUnit = null;
             GameManager.GetInstance<GameManager>().GetGrid().ClearPathableTiles();
@@ -625,13 +636,6 @@ public class GameUnit : BaseUnit, ICombat {
     }
 
     /********************************************************/
-    /*
-    void IUnit.GenerateCardBehavior() {
-        BoxCollider2D bc2d = gameObject.GetComponent<BoxCollider2D>();
-        bc2d.size = Vector2.one;
-        bc2d.enabled = true;
-    }
-    */
 
     public bool IsMilitia() {
         return m_definitionID == 10;

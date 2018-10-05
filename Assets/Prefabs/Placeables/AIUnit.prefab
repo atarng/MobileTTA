@@ -189,7 +189,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1913570489838832}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 406, y: 300, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 224579164953268526}
@@ -442,6 +442,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_artPlacement: {fileID: 224132706500318760}
+  m_uiOverlay: {fileID: 224652423848771592}
+  m_sprites_to_use:
+  - {fileID: 21300000, guid: a5ceb8990653e3044bd38d04de669727, type: 3}
+  - {fileID: 21300000, guid: 4882a6649f336994baa033e0ad5916aa, type: 3}
+  - {fileID: 21300000, guid: 3a53daec84bd4b440aa88ffcc3136a3f, type: 3}
+  - {fileID: 21300000, guid: c6043200702f55445bb97c8c9e6bb9e8, type: 3}
+  m_outline: {fileID: 114845414413853090}
+  m_imageMask: {fileID: 114763915658633028}
+  m_shadow: {fileID: 114064744024624472}
+  m_action: {fileID: 114462498208231558}
   m_actionPerformedImage: {fileID: 1918550962461812}
   AttackText: {fileID: 114713179131793468}
   PHealthText: {fileID: 114371342303747818}

@@ -49,6 +49,7 @@ public class AIPlayer : BasePlayer {
 
     public override void PlaceUnitOnField(IUnit unitToPlace) {
         GameManager gm = SingletonMB.GetInstance<GameManager>();
+        AudioManager am = SingletonMB.GetInstance<AudioManager>();
         GameUnit candidateNexus = unitToPlace as GameUnit;
         if (candidateNexus != null && candidateNexus.IsNexus()) {
             m_fieldUnits.Add(unitToPlace);
@@ -65,7 +66,7 @@ public class AIPlayer : BasePlayer {
                         m_fieldUnits.Add(unitToPlace);
                         ActionPoints -= ((unitToPlace.GetID() == MILITIA_ID) ? MILITIA_COST : m_fieldUnits.Count);
 
-                        gm.PlaySound("Tile");
+                        am.PlaySound("Tile");
 
                         return;
                     }
@@ -80,6 +81,7 @@ public class AIPlayer : BasePlayer {
         Tile interactTile = null;
         AIUnit aiUnit = unitToMove as AIUnit;
         GameManager gm = SingletonMB.GetInstance<GameManager>();
+        AudioManager am = SingletonMB.GetInstance<AudioManager>();
         if (aiUnit != null) {
             aiUnit.DetermineTargetTiles(out targetTile, out interactTile);
             if (targetTile != null) {
@@ -102,7 +104,7 @@ public class AIPlayer : BasePlayer {
                         interactTile.name
                     ));
                 }
-                gm.PlaySound("Tile");
+                am.PlaySound("Tile");
             }
             else {
                 Debug.LogWarning(string.Format("[AIPlayer/PerformUnitAction] unit_tile: {0}", unitToMove.AssignedToTile.name));

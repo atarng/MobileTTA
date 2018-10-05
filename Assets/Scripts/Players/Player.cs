@@ -83,7 +83,7 @@ public class Player : BasePlayer {
         else {
             if (m_deckPopulated) {
                 if (m_soundManagerTemp == null) {
-                    m_soundManagerTemp = SingletonMB.GetInstance<GameManager>();
+                    m_soundManagerTemp = SingletonMB.GetInstance<AudioManager>();
                 }
                 m_soundManagerTemp.PlaySound("Draw");
 

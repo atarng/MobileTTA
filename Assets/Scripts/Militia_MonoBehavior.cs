@@ -71,8 +71,7 @@ public class Militia_MonoBehavior : MonoBehaviour {
         if(bp is Player) {
             if (bp.Health <= 10) {
                 SceneControl.GetCurrentSceneControl().DisplayWarning("Not Enough Wealth to Conscript Militia.");
-            }
-            else if (bp.GetEnoughActionPoints(3)) {
+            } else if (bp.GetEnoughActionPoints(3)) {
                 GenerateMilitia(bp.ID);
                 SingletonMB.GetInstance<GameManager>().GetGrid().DisplaySummonableTiles(bp);
             }

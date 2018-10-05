@@ -7,8 +7,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 using AtRng.MobileTTA;
-
-public class GameManager : SceneControl, ISoundManager {
+//, ISoundManager
+public class GameManager : SceneControl {
     /*** MAP INIT ***/
 
     public LevelScriptableObject LevelInitData;
@@ -273,6 +273,8 @@ public class GameManager : SceneControl, ISoundManager {
     }
 
     public void UpdateTurn() {
+        AudioManager sound_manager_temp = SingletonMB.GetInstance<AudioManager>();
+        sound_manager_temp.PlaySound("NewTurn");
 
         BasePlayer p = m_turnQueue.Dequeue();
         m_turnQueue.Enqueue(p);
@@ -339,32 +341,34 @@ public class GameManager : SceneControl, ISoundManager {
         if (m_combatOrder && combatant2.IsAlive() ) {
             combatant1.TakeDamage(iu2p_damageToDo, iu2s_damageToDo);
         }
-        PlaySound("Combat1");
+        AudioManager sound_manager_temp = SingletonMB.GetInstance<AudioManager>();
+        sound_manager_temp.PlaySound("Combat1");
 
         CheckVictory(GetPlayer(0), GetPlayer(1));
         CheckVictory(GetPlayer(1), GetPlayer(0));
 
     }
 
-    public void PlaySound(string soundKey) {
-        if (!m_tempAudioSource.isPlaying) {
-            switch (soundKey) {
-                case "Tile":
-                    m_tempAudioSource.clip = m_tempSoundArray[0];
-                    break;
-                case "Draw":
-                    m_tempAudioSource.clip = m_tempSoundArray[1];
-                    break;
-                case "Combat1":
-                    m_tempAudioSource.clip = m_tempSoundArray[2];
-                    break;
-                case "Combat2":
-                    m_tempAudioSource.clip = m_tempSoundArray[3];
-                    break;
-            }
-            m_tempAudioSource.Play();
-        }
-    }
+    //public void PlaySound(string soundKey) {
+    //    if (!m_tempAudioSource.isPlaying) {
+    //        switch (soundKey) {
+    //            case "Tile":
+    //                m_tempAudioSource.clip = m_tempSoundArray[0];
+    //                break;
+    //            case "Draw":
+    //                m_tempAudioSource.clip = m_tempSoundArray[1];
+    //                break;
+    //            case "Combat1":
+    //            case "Combat2":
+    //                m_tempAudioSource.clip = m_tempSoundArray[2];
+    //                break;
+    //            case "NewTurn":
+    //                m_tempAudioSource.clip = m_tempSoundArray[3];
+    //                break;
+    //        }
+    //        m_tempAudioSource.Play();
+    //    }
+    //}
 
     ///*
     //*/
