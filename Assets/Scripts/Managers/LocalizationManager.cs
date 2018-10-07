@@ -38,7 +38,7 @@ public class LocalizationManager : SingletonMB {
         }
     }
 
-    string GetTextFromKey(string key) {
+    public string GetTextFromKey(string key) {
         return m_definitions[key];
     }
 

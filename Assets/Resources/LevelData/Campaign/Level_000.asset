@@ -23,9 +23,22 @@ MonoBehaviour:
     Y: 1
     ID: 1
     PlayerID: 0
+    m_on_death_trigger: 
+    m_on_attacked_trigger: 
+    m_on_attacked_counter: 0
+    m_on_move_trigger: 
+    m_on_move_counter: 0
+    m_on_target_move: {x: 0, y: 0}
   - placeableType: 0
     X: 3
     Y: 2
     ID: 7
     PlayerID: 1
-  tutorial_prefab_name: tutorial_script_00
+    m_on_death_trigger: 
+    m_on_attacked_trigger: 
+    m_on_attacked_counter: 0
+    m_on_move_trigger: 
+    m_on_move_counter: 0
+    m_on_target_move: {x: 0, y: 0}
+  m_tutorial_prefab: {fileID: 1303017944901768, guid: d92c27b0fb930bd4ea5fa62f9887a8a9,
+    type: 2}

@@ -232,6 +232,10 @@ public class GameManager : SceneControl {
         else {
             Debug.LogError("[GameManager/MapInit] Could not grab opposing player");
         }
+
+        // Load Tutorial Script:
+        GameObject.Instantiate(LevelInitData.TutorialPrefab);
+
     }
 
     public BasePlayer GetPlayer(int id) {

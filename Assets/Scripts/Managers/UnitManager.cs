@@ -130,7 +130,6 @@ public class UnitManager : SingletonMB {
                     UnitDefinition to_insert = new UnitDefinition();
                     to_insert.ParseData(defID, kvs.val);
                     m_definitions.Add(defID, to_insert);
-                    //m_definitionsAsList.Add(to_insert);
                 }
             }
         }

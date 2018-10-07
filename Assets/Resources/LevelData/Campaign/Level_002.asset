@@ -23,68 +23,154 @@ MonoBehaviour:
     Y: 0
     ID: 0
     PlayerID: 0
+    m_on_death_trigger: 
+    m_on_attacked_trigger: 
+    m_on_attacked_counter: 0
+    m_on_move_trigger: 
+    m_on_move_counter: 0
+    m_on_target_move: {x: 0, y: 0}
   - placeableType: 0
     X: 4
     Y: 8
     ID: 0
     PlayerID: 1
+    m_on_death_trigger: 
+    m_on_attacked_trigger: 
+    m_on_attacked_counter: 0
+    m_on_move_trigger: 
+    m_on_move_counter: 0
+    m_on_target_move: {x: 0, y: 0}
   - placeableType: 0
     X: 2
     Y: 5
     ID: 4
     PlayerID: 1
+    m_on_death_trigger: 
+    m_on_attacked_trigger: 
+    m_on_attacked_counter: 0
+    m_on_move_trigger: 
+    m_on_move_counter: 0
+    m_on_target_move: {x: 0, y: 0}
   - placeableType: 0
     X: 6
     Y: 5
     ID: 4
     PlayerID: 1
+    m_on_death_trigger: 
+    m_on_attacked_trigger: 
+    m_on_attacked_counter: 0
+    m_on_move_trigger: 
+    m_on_move_counter: 0
+    m_on_target_move: {x: 0, y: 0}
   - placeableType: 0
     X: 2
     Y: 4
     ID: 5
     PlayerID: 1
+    m_on_death_trigger: 
+    m_on_attacked_trigger: 
+    m_on_attacked_counter: 0
+    m_on_move_trigger: 
+    m_on_move_counter: 0
+    m_on_target_move: {x: 0, y: 0}
   - placeableType: 0
     X: 6
     Y: 4
     ID: 5
     PlayerID: 1
+    m_on_death_trigger: 
+    m_on_attacked_trigger: 
+    m_on_attacked_counter: 0
+    m_on_move_trigger: 
+    m_on_move_counter: 0
+    m_on_target_move: {x: 0, y: 0}
   - placeableType: 0
     X: 1
     Y: 5
     ID: 3
     PlayerID: 1
+    m_on_death_trigger: 
+    m_on_attacked_trigger: 
+    m_on_attacked_counter: 0
+    m_on_move_trigger: 
+    m_on_move_counter: 0
+    m_on_target_move: {x: 0, y: 0}
   - placeableType: 0
     X: 3
     Y: 5
     ID: 3
     PlayerID: 1
+    m_on_death_trigger: 
+    m_on_attacked_trigger: 
+    m_on_attacked_counter: 0
+    m_on_move_trigger: 
+    m_on_move_counter: 0
+    m_on_target_move: {x: 0, y: 0}
   - placeableType: 0
     X: 5
     Y: 5
     ID: 3
     PlayerID: 1
+    m_on_death_trigger: 
+    m_on_attacked_trigger: 
+    m_on_attacked_counter: 0
+    m_on_move_trigger: 
+    m_on_move_counter: 0
+    m_on_target_move: {x: 0, y: 0}
   - placeableType: 0
     X: 7
     Y: 5
     ID: 3
     PlayerID: 1
+    m_on_death_trigger: 
+    m_on_attacked_trigger: 
+    m_on_attacked_counter: 0
+    m_on_move_trigger: 
+    m_on_move_counter: 0
+    m_on_target_move: {x: 0, y: 0}
   - placeableType: 0
     X: 1
     Y: 4
     ID: 2
     PlayerID: 1
+    m_on_death_trigger: 
+    m_on_attacked_trigger: 
+    m_on_attacked_counter: 0
+    m_on_move_trigger: 
+    m_on_move_counter: 0
+    m_on_target_move: {x: 0, y: 0}
   - placeableType: 0
     X: 5
     Y: 4
     ID: 2
     PlayerID: 1
+    m_on_death_trigger: 
+    m_on_attacked_trigger: 
+    m_on_attacked_counter: 0
+    m_on_move_trigger: 
+    m_on_move_counter: 0
+    m_on_target_move: {x: 0, y: 0}
   - placeableType: 0
     X: 7
     Y: 4
     ID: 1
     PlayerID: 1
+    m_on_death_trigger: 
+    m_on_attacked_trigger: 
+    m_on_attacked_counter: 0
+    m_on_move_trigger: 
+    m_on_move_counter: 0
+    m_on_target_move: {x: 0, y: 0}
   - placeableType: 0
     X: 3
     Y: 4
     ID: 1
     PlayerID: 1
+    m_on_death_trigger: 
+    m_on_attacked_trigger: 
+    m_on_attacked_counter: 0
+    m_on_move_trigger: 
+    m_on_move_counter: 0
+    m_on_target_move: {x: 0, y: 0}
+  m_tutorial_prefab: {fileID: 1303017944901768, guid: d92c27b0fb930bd4ea5fa62f9887a8a9,
+    type: 2}

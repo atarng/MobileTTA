@@ -12,17 +12,20 @@ MonoBehaviour:
   m_Name: LocalizationTable
   m_EditorClassIdentifier: 
   currentColumns: 3
-  tableID: localization_table
+  tableID: test
   dictionary:
-  - key: localization_key
+  - key: Key
     val:
     - English
     - Language_1
     - Language_2
-    - Language_3
   - key: tutorial_00_00
     val:
-    - Drag your unit on top of the enemy unit to attack it.
+    - Drag your unit on top of the enemy to attack it.
     - 
+    - 
+  - key: tutorial_00_01
+    val:
+    - Congratulations, Success!
     - 
     - 

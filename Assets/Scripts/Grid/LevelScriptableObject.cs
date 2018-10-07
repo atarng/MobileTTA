@@ -39,7 +39,12 @@ namespace AtRng.MobileTTA {
         }
 
         [SerializeField]
-        string tutorial_prefab_name;
+        GameObject m_tutorial_prefab;
+        public GameObject TutorialPrefab {
+            get {
+                return m_tutorial_prefab;
+            }
+        }
 
 #if UNITY_EDITOR
         public void ReadLevelEditorGrid(LevelEditorGrid toPullFrom) {
