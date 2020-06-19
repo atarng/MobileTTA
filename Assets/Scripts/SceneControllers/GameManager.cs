@@ -234,8 +234,9 @@ public class GameManager : SceneControl {
         }
 
         // Load Tutorial Script:
-        GameObject.Instantiate(LevelInitData.TutorialPrefab);
-
+        if(LevelInitData.TutorialPrefab) {
+            GameObject.Instantiate(LevelInitData.TutorialPrefab);
+        }
     }
 
     public BasePlayer GetPlayer(int id) {
